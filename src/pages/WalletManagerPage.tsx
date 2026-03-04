@@ -3,6 +3,16 @@ import { ChoiceButton } from '@/components/ChoiceButton';
 import { Copy, Check, Download, Lock, Eye, EyeOff, Coins, ArrowRight, ChevronRight, BookOpen, Globe } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+const CHAIN_DATA = [
+  { name: "Ethereum", symbol: "ETH", color: "text-indigo-500", bg: "bg-indigo-50", risk: "Low", description: "The leading smart contract platform. Used for DeFi, NFTs, and DAOs." },
+  { name: "Bitcoin", symbol: "BTC", color: "text-orange-500", bg: "bg-orange-50", risk: "Low", description: "The first cryptocurrency. Digital gold and a store of value." },
+  { name: "Solana", symbol: "SOL", color: "text-purple-500", bg: "bg-purple-50", risk: "Medium", description: "High-performance blockchain known for speed and low fees." },
+  { name: "Arbitrum", symbol: "ARB", color: "text-blue-500", bg: "bg-blue-50", risk: "Medium", description: "Layer 2 scaling solution for Ethereum. Fast and cheap transactions." },
+  { name: "Polygon", symbol: "MATIC", color: "text-violet-500", bg: "bg-violet-50", risk: "Medium", description: "Scalable infrastructure for building Ethereum-compatible blockchains." },
+  { name: "Avalanche", symbol: "AVAX", color: "text-red-500", bg: "bg-red-50", risk: "Medium", description: "Open, programmable smart contracts platform for dApps." },
+  { name: "Base", symbol: "BASE", color: "text-blue-600", bg: "bg-blue-100", risk: "Low", description: "Secure, low-cost Ethereum L2 incubated by Coinbase." },
+];
+
 const WALLET_DATA = [
   { name: "Exodus", symbol: "EXODUS", color: "text-purple-500", bg: "bg-purple-50", risk: "Low", description: "Beautiful, easy-to-use multi-chain wallet with built-in exchange and portfolio tracking.", url: "https://www.exodus.com/" },
   { name: "Trust Wallet", symbol: "TRUST", color: "text-blue-500", bg: "bg-blue-50", risk: "Low", description: "The most trusted & secure crypto wallet. Multi-chain support with staking and DApp browser.", url: "https://trustwallet.com/" },
@@ -76,18 +86,18 @@ const WalletManagerPage: React.FC = () => {
 
       {step === 1 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {WALLET_DATA.map(wallet => (
-            <button key={wallet.name} onClick={() => { setSelectedChain(wallet.name); setStep(2); }}
+          {CHAIN_DATA.map(chain => (
+            <button key={chain.name} onClick={() => { setSelectedChain(chain.name); setStep(2); }}
               className="bg-card p-6 rounded-2xl border border-border hover:border-primary hover:shadow-lg transition-all text-left group">
               <div className="flex items-center justify-between mb-2">
-                <div className={`${wallet.bg} p-2 rounded-lg ${wallet.color}`}><Coins size={24} /></div>
+                <div className={`${chain.bg} p-2 rounded-lg ${chain.color}`}><Coins size={24} /></div>
                 <ArrowRight size={20} className="text-muted-foreground/30 group-hover:text-primary transform group-hover:translate-x-1 transition-all" />
               </div>
-              <h3 className="font-bold text-lg text-foreground">{wallet.name}</h3>
+              <h3 className="font-bold text-lg text-foreground">{chain.name}</h3>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${wallet.risk === 'Low' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{wallet.risk} Risk</span>
+                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${chain.risk === 'Low' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{chain.risk} Risk</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{wallet.description}</p>
+              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{chain.description}</p>
             </button>
           ))}
         </div>
