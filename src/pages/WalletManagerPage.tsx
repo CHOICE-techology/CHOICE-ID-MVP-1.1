@@ -105,7 +105,6 @@ const ITEMS = [
   { name: "Bitcoin", symbol: "BTC", risk: "Low", description: "The first cryptocurrency. Digital gold and a store of value.", url: "https://bitcoin.org", Logo: BitcoinLogo },
   { name: "Solana", symbol: "SOL", risk: "Medium", description: "High-performance blockchain known for speed and low fees.", url: "https://solana.com", Logo: SolanaLogo },
   { name: "Arbitrum", symbol: "ARB", risk: "Medium", description: "Layer 2 scaling solution for Ethereum. Fast and cheap transactions.", url: "https://arbitrum.io", Logo: ArbitrumLogo },
-  { name: "Polygon", symbol: "MATIC", risk: "Medium", description: "Scalable infrastructure for building Ethereum-compatible blockchains.", url: "https://polygon.technology", Logo: PolygonLogo },
   { name: "Base", symbol: "BASE", risk: "Low", description: "Secure, low-cost Ethereum L2 incubated by Coinbase.", url: "https://base.org", Logo: BaseLogo },
   { name: "Avalanche", symbol: "AVAX", risk: "Medium", description: "Open, programmable smart contracts platform for dApps.", url: "https://avax.network", Logo: AvalancheLogo },
   { name: "Polkadot", symbol: "DOT", risk: "Medium", description: "Multi-chain protocol connecting blockchains into one unified network.", url: "https://polkadot.com", Logo: PolkadotLogo },
