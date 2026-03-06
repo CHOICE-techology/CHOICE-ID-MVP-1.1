@@ -3,13 +3,15 @@ import { ChoiceButton } from '@/components/ChoiceButton';
 import { Copy, Check, Lock, Eye, EyeOff, ArrowRight, ChevronRight, Globe, ExternalLink } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-// Brand logos as inline SVGs
+// Brand logos as inline SVGs — faithful to official brand marks
 const EthereumLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-    <path d="M16 2L6 16.5L16 22L26 16.5L16 2Z" fill="#627EEA"/>
-    <path d="M16 2V22L6 16.5L16 2Z" fill="#627EEA" opacity="0.6"/>
-    <path d="M16 24L6 18.5L16 30L26 18.5L16 24Z" fill="#627EEA"/>
-    <path d="M16 24V30L6 18.5L16 24Z" fill="#627EEA" opacity="0.6"/>
+  <svg viewBox="0 0 256 417" className="w-7 h-7" fill="none">
+    <path d="M127.961 0l-2.795 9.5v275.668l2.795 2.79 127.962-75.638z" fill="#343434"/>
+    <path d="M127.962 0L0 212.32l127.962 75.639V154.158z" fill="#8C8C8C"/>
+    <path d="M127.962 312.187l-1.575 1.92V414.45l1.575 4.6L256 236.587z" fill="#3C3C3B"/>
+    <path d="M127.962 419.05V312.188L0 236.585z" fill="#8C8C8C"/>
+    <path d="M127.962 287.958l127.961-75.637-127.961-58.162z" fill="#141414"/>
+    <path d="M0 212.32l127.96 75.64V154.159z" fill="#393939"/>
   </svg>
 );
 
@@ -21,66 +23,112 @@ const BitcoinLogo = () => (
 );
 
 const SolanaLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <defs><linearGradient id="sol" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#9945FF"/><stop offset="100%" stopColor="#14F195"/></linearGradient></defs>
-    <rect x="3" y="3" width="26" height="26" rx="6" fill="url(#sol)"/>
-    <path d="M8 20.5h12.5l3.5-3.5H11.5L8 20.5zM8 11.5l3.5 3.5H24l-3.5-3.5H8zM11.5 24L8 20.5h0L11.5 24H24l-3.5-3.5" fill="white" opacity="0.9"/>
+  <svg viewBox="0 0 397 311" className="w-7 h-7" fill="none">
+    <defs><linearGradient id="sol-a" x1="360" y1="0" x2="141" y2="311" gradientUnits="userSpaceOnUse"><stop stopColor="#00FFA3"/><stop offset="1" stopColor="#DC1FFF"/></linearGradient></defs>
+    <path d="M64.6 237.9a12.2 12.2 0 0 1 8.6-3.6h317.4a6.1 6.1 0 0 1 4.3 10.4l-61.3 61.4a12.2 12.2 0 0 1-8.6 3.5H7.6a6.1 6.1 0 0 1-4.3-10.4l61.3-61.3z" fill="url(#sol-a)"/>
+    <path d="M64.6 3.8A12.5 12.5 0 0 1 73.2 0h317.4a6.1 6.1 0 0 1 4.3 10.4l-61.3 61.4a12.2 12.2 0 0 1-8.6 3.5H7.6a6.1 6.1 0 0 1-4.3-10.4L64.6 3.8z" fill="url(#sol-a)"/>
+    <path d="M333 120.6a12.2 12.2 0 0 0-8.6-3.6H7a6.1 6.1 0 0 0-4.3 10.4l61.3 61.4a12.2 12.2 0 0 0 8.6 3.5h317.4a6.1 6.1 0 0 0 4.3-10.4L333 120.6z" fill="url(#sol-a)"/>
   </svg>
 );
 
 const ArbitrumLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <circle cx="16" cy="16" r="14" fill="#2D374B"/>
-    <path d="M16 6L8 16l8 10 8-10L16 6z" fill="#28A0F0"/>
-    <path d="M16 6L8 16l8 5V6z" fill="#96BEDC"/>
-  </svg>
-);
-
-const PolygonLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <circle cx="16" cy="16" r="14" fill="#8247E5"/>
-    <path d="M21.3 13.3c-.4-.2-.9-.2-1.2 0l-2.9 1.7-2 1.1-2.9 1.7c-.4.2-.9.2-1.2 0l-2.3-1.3c-.4-.2-.6-.6-.6-1.1v-2.5c0-.4.2-.9.6-1.1l2.2-1.3c.4-.2.9-.2 1.2 0l2.2 1.3c.4.2.6.6.6 1.1v1.7l2-1.1v-1.7c0-.4-.2-.9-.6-1.1l-4.2-2.4c-.4-.2-.9-.2-1.2 0l-4.3 2.5c-.4.2-.6.6-.6 1v4.9c0 .4.2.9.6 1.1l4.2 2.4c.4.2.9.2 1.2 0l2.9-1.7 2-1.1 2.9-1.7c.4-.2.9-.2 1.2 0l2.2 1.3c.4.2.6.6.6 1.1v2.5c0 .4-.2.9-.6 1.1l-2.2 1.3c-.4.2-.9.2-1.2 0l-2.2-1.3c-.4-.2-.6-.6-.6-1.1v-1.7l-2 1.1v1.7c0 .4.2.9.6 1.1l4.2 2.4c.4.2.9.2 1.2 0l4.2-2.4c.4-.2.6-.6.6-1.1v-4.9c0-.4-.2-.9-.6-1.1l-4.2-2.4z" fill="white"/>
+  <svg viewBox="0 0 40 40" className="w-7 h-7" fill="none">
+    <rect width="40" height="40" rx="20" fill="#213147"/>
+    <path d="M21.8 12.6l5 8.6 2.7-4.5-4.5-7.7h-5.3l2.1 3.6z" fill="#12AAFF"/>
+    <path d="M21.8 12.6l-2.1-3.6h-5.3l9.5 16.5 2.6-4.3-4.7-8.6z" fill="white"/>
+    <path d="M10.5 25.9l3.2 5.5 3.2-1.9-3.3-5.7-3.1 2.1z" fill="#9DCCED"/>
+    <path d="M29.5 25.9l-3.2 5.5-3.2-1.9 3.3-5.7 3.1 2.1z" fill="#9DCCED"/>
   </svg>
 );
 
 const BaseLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <circle cx="16" cy="16" r="14" fill="#0052FF"/>
-    <path d="M16 26c5.5 0 10-4.5 10-10S21.5 6 16 6C10.8 6 6.4 10 6 15.1h13.2v1.8H6C6.4 22 10.8 26 16 26z" fill="white"/>
+  <svg viewBox="0 0 111 111" className="w-7 h-7" fill="none">
+    <circle cx="55.5" cy="55.5" r="55.5" fill="#0052FF"/>
+    <path d="M55.4 93.3c20.9 0 37.8-16.9 37.8-37.8S76.3 17.7 55.4 17.7c-19.5 0-35.5 14.7-37.5 33.6h49.9v8.4H17.9c2 19 18 33.6 37.5 33.6z" fill="white"/>
   </svg>
 );
 
 const AvalancheLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <circle cx="16" cy="16" r="14" fill="#E84142"/>
-    <path d="M20.5 21H23L16 8l-7 13h2.5l4.5-8.5L20.5 21z" fill="white"/>
+  <svg viewBox="0 0 254 254" className="w-7 h-7" fill="none">
+    <circle cx="127" cy="127" r="127" fill="#E84142"/>
+    <path d="M171.8 170.3h27.4L132.5 56.6c-3.9-7.2-10.3-7.2-14.2 0L99 92.5l19.2 35.1c3.3-6 9.5-6 12.8 0l40.8 42.7z" fill="white"/>
+    <path d="M99 92.5L58.8 170.3h27.4l21.3-42.7L99 92.5z" fill="white"/>
   </svg>
 );
 
 const PolkadotLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <circle cx="16" cy="16" r="14" fill="#E6007A"/>
-    <circle cx="16" cy="9" r="3" fill="white"/>
-    <circle cx="16" cy="23" r="3" fill="white"/>
-    <circle cx="10" cy="13" r="2" fill="white" opacity="0.7"/>
-    <circle cx="22" cy="13" r="2" fill="white" opacity="0.7"/>
-    <circle cx="10" cy="19" r="2" fill="white" opacity="0.7"/>
-    <circle cx="22" cy="19" r="2" fill="white" opacity="0.7"/>
+  <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+    <circle cx="16" cy="16" r="15" fill="#E6007A"/>
+    <ellipse cx="16" cy="8.5" rx="4.5" ry="3.2" fill="white"/>
+    <ellipse cx="16" cy="23.5" rx="4.5" ry="3.2" fill="white"/>
+    <ellipse cx="9" cy="12.5" rx="2.5" ry="1.8" fill="white"/>
+    <ellipse cx="23" cy="12.5" rx="2.5" ry="1.8" fill="white"/>
+    <ellipse cx="9" cy="19.5" rx="2.5" ry="1.8" fill="white"/>
+    <ellipse cx="23" cy="19.5" rx="2.5" ry="1.8" fill="white"/>
   </svg>
 );
 
 const TrustWalletLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <rect x="3" y="3" width="26" height="26" rx="6" fill="#0500FF"/>
-    <path d="M16 7C12 10 8 10 8 10s0 8 0 10c0 4 8 6 8 6s8-2 8-6c0-2 0-10 0-10s-4 0-8-3z" fill="none" stroke="white" strokeWidth="1.5"/>
+  <svg viewBox="0 0 40 40" className="w-7 h-7" fill="none">
+    <rect width="40" height="40" rx="10" fill="#0500FF"/>
+    <path d="M20 8c-4.5 3-8.5 3-8.5 3s0 9.5 0 12c0 5 8.5 8 8.5 8s8.5-3 8.5-8c0-2.5 0-12 0-12s-4-0-8.5-3z" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
 const ZengoLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <rect x="3" y="3" width="26" height="26" rx="6" fill="#0E76FD"/>
-    <path d="M10 12h12l-8 8h-4v-2l6-6H10z" fill="white"/>
-    <circle cx="21" cy="20" r="2.5" fill="white"/>
+  <svg viewBox="0 0 40 40" className="w-7 h-7" fill="none">
+    <rect width="40" height="40" rx="10" fill="#0E76FD"/>
+    <path d="M11 14h14L13 28h18" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+  </svg>
+);
+
+// Provider logos for Connect step
+const MetaMaskProviderLogo = () => (
+  <svg viewBox="0 0 35 33" className="w-6 h-6" fill="none">
+    <path d="M32.958 1l-13.134 9.718 2.442-5.727z" fill="#E17726" stroke="#E17726" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2.066 1l13.003 9.809-2.312-5.818zM28.146 23.898l-3.487 5.34 7.463 2.053 2.143-7.283zM.889 24.008l2.13 7.283 7.463-2.053-3.487-5.34z" fill="#E27625" stroke="#E27625" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M10.115 14.558l-2.077 3.14 7.405.337-.247-7.969zM24.91 14.558l-5.16-4.583-.169 8.06 7.405-.337z" fill="#E27625" stroke="#E27625" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M10.482 29.238l4.465-2.173-3.86-3.006zM20.078 27.065l4.446 2.173-.587-5.18z" fill="#E27625" stroke="#E27625" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const TrustProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <rect width="40" height="40" rx="10" fill="#0500FF"/>
+    <path d="M20 8c-4.5 3-8.5 3-8.5 3s0 9.5 0 12c0 5 8.5 8 8.5 8s8.5-3 8.5-8c0-2.5 0-12 0-12s-4-0-8.5-3z" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const CoinbaseProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <rect width="40" height="40" rx="10" fill="#0052FF"/>
+    <rect x="12" y="12" width="16" height="16" rx="8" fill="white"/>
+    <rect x="16" y="16" width="8" height="8" rx="2" fill="#0052FF"/>
+  </svg>
+);
+
+const PhantomProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <defs><linearGradient id="ppg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#534BB1"/><stop offset="100%" stopColor="#551BF9"/></linearGradient></defs>
+    <rect width="40" height="40" rx="10" fill="url(#ppg)"/>
+    <circle cx="16" cy="19" r="2.5" fill="white"/><circle cx="24" cy="19" r="2.5" fill="white"/>
+  </svg>
+);
+
+const RainbowProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <defs><linearGradient id="rpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#FF4000"/><stop offset="25%" stopColor="#FF9901"/><stop offset="50%" stopColor="#01DA40"/><stop offset="75%" stopColor="#00AAFF"/><stop offset="100%" stopColor="#A259FF"/></linearGradient></defs>
+    <rect rx="10" width="40" height="40" fill="url(#rpg)"/>
+    <path d="M8 28v-4a12 12 0 0 1 24 0v4" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    <path d="M12 28v-4a8 8 0 0 1 16 0v4" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    <path d="M16 28v-4a4 4 0 0 1 8 0v4" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+
+const WalletConnectProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <rect rx="10" width="40" height="40" fill="#3B99FC"/>
+    <path d="M12.5 16.5c4.1-4 10.9-4 15 0l.5.5-1.7 1.7-.5-.5c-3.2-3.1-8.4-3.1-11.6 0l-.5.5L12 17l.5-.5zm18.5 3.4l1.5 1.5-7.1 7-1.5-1.5 5.6-5.5zm-24.5 1.5L8 19.9l5.6 5.5L12 27z" fill="white"/>
   </svg>
 );
 
