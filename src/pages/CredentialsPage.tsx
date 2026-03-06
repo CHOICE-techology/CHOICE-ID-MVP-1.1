@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
-import { mockUploadToIPFS, mockConnectSocial, mockVerifyPhysicalDocument } from '@/services/cryptoService';
+import { mockUploadToIPFS, mockVerifyPhysicalDocument } from '@/services/cryptoService';
 import { analyzeWalletHistory, BlockchainStats } from '@/services/blockchainService';
+import { supabase } from '@/integrations/supabase/client';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from 'recharts';
 import {
@@ -12,17 +13,34 @@ import {
   Zap, X, Upload, FileCheck,
   Activity, Github,
   Send, MessageSquare, Music,
-  PlusCircle, CheckCircle
+  PlusCircle, CheckCircle, AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// URL patterns for each social platform
+const PLATFORM_URL_PATTERNS: Record<string, { regex: RegExp; example: string }> = {
+  X: { regex: /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/?$/, example: 'https://x.com/username' },
+  Facebook: { regex: /^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9._]+\/?$/, example: 'https://facebook.com/username' },
+  Linkedin: { regex: /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/, example: 'https://linkedin.com/in/username' },
+  Instagram: { regex: /^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.]+\/?$/, example: 'https://instagram.com/username' },
+  Github: { regex: /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+\/?$/, example: 'https://github.com/username' },
+  TikTok: { regex: /^https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_.]+\/?$/, example: 'https://tiktok.com/@username' },
+  Youtube: { regex: /^https?:\/\/(www\.)?youtube\.com\/(@[a-zA-Z0-9_-]+|channel\/[a-zA-Z0-9_-]+)\/?$/, example: 'https://youtube.com/@username' },
+  Meta: { regex: /^https?:\/\/(www\.)?(facebook\.com|meta\.com)\/[a-zA-Z0-9._]+\/?$/, example: 'https://facebook.com/username' },
+  Telegram: { regex: /^https?:\/\/(www\.)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+\/?$/, example: 'https://t.me/username' },
+  Farcaster: { regex: /^https?:\/\/(www\.)?warpcast\.com\/[a-zA-Z0-9._-]+\/?$/, example: 'https://warpcast.com/username' },
+  Discord: { regex: /^https?:\/\/(www\.)?discord(app)?\.com\/(users\/\d+|channels\/\d+)\/?$/, example: 'https://discord.com/users/123456' },
+};
 
 const CredentialsPage: React.FC = () => {
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [blockchainStats, setBlockchainStats] = useState<BlockchainStats | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
   const [activePlatform, setActivePlatform] = useState<string | null>(null);
   const [customPlatformName, setCustomPlatformName] = useState('');
   const [handleInput, setHandleInput] = useState('');
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [isVerifyingSocial, setIsVerifyingSocial] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [docType, setDocType] = useState<'Diploma' | 'Certification' | 'Award' | 'ID'>('Diploma');
@@ -32,6 +50,7 @@ const CredentialsPage: React.FC = () => {
 
   const handleAnalyzeWallet = async () => {
     setIsAnalyzing(true);
+    setWalletError(null);
     try {
       const stats = await analyzeWalletHistory(identity.address);
       setBlockchainStats(stats);
@@ -45,22 +64,65 @@ const CredentialsPage: React.FC = () => {
       await mockUploadToIPFS(historyVC);
       const newIdentity = addCredential(identity, historyVC);
       onUpdateIdentity(newIdentity);
-    } catch (e) { console.error("Wallet analysis failed", e); }
-    finally { setIsAnalyzing(false); }
+    } catch (e: any) {
+      console.error("Wallet analysis failed", e);
+      setWalletError(e.message || 'Analysis failed. Ensure your wallet address is valid.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const initiateSocialConnect = (platform: string) => {
     setActivePlatform(platform);
     setHandleInput('');
     setCustomPlatformName('');
+    setLinkError(null);
+  };
+
+  const validateSocialUrl = (url: string, platform: string): boolean => {
+    if (platform === 'Custom') return url.startsWith('http');
+    const pattern = PLATFORM_URL_PATTERNS[platform];
+    if (!pattern) return url.startsWith('http');
+    return pattern.regex.test(url);
+  };
+
+  const handleInputChange = (value: string) => {
+    setHandleInput(value);
+    if (value && activePlatform) {
+      if (!validateSocialUrl(value, activePlatform)) {
+        const pattern = PLATFORM_URL_PATTERNS[activePlatform || ''];
+        setLinkError(`Invalid URL format. Expected: ${pattern?.example || 'https://...'}`);
+      } else {
+        setLinkError(null);
+      }
+    } else {
+      setLinkError(null);
+    }
   };
 
   const confirmSocialConnect = async () => {
     const platformToUse = activePlatform === 'Custom' ? customPlatformName : activePlatform;
     if (!platformToUse || !handleInput) return;
+
+    // Validate URL
+    if (!validateSocialUrl(handleInput, activePlatform || '')) {
+      setLinkError('Please provide a valid profile URL before connecting.');
+      return;
+    }
+
     setIsVerifyingSocial(true);
+    setLinkError(null);
     try {
-      const result = await mockConnectSocial(platformToUse, handleInput);
+      // Call real AI-powered analysis edge function
+      const { data, error } = await supabase.functions.invoke('analyze-social', {
+        body: { platform: platformToUse, profileUrl: handleInput },
+      });
+
+      if (error) throw new Error(error.message || 'Analysis failed');
+      if (data?.error) throw new Error(data.error);
+
+      const result = data;
+
       const socialVC: VerifiableCredential = {
         id: `urn:uuid:${Math.random().toString(36).substring(2)}`,
         type: ['VerifiableCredential', 'SocialCredential'],
@@ -72,8 +134,12 @@ const CredentialsPage: React.FC = () => {
       const newIdentity = addCredential(identity, socialVC);
       onUpdateIdentity(newIdentity);
       setActivePlatform(null);
-    } catch (e) { console.error(`Failed to connect ${activePlatform}`, e); }
-    finally { setIsVerifyingSocial(false); }
+    } catch (e: any) {
+      console.error(`Failed to connect ${activePlatform}`, e);
+      setLinkError(e.message || 'Analysis failed. Please try again.');
+    } finally {
+      setIsVerifyingSocial(false);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +169,7 @@ const CredentialsPage: React.FC = () => {
   };
 
   const socialCredentials = identity.credentials.filter(vc => vc.type.includes('SocialCredential'));
+  const physicalCredentials = identity.credentials.filter(vc => vc.type.includes('PhysicalCredential'));
   const connectedPlatforms = socialCredentials.map(vc => vc.credentialSubject.platform);
   const chartData = [
     { name: 'Jan', tx: 12 }, { name: 'Feb', tx: 19 }, { name: 'Mar', tx: 3 },
@@ -124,6 +191,13 @@ const CredentialsPage: React.FC = () => {
     { name: 'Other Platform', icon: PlusCircle, id: 'Custom' },
   ];
 
+  const docTypeIcons: Record<string, string> = {
+    Diploma: '🎓',
+    Certification: '📜',
+    Award: '🏆',
+    ID: '🪪',
+  };
+
   return (
     <div className="space-y-12 animate-fade-in pb-20">
       <header className="mb-10">
@@ -139,33 +213,38 @@ const CredentialsPage: React.FC = () => {
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20"><Wallet size={24} className="text-primary" /></div>
             <h2 className="text-2xl font-bold tracking-tight text-white">Wallet History Analysis</h2>
+            <span className="ml-2 bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30">Live On-Chain</span>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div className="lg:col-span-7 space-y-8">
               <p className="text-slate-400 text-lg leading-relaxed font-medium">
-                We scan your full transaction history to identify professional expertise.
-                <span className="text-primary"> DeFi usage</span>,
-                <span className="text-primary"> NFT collecting</span>, and
-                <span className="text-primary"> Governance participation</span> builds your score.
+                Real-time analysis across <span className="text-primary">Ethereum</span>, <span className="text-primary">Arbitrum</span>, <span className="text-primary">Base</span>, <span className="text-primary">Polygon</span>, <span className="text-primary">Bitcoin</span>, and <span className="text-primary">Solana</span>. We query live RPC nodes to verify your on-chain activity.
               </p>
               <div className="flex flex-wrap gap-4 items-center">
                 <ChoiceButton onClick={handleAnalyzeWallet} isLoading={isAnalyzing} className="rounded-2xl py-4 px-8 font-black text-xs uppercase tracking-widest shadow-glow-primary">
                   {identity.credentials.some(vc => vc.type.includes('WalletHistoryCredential')) ? 'Refresh Analysis' : 'Analyze Wallet History'}
                 </ChoiceButton>
-                <div className="flex flex-wrap gap-3">
-                  {['DeFi Power User', 'OG Holder', 'NFT Collector'].map(tag => (
-                    <span key={tag} className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20 flex items-center gap-2">
-                      <Check size={12} strokeWidth={3} /> {tag}
-                    </span>
-                  ))}
-                </div>
+                {blockchainStats?.activeChains && (
+                  <div className="flex flex-wrap gap-2">
+                    {blockchainStats.activeChains.map(chain => (
+                      <span key={chain} className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20 flex items-center gap-1.5">
+                        <Check size={10} strokeWidth={3} /> {chain}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
+              {walletError && (
+                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl text-sm font-medium">
+                  <AlertCircle size={16} /> {walletError}
+                </div>
+              )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Account Age', value: blockchainStats?.accountAge || '7 Yrs' },
-                  { label: 'Total Volume', value: blockchainStats?.totalVolume || '100 ETH', color: 'text-primary' },
-                  { label: 'Assets Held', value: blockchainStats?.assetsHeld || '10 Token(s)', color: 'text-purple-400' },
-                  { label: 'Est. Net Value', value: blockchainStats?.netValue || '$19,344.65', color: 'text-emerald-400' }
+                  { label: 'Account Age', value: blockchainStats?.accountAge || '—' },
+                  { label: 'Total Volume', value: blockchainStats?.totalVolume || '—', color: 'text-primary' },
+                  { label: 'Assets Held', value: blockchainStats?.assetsHeld || '—', color: 'text-purple-400' },
+                  { label: 'Est. Net Value', value: blockchainStats?.netValue || '—', color: 'text-emerald-400' }
                 ].map((stat, i) => (
                   <div key={i} className="bg-white/5 p-4 md:p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">{stat.label}</span>
@@ -198,7 +277,7 @@ const CredentialsPage: React.FC = () => {
             <h2 className="text-2xl font-bold tracking-tight text-foreground">High-Fidelity Social Reputation</h2>
           </div>
           <p className="text-muted-foreground text-lg max-w-3xl font-medium">
-            Connect your profiles to build your <strong className="text-foreground">Off-Chain Authority</strong>. We analyze followers, engagement, and post history.
+            Connect your profiles with a <strong className="text-foreground">real profile URL</strong>. We verify the link format and run AI-powered reputation analysis.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -251,6 +330,12 @@ const CredentialsPage: React.FC = () => {
                         <span className="font-black text-white text-xs bg-white/10 px-3 py-1.5 rounded-xl inline-block uppercase tracking-widest">{vc.credentialSubject.behaviorScore as string}</span>
                       </div>
                     </div>
+                    {vc.credentialSubject.sector && (
+                      <div className="mt-6 pt-4 border-t border-white/10">
+                        <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Sector: </span>
+                        <span className="text-white text-sm font-bold">{vc.credentialSubject.sector as string}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="absolute -bottom-10 -right-10 text-white/5 group-hover:text-white/10 transition-colors pointer-events-none"><Activity size={180} /></div>
                 </div>
@@ -280,6 +365,7 @@ const CredentialsPage: React.FC = () => {
                 <div className="flex flex-col items-center gap-4 text-primary animate-fade-in">
                   <div className="p-4 bg-primary/10 rounded-full"><FileText size={48} /></div>
                   <span className="font-black text-lg tracking-tight">{selectedFile.name}</span>
+                  <span className="text-sm text-muted-foreground font-medium">Type: <strong className="text-foreground">{docType}</strong></span>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-4 text-muted-foreground">
@@ -296,9 +382,9 @@ const CredentialsPage: React.FC = () => {
               <div className="flex flex-wrap gap-3">
                 {(['Diploma', 'Certification', 'Award', 'ID'] as const).map(type => (
                   <button key={type} onClick={() => setDocType(type)}
-                    className={cn("px-6 py-3 rounded-2xl text-sm font-bold transition-all border",
+                    className={cn("px-6 py-3 rounded-2xl text-sm font-bold transition-all border flex items-center gap-2",
                       docType === type ? "bg-dark text-white border-dark shadow-lg scale-105" : "bg-card border-border text-muted-foreground hover:bg-muted hover:border-border")}>
-                    {type}
+                    <span>{docTypeIcons[type]}</span> {type}
                   </button>
                 ))}
               </div>
@@ -308,6 +394,32 @@ const CredentialsPage: React.FC = () => {
             </ChoiceButton>
           </div>
         </div>
+
+        {/* Verified Documents List */}
+        {physicalCredentials.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-border">
+            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] mb-6">VERIFIED DOCUMENTS</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {physicalCredentials.map((vc) => {
+                const dtype = vc.credentialSubject.documentType as string;
+                const fname = vc.credentialSubject.fileName as string;
+                return (
+                  <div key={vc.id} className="bg-muted border border-border rounded-2xl p-5 flex items-start gap-4">
+                    <div className="text-3xl flex-shrink-0">{docTypeIcons[dtype] || '📄'}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-black text-foreground text-sm">{dtype}</span>
+                        <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-emerald-500/20">Verified</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground font-medium truncate">{fname}</p>
+                      <p className="text-[10px] text-muted-foreground/60 mt-1">Issued: {new Date(vc.issuanceDate).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Social Modal */}
@@ -322,7 +434,9 @@ const CredentialsPage: React.FC = () => {
               <button onClick={() => setActivePlatform(null)} className="text-muted-foreground hover:text-foreground transition-colors"><X size={24} /></button>
             </div>
             <p className="text-muted-foreground mb-8 font-medium leading-relaxed">
-              {activePlatform === 'Custom' ? "Enter the platform name and your username to verify your social presence." : "Enter the URL to your profile. We will verify ownership and run a reputation scan."}
+              {activePlatform === 'Custom'
+                ? "Enter the platform name and your profile URL to verify your social presence."
+                : `Paste your full ${activePlatform} profile URL. We'll validate the format and run an AI-powered reputation analysis.`}
             </p>
             {activePlatform === 'Custom' && (
               <div className="mb-6">
@@ -331,14 +445,29 @@ const CredentialsPage: React.FC = () => {
                   className="w-full bg-muted border border-border rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-foreground" placeholder="e.g. Threads, Mastodon" />
               </div>
             )}
-            <div className="mb-8">
-              <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">{activePlatform === 'Custom' ? 'USERNAME' : 'PROFILE LINK'}</label>
-              <input type="text" value={handleInput} onChange={(e) => setHandleInput(e.target.value)}
-                className="w-full bg-muted border border-border rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-foreground"
-                placeholder={activePlatform === 'Custom' ? "@username" : `https://${activePlatform.toLowerCase()}.com/...`} autoFocus={activePlatform !== 'Custom'} />
+            <div className="mb-4">
+              <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">PROFILE URL</label>
+              <input
+                type="url"
+                value={handleInput}
+                onChange={(e) => handleInputChange(e.target.value)}
+                className={cn(
+                  "w-full bg-muted border rounded-2xl px-5 py-4 outline-none focus:ring-2 transition-all font-medium text-foreground",
+                  linkError ? "border-red-500 focus:ring-red-500/20" : "border-border focus:ring-primary/20"
+                )}
+                placeholder={PLATFORM_URL_PATTERNS[activePlatform]?.example || 'https://...'}
+                autoFocus={activePlatform !== 'Custom'}
+              />
             </div>
+            {linkError && (
+              <div className="flex items-center gap-2 text-red-500 text-sm font-medium mb-6 bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl">
+                <AlertCircle size={16} className="flex-shrink-0" />
+                <span>{linkError}</span>
+              </div>
+            )}
+            {!linkError && <div className="mb-6" />}
             <ChoiceButton onClick={confirmSocialConnect} isLoading={isVerifyingSocial} className="w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-glow-primary"
-              disabled={!handleInput || (activePlatform === 'Custom' && !customPlatformName)}>
+              disabled={!handleInput || !!linkError || (activePlatform === 'Custom' && !customPlatformName)}>
               Verify & Connect
             </ChoiceButton>
           </div>

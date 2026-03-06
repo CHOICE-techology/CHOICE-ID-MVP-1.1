@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 export interface BlockchainStats {
   txCount: number;
   accountAge: string;
@@ -5,28 +7,34 @@ export interface BlockchainStats {
   assetsHeld: string;
   netValue: string;
   activityData: { name: string; tx: number }[];
+  chain?: string;
+  activeChains?: string[];
+  balance?: string;
 }
 
 export const analyzeWalletHistory = async (address: string): Promise<BlockchainStats> => {
-  // Mock implementation - simulates blockchain analysis
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  const { data, error } = await supabase.functions.invoke('analyze-wallet', {
+    body: { address },
+  });
 
-  const seed = address.charCodeAt(address.length - 1) + address.charCodeAt(2);
-  const txCount = (seed * 25) + 100;
-  const ageYears = (seed % 6) + 1;
+  if (error) {
+    console.error('Edge function error:', error);
+    throw new Error('Wallet analysis failed');
+  }
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-  const activityData = months.map(name => ({
-    name,
-    tx: Math.floor(Math.random() * 30) + 5
-  }));
+  if (data.error) {
+    throw new Error(data.error);
+  }
 
   return {
-    txCount,
-    accountAge: `${ageYears} Yrs`,
-    totalVolume: `${(txCount * 0.15).toFixed(2)} ETH`,
-    assetsHeld: `${Math.floor(txCount / 5) + 1} Token(s)`,
-    netValue: `$${(txCount * 120).toLocaleString()}`,
-    activityData
+    txCount: data.txCount || 0,
+    accountAge: data.accountAge || 'Unknown',
+    totalVolume: data.totalVolume || '0',
+    assetsHeld: data.assetsHeld || '0',
+    netValue: data.netValue || '$0',
+    activityData: data.activityData || [],
+    chain: data.chain,
+    activeChains: data.activeChains,
+    balance: data.balance,
   };
 };
