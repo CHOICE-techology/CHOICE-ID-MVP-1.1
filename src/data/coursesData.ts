@@ -67,7 +67,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'gov-202', title: 'On-Chain Governance', level: 'Intermediate', duration: '25 min', points: 10,
+    id: 'gov-202', title: 'On-Chain Governance', level: 'Intermediate', duration: '25 min', points: 4,
     description: "Learn how DAOs make decisions, voting mechanisms, and how to write effective proposals.",
     color: "bg-indigo-500",
     lessons: [
