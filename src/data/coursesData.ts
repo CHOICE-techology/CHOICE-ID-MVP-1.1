@@ -28,7 +28,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'sec-201', title: 'Wallet Security Pro', level: 'Intermediate', duration: '30 min', points: 10,
+    id: 'sec-201', title: 'Wallet Security Pro', level: 'Intermediate', duration: '30 min', points: 4,
     description: "Master the art of self-custody. Learn about seed phrases, hardware wallets, and avoiding phishing attacks.",
     color: "bg-blue-500",
     lessons: [
