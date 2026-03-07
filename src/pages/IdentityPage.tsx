@@ -30,11 +30,16 @@ const IdentityPage: React.FC = () => {
   const score = reputation.score;
   const { physical, social, finance, education } = reputation.breakdown.categories;
 
+  const safePercent = (val: number, max: number) => {
+    const result = (val / max) * 100;
+    return isNaN(result) || !isFinite(result) ? 0 : Math.min(result, 100);
+  };
+
   const chartData = [
-    { subject: 'Social', value: Math.min((social / 40) * 100, 100), fullMark: 100 },
-    { subject: 'Education', value: Math.min((education / 30) * 100, 100), fullMark: 100 },
-    { subject: 'Real World', value: Math.min((physical / 20) * 100, 100), fullMark: 100 },
-    { subject: 'Finance', value: Math.min((finance / 10) * 100, 100), fullMark: 100 },
+    { subject: 'Social', value: safePercent(social, 40), fullMark: 100 },
+    { subject: 'Education', value: safePercent(education, 30), fullMark: 100 },
+    { subject: 'Real World', value: safePercent(physical, 20), fullMark: 100 },
+    { subject: 'Finance', value: safePercent(finance, 10), fullMark: 100 },
   ];
 
   const getTier = (s: number) => {

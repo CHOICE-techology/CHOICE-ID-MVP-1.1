@@ -7,7 +7,8 @@ export type CredentialType =
   | 'PhysicalCredential'
   | 'SocialCredential'
   | 'EducationCredential'
-  | 'WalletHistoryCredential';
+  | 'WalletHistoryCredential'
+  | 'WalletCreatedCredential';
 
 export interface VerifiableCredential {
   id: string;

@@ -355,7 +355,7 @@ const CredentialsPage: React.FC = () => {
               <p className="text-muted-foreground text-sm md:text-base font-medium">Verify official documents to anchor your physical identity.</p>
             </div>
           </div>
-          <span className="md:ml-auto bg-emerald-50 text-emerald-600 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-emerald-100 w-fit">+40 Points Max</span>
+          <span className="md:ml-auto bg-emerald-50 text-emerald-600 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-emerald-100 w-fit">+20 Points Max</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div className="relative group">

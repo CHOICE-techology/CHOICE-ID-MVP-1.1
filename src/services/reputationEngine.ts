@@ -13,7 +13,14 @@ const POINTS_PER_SOCIAL = MAX_SOCIAL / SOCIAL_PLATFORMS_COUNT; // ~3.636
 
 // 4 document slots, each 5 points
 const POINTS_PER_DOCUMENT = 5;
-const MAX_DOCUMENTS = 4;
+
+// Finance scoring:
+// - 5 pts for creating a wallet in-app (WalletCreatedCredential)
+// - 10 pts for having existing wallet history with transactions (WalletHistoryCredential)
+// - If both exist: wallet created (5) + analyzed with history (5) = 10 max
+const POINTS_WALLET_CREATED = 5;
+const POINTS_WALLET_HISTORY_EXISTING = 10;
+const POINTS_WALLET_HISTORY_AFTER_CREATION = 5;
 
 export interface ReputationBreakdown {
   baseScore: number;
@@ -35,6 +42,20 @@ export interface ReputationResult {
 }
 
 export const calculateReputation = (credentials: VerifiableCredential[]): ReputationResult => {
+  if (!credentials || credentials.length === 0) {
+    return {
+      score: 0,
+      breakdown: {
+        baseScore: 0,
+        weightedScore: 0,
+        timeDecayAdjustment: 0,
+        totalScore: 0,
+        categories: { social: 0, education: 0, physical: 0, finance: 0 },
+      },
+      sybilRisk: 'high',
+    };
+  }
+
   let socialRaw = 0;
   let educationRaw = 0;
   let physicalRaw = 0;
@@ -42,6 +63,9 @@ export const calculateReputation = (credentials: VerifiableCredential[]): Reputa
 
   let socialCount = 0;
   let docCount = 0;
+  let hasWalletCreated = false;
+  let hasWalletHistory = false;
+  let walletHistoryTxCount = 0;
 
   credentials.forEach((vc) => {
     const types = Array.isArray(vc.type) ? vc.type : [vc.type];
@@ -50,36 +74,56 @@ export const calculateReputation = (credentials: VerifiableCredential[]): Reputa
       socialCount++;
       socialRaw = Math.min(MAX_SOCIAL, socialCount * POINTS_PER_SOCIAL);
     } else if (types.includes('EducationCredential')) {
-      // Each education credential carries its own points from the course data
       const coursePoints = (vc.credentialSubject as any)?.points;
-      if (typeof coursePoints === 'number') {
+      if (typeof coursePoints === 'number' && !isNaN(coursePoints)) {
         educationRaw += coursePoints;
       } else {
-        // fallback: generic education credential
         educationRaw += 3;
       }
       educationRaw = Math.min(MAX_EDUCATION, educationRaw);
     } else if (types.includes('PhysicalCredential')) {
       docCount++;
       physicalRaw = Math.min(MAX_REAL_WORLD, docCount * POINTS_PER_DOCUMENT);
+    } else if (types.includes('WalletCreatedCredential')) {
+      hasWalletCreated = true;
     } else if (types.includes('WalletHistoryCredential')) {
-      // Wallet analysis gives up to 10 points based on activity
+      hasWalletHistory = true;
       const stats = vc.credentialSubject as any;
-      const txCount = stats?.totalTransactions || 0;
-      const chains = stats?.activeChains || 0;
-      // Score: up to 5 pts for transactions (100+ = max), up to 5 pts for multi-chain (3+ = max)
-      const txScore = Math.min(5, (txCount / 100) * 5);
-      const chainScore = Math.min(5, (chains / 3) * 5);
-      financeRaw = Math.min(MAX_FINANCE, Math.round(txScore + chainScore));
+      walletHistoryTxCount = Number(stats?.txCount) || 0;
     }
   });
 
-  const social = Math.round(Math.min(MAX_SOCIAL, socialRaw) * 100) / 100;
-  const education = Math.min(MAX_EDUCATION, educationRaw);
-  const physical = Math.min(MAX_REAL_WORLD, physicalRaw);
-  const finance = Math.min(MAX_FINANCE, financeRaw);
+  // Finance scoring logic:
+  if (hasWalletCreated && hasWalletHistory) {
+    // User created wallet in-app (5pts) + later analyzed and has history (+5pts) = 10
+    financeRaw = POINTS_WALLET_CREATED;
+    if (walletHistoryTxCount > 0) {
+      financeRaw += POINTS_WALLET_HISTORY_AFTER_CREATION;
+    }
+  } else if (hasWalletHistory) {
+    // User connected existing wallet with history = 10pts
+    if (walletHistoryTxCount > 0) {
+      financeRaw = POINTS_WALLET_HISTORY_EXISTING;
+    } else {
+      // Wallet analyzed but no transactions
+      financeRaw = POINTS_WALLET_CREATED;
+    }
+  } else if (hasWalletCreated) {
+    // User only created wallet in-app, no analysis yet = 5pts
+    financeRaw = POINTS_WALLET_CREATED;
+  }
 
-  const totalScore = Math.min(100, Math.round(social + education + physical + finance));
+  financeRaw = Math.min(MAX_FINANCE, financeRaw);
+
+  // Ensure no NaN values with safe number conversion
+  const safe = (n: number) => (isNaN(n) || !isFinite(n) ? 0 : n);
+
+  const social = safe(Math.round(Math.min(MAX_SOCIAL, socialRaw) * 100) / 100);
+  const education = safe(Math.min(MAX_EDUCATION, educationRaw));
+  const physical = safe(Math.min(MAX_REAL_WORLD, physicalRaw));
+  const finance = safe(Math.min(MAX_FINANCE, financeRaw));
+
+  const totalScore = safe(Math.min(100, Math.round(social + education + physical + finance)));
 
   const nonSelfAttestedCount = credentials.filter(vc => {
     const types = Array.isArray(vc.type) ? vc.type : [vc.type];
@@ -98,10 +142,10 @@ export const calculateReputation = (credentials: VerifiableCredential[]): Reputa
       timeDecayAdjustment: 0,
       totalScore,
       categories: {
-        social: Math.round(social),
-        education,
-        physical,
-        finance,
+        social: safe(Math.round(social)),
+        education: safe(education),
+        physical: safe(physical),
+        finance: safe(finance),
       }
     },
     sybilRisk,

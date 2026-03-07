@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { Copy, Check, Lock, Eye, EyeOff, ArrowRight, ChevronRight, Globe, ExternalLink } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useWallet } from '@/contexts/WalletContext';
+import { addCredential } from '@/services/storageService';
+import { mockUploadToIPFS } from '@/services/cryptoService';
+import { VerifiableCredential } from '@/types';
 
 // Brand logos as inline SVGs — faithful to official brand marks
 const EthereumLogo = () => (
@@ -154,6 +158,7 @@ const WALLET_PROVIDERS = [
 ];
 
 const WalletManagerPage: React.FC = () => {
+  const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
   const [seedPhrase, setSeedPhrase] = useState<string[] | null>(null);
   const [showSeed, setShowSeed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -170,10 +175,35 @@ const WalletManagerPage: React.FC = () => {
     }
   }, [location.state]);
 
-  const generateWallet = () => {
+  const generateWallet = async () => {
     const mockMnemonic = "witch collapse practice feed shame open despair creek road again ice least".split(" ");
     setSeedPhrase(mockMnemonic);
     setStep(3);
+
+    // Award WalletCreatedCredential for 5 finance points
+    if (identity) {
+      const alreadyCreated = identity.credentials.some(vc => {
+        const types = Array.isArray(vc.type) ? vc.type : [vc.type];
+        return types.includes('WalletCreatedCredential');
+      });
+      if (!alreadyCreated) {
+        const walletVC: VerifiableCredential = {
+          id: `urn:uuid:${Math.random().toString(36).substring(2)}`,
+          type: ['VerifiableCredential', 'WalletCreatedCredential'],
+          issuer: 'did:web:choice.love/wallet-generator',
+          issuanceDate: new Date().toISOString(),
+          credentialSubject: {
+            id: identity.did,
+            chain: selectedChain || 'Unknown',
+            method: 'seed_phrase',
+            createdAt: new Date().toISOString(),
+          }
+        };
+        await mockUploadToIPFS(walletVC);
+        const newIdentity = addCredential(identity, walletVC);
+        onUpdateIdentity(newIdentity);
+      }
+    }
   };
 
   const copyToClipboard = () => {
