@@ -58,7 +58,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'nft-102', title: 'NFTs & Digital Ownership', level: 'Beginner', duration: '20 min', points: 5,
+    id: 'nft-102', title: 'NFTs & Digital Ownership', level: 'Beginner', duration: '20 min', points: 3,
     description: "Explore non-fungible tokens: how they work, use cases, and how to evaluate NFT projects.",
     color: "bg-pink-500",
     lessons: [
