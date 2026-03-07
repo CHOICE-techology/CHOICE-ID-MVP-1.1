@@ -31,10 +31,10 @@ const IdentityPage: React.FC = () => {
   const { physical, social, finance, education } = reputation.breakdown.categories;
 
   const chartData = [
-    { subject: 'Real World', value: Math.min((physical / 40) * 100, 100), fullMark: 100 },
-    { subject: 'Social', value: Math.min((social / 30) * 100, 100), fullMark: 100 },
+    { subject: 'Social', value: Math.min((social / 40) * 100, 100), fullMark: 100 },
+    { subject: 'Education', value: Math.min((education / 30) * 100, 100), fullMark: 100 },
+    { subject: 'Real World', value: Math.min((physical / 20) * 100, 100), fullMark: 100 },
     { subject: 'Finance', value: Math.min((finance / 10) * 100, 100), fullMark: 100 },
-    { subject: 'Education', value: Math.min((education / 20) * 100, 100), fullMark: 100 },
   ];
 
   const getTier = (s: number) => {
