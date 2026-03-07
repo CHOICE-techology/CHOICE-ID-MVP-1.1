@@ -18,7 +18,7 @@ export interface Lesson {
 
 export const COURSES: Course[] = [
   {
-    id: 'web3-101', title: 'Web3 & Identity Basics', level: 'Beginner', duration: '15 min', points: 5,
+    id: 'web3-101', title: 'Web3 & Identity Basics', level: 'Beginner', duration: '15 min', points: 3,
     description: "Learn the fundamentals of Decentralized Identity (DID), Verifiable Credentials, and why privacy matters.",
     color: "bg-emerald-500",
     lessons: [
