@@ -359,10 +359,9 @@ DID: ${identity.did}`;
         <GridLayout
           className="layout"
           layout={layout}
-          cols={12}
-          rowHeight={50}
+          gridConfig={{ cols: 12, rowHeight: 50 }}
           width={containerWidth}
-          onLayoutChange={onLayoutChange}
+          onLayoutChange={(newLayout: any) => onLayoutChange(newLayout)}
           draggableHandle=".drag-handle"
           isResizable={true}
           isDraggable={true}
@@ -370,7 +369,6 @@ DID: ${identity.did}`;
           containerPadding={[0, 0]}
           useCSSTransforms={true}
         >
-          {/* SCOREBOARD */}
           <div key="scoreboard">
             <BlockWrapper title="Score">
               <div className="bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden h-full">
