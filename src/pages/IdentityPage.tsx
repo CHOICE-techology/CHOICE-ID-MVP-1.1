@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { ConnectGuideAnimation } from '@/components/ConnectGuideAnimation';
 import { UserIdentity, GeneratedCV, Job } from '@/types';
 import { mockGenerateCV, mockGenerateBio, generateReputationHash } from '@/services/cryptoService';
 import { calculateReputation } from '@/services/reputationEngine';
