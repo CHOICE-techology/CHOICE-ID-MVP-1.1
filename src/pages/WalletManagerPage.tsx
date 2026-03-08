@@ -330,7 +330,7 @@ const WalletManagerPage: React.FC = () => {
                   compatibleProviders.map(wp => (
                     <button
                       key={wp.name}
-                      onClick={() => connectWalletProvider(wp.name)}
+                      onClick={() => connectWalletProvider(wp)}
                       className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary hover:bg-muted/50 transition-all text-left"
                     >
                       <wp.Logo />
