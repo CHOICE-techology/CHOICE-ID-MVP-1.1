@@ -137,12 +137,14 @@ const EducationPage: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-4 flex-1 leading-relaxed">{course.description}</p>
 
               {/* Meta info */}
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2 font-medium">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2 font-medium flex-wrap">
                 <span className="flex items-center gap-1"><PlayCircle size={13} /> {course.duration}</span>
                 <span className="text-border">•</span>
                 <span className="flex items-center gap-1"><Star size={13} className="text-amber-400 fill-amber-400" /> +{course.points} pts</span>
                 <span className="text-border">•</span>
                 <span>{course.lessons.length} lessons</span>
+                <span className="text-border">•</span>
+                <span className="flex items-center gap-1 text-primary font-bold">◈ +40 CHOICE</span>
               </div>
 
               {/* Progress indicator */}

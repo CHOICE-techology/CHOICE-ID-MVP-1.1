@@ -41,7 +41,7 @@ const LessonComplete: React.FC<LessonCompleteProps> = ({ course, correctCount, o
 
       <p className="text-muted-foreground text-lg">
         You scored <strong className="text-foreground">{correctCount}/{quizTotal}</strong> on quizzes
-        and earned <strong className="text-primary">+{course.points} points</strong>.
+        and earned <strong className="text-primary">+{course.points} points</strong> and <strong className="text-primary">◈ +40 CHOICE</strong>.
       </p>
 
       {/* Stats row */}
