@@ -149,8 +149,8 @@ const EducationPage: React.FC = () => {
               <div className="mb-4">
                 <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${course.badgeColor}`}
-                    style={{ width: isCompleted ? '100%' : '0%' }}
+                    className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${course.badgeColor} shadow-sm`}
+                    style={{ width: isCompleted ? '100%' : '0%', boxShadow: isCompleted ? '0 0 8px rgba(0,255,200,0.3)' : 'none' }}
                   />
                 </div>
                 <span className="text-[10px] text-muted-foreground mt-1 block">
