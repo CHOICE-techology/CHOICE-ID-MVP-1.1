@@ -12,14 +12,14 @@ import googleLogo from '@/assets/logos/google.png';
 import appleLogo from '@/assets/logos/apple.png';
 import githubLogo from '@/assets/logos/github.png';
 import telegramLogo from '@/assets/logos/telegram.png';
-import discordLogo from '@/assets/logos/discord.png';
+import discordLogo from '@/assets/logos/discord.svg';
 import xLogo from '@/assets/logos/x-twitter.png';
 import metamaskLogo from '@/assets/logos/metamask-official.png';
 import rainbowLogo from '@/assets/logos/rainbow.png';
 import walletconnectLogo from '@/assets/logos/walletconnect.png';
 import coinbaseLogo from '@/assets/logos/coinbase.webp';
-import trustWalletLogo from '@/assets/logos/trust-wallet.png';
-import phantomLogo from '@/assets/logos/phantom.png';
+import trustWalletLogo from '@/assets/logos/trust-wallet-new.png';
+import phantomLogo from '@/assets/logos/phantom-new.png';
 
 interface WalletModalProps {
   isOpen: boolean;
