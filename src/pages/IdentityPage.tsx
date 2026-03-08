@@ -108,7 +108,7 @@ const IdentityPage: React.FC = () => {
     const mockTxHash = `0x${identity.lastAnchorHash?.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
     return {
       date: identity.lastAnchorTimestamp ? new Date(identity.lastAnchorTimestamp).toLocaleString() : null,
-      score: identity.reputationScore,
+      score,
       txHash: mockTxHash,
       explorerUrl: `https://sepolia.arbiscan.io/tx/${mockTxHash}`,
     };
