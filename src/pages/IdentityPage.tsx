@@ -27,18 +27,7 @@ const IdentityPage: React.FC = () => {
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [selectedJobForCover, setSelectedJobForCover] = useState<Job | null>(null);
 
-  if (!identity) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-        <div className="bg-muted p-6 rounded-full">
-          <CheckCircle size={64} className="text-muted-foreground/30" />
-        </div>
-        <h2 className="text-2xl font-bold text-foreground">Please connect your wallet to view your identity.</h2>
-      </div>
-    );
-  }
-
-  const reputation = calculateReputation(identity.credentials);
+  const reputation = identity ? calculateReputation(identity.credentials) : null;
   const score = reputation.score;
   const { physical, social, finance, education } = reputation.breakdown.categories;
 
