@@ -12,13 +12,14 @@ const ITEMS_PER_PAGE = 15;
 type JobWithMatch = Job & { matchResult?: JobMatchResult };
 
 const JobsPage: React.FC = () => {
-  const { userIdentity: identity } = useWallet();
+  const { userIdentity: identity, updateIdentity } = useWallet();
   const [filterType, setFilterType] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [applying, setApplying] = useState<string | null>(null);
   const [isMatching, setIsMatching] = useState(true);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobWithMatch | null>(null);
+  const [jobDialogOpen, setJobDialogOpen] = useState(false);
 
   useEffect(() => {
     setIsMatching(true);
