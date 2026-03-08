@@ -523,12 +523,12 @@ DID: ${identity.did}`;
         </div>
       </div>
 
-      {/* ── MAIN GRID: Recommendations (bigger) | CV compact ── */}
+      {/* ── MAIN GRID: Recommendations | CV + Invite ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        {/* SMART RECOMMENDATIONS — bigger, more visible */}
+        {/* SMART RECOMMENDATIONS — left column */}
         <div className="lg:col-span-7">
-          <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl">
+          <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl h-full">
             <h3 className="font-bold text-foreground mb-6 flex items-center gap-2 text-xl">
               <Sparkles className="text-primary" size={22} /> Smart Recommendations
             </h3>
@@ -547,7 +547,7 @@ DID: ${identity.did}`;
               ))}
             </div>
 
-            {/* Job Match Suggestions — bigger cards */}
+            {/* Job Match Suggestions */}
             {topJobMatches.length > 0 && (
               <div className="pt-5 border-t border-border">
                 <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -583,8 +583,9 @@ DID: ${identity.did}`;
           </div>
         </div>
 
-        {/* CHOICE CV — compact card, opens popup */}
-        <div className="lg:col-span-5">
+        {/* RIGHT COLUMN: CV + Invite Friends stacked */}
+        <div className="lg:col-span-5 flex flex-col gap-8">
+          {/* CHOICE CV */}
           <div className="bg-card border border-border rounded-3xl p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
