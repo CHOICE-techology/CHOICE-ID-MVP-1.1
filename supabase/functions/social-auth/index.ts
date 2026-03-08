@@ -32,7 +32,7 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connect ${config.name} — CHOICE iD</title>
+  <title>Connect ${config.name} — CHOICE ID</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
