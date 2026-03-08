@@ -145,6 +145,7 @@ interface WalletProvider {
   description: string;
   Logo: React.FC;
   chains: string[];
+  url: string;
 }
 
 const ALL_WALLET_PROVIDERS: WalletProvider[] = [
