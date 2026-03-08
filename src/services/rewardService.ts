@@ -35,60 +35,33 @@ export const grantReward = async (
   amount: number
 ): Promise<RewardResult> => {
   try {
-    const { data, error } = await supabase.functions.invoke('grant-reward', {
-      body: { user_id: userId, amount, type, reason },
+    // Use fetch directly to have full control over response handling
+    // supabase.functions.invoke throws on non-2xx, making 409 handling unreliable
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const url = `https://${projectId}.supabase.co/functions/v1/grant-reward`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': anonKey,
+        'Authorization': `Bearer ${anonKey}`,
+      },
+      body: JSON.stringify({ user_id: userId, amount, type, reason }),
     });
 
-    // supabase.functions.invoke puts non-2xx responses in `error`
-    // For 409 (duplicate), the error context contains the JSON body
-    if (error) {
-      // Try to parse the error body for duplicate detection
-      try {
-        let errorBody: any = null;
-        if (error instanceof Response) {
-          errorBody = await error.json();
-        } else if (typeof error === 'object' && 'context' in error) {
-          // FunctionsHttpError stores response in context
-          const ctx = (error as any).context;
-          if (ctx instanceof Response) {
-            errorBody = await ctx.json();
-          } else if (ctx?.json) {
-            errorBody = await ctx.json();
-          }
-        }
-        
-        if (!errorBody) {
-          // Try parsing error message as JSON
-          const msg = error.message || String(error);
-          if (msg.includes('duplicate') || msg.includes('already granted')) {
-            return { success: false, duplicate: true };
-          }
-        }
+    const body = await res.json();
 
-        if (errorBody?.duplicate) {
-          return { success: false, duplicate: true };
-        }
-      } catch {
-        // If parsing fails, check the message string
-        const msg = error.message || String(error);
-        if (msg.includes('409') || msg.includes('duplicate') || msg.includes('already granted')) {
-          return { success: false, duplicate: true };
-        }
-      }
-
-      console.error('Grant reward error:', error);
-      return { success: false, error: error.message || 'Unknown error' };
-    }
-
-    if (data?.duplicate) {
+    if (res.status === 409 || body?.duplicate) {
       return { success: false, duplicate: true };
     }
 
-    if (data?.error) {
-      return { success: false, error: data.error, duplicate: data.duplicate };
+    if (!res.ok || body?.error) {
+      return { success: false, error: body?.error || `HTTP ${res.status}` };
     }
 
-    return { success: true, amount: data?.amount ?? amount };
+    return { success: true, amount: body?.amount ?? amount };
   } catch (e: any) {
     console.error('Grant reward failed:', e);
     return { success: false, error: e.message };
