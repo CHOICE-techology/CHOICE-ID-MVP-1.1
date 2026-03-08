@@ -6,6 +6,7 @@ import { calculateReputation } from '@/services/reputationEngine';
 import { calculateJobMatch } from '@/services/jobMatchingService';
 import { ALL_JOBS } from '@/data/jobsData';
 import { ChoiceButton } from '@/components/ChoiceButton';
+import { ChoiceBalanceCard } from '@/components/ChoiceBalanceCard';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Download, Edit2, Sparkles, FileText, Camera, CheckCircle, Info,
@@ -13,6 +14,12 @@ import {
   PenTool, Target, ArrowRight, Clock, Hash, Award, Zap, Settings,
   ArrowLeft, X, Eye, Send, Gift, Copy, Share2
 } from 'lucide-react';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
+import { useWallet } from '@/contexts/WalletContext';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import { useWallet } from '@/contexts/WalletContext';
 import {
