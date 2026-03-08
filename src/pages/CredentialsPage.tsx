@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ConnectGuideAnimation } from '@/components/ConnectGuideAnimation';
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
