@@ -85,6 +85,8 @@ const WalletConnectProviderLogo = () => <SmImgLogo src={walletconnectLogo} alt="
 const RainbowProviderLogo = () => <SmImgLogo src={rainbowLogo} alt="Rainbow" />;
 const TalismanProviderLogo = () => <SmImgLogo src={talismanLogo} alt="Talisman" />;
 
+const CoreProviderLogo = () => <SmImgLogo src={coreWalletLogo} alt="Core" />;
+
 // Coinbase Wallet – official blue "C" mark
 const CoinbaseProviderLogo = () => (
   <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
