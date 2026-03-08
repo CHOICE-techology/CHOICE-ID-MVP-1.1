@@ -193,14 +193,25 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const disconnect = async () => {
-    await supabase.auth.signOut();
+  const disconnect = useCallback(async () => {
+    try {
+      // Clear Supabase session
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+      }
+    } catch (err) {
+      console.error('Sign out failed:', err);
+    }
+    
+    // Always clear local state regardless of signOut result
     localStorage.removeItem('choice_wallet_method');
     localStorage.removeItem('choice_wallet_address');
-    // Note: we do NOT clear localStorage identity or DB data — it persists for reconnect
+    clearIdentity();
     setAddress(null);
     setUserIdentity(null);
-  };
+    setAuthError(null);
+  }, []);
 
   const updateIdentity = (newIdentity: UserIdentity) => {
     const score = calculateReputationScore(newIdentity.credentials);
