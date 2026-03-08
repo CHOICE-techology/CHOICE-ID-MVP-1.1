@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { AppLayout } from "@/components/AppLayout";
+import { RewardAnimationOverlay } from "@/components/RewardAnimation";
 import IdentityPage from "./pages/IdentityPage";
 import CredentialsPage from "./pages/CredentialsPage";
 import EducationPage from "./pages/EducationPage";
