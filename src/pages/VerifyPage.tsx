@@ -28,9 +28,7 @@ const VerifyPage: React.FC = () => {
       const mockScore = Math.floor(Math.random() * 100);
       const mockHash = await generateReputationHash(address, mockScore);
       const txHash = `0x${mockHash.slice(2, 66)}`;
-      setResult({
-        status: 'success',
-        data: {
+      const verificationRecord = {
           address,
           reputationHash: mockHash,
           score: mockScore,
@@ -38,8 +36,10 @@ const VerifyPage: React.FC = () => {
           txHash,
           explorerUrl: `https://sepolia.arbiscan.io/tx/${txHash}`,
           isFlagged: false,
-        },
-      });
+        };
+      // Persist latest verification
+      localStorage.setItem('choice_last_verification', JSON.stringify(verificationRecord));
+      setResult({ status: 'success', data: verificationRecord });
     } catch {
       setResult({ status: 'error' });
     }
