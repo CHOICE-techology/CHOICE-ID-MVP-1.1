@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { Search, CheckCircle, ExternalLink, XCircle } from 'lucide-react';
+import { Search, CheckCircle, ExternalLink, XCircle, ArrowLeft, Clock, Award, Hash, Shield } from 'lucide-react';
 import { generateReputationHash } from '@/services/cryptoService';
+import { Link } from 'react-router-dom';
+
+interface VerificationRecord {
+  address: string;
+  reputationHash: string;
+  score: number;
+  date: string;
+  txHash: string;
+  explorerUrl: string;
+  isFlagged: boolean;
+}
 
 const VerifyPage: React.FC = () => {
   const [address, setAddress] = useState('');
-  const [result, setResult] = useState<{ status: 'idle' | 'loading' | 'success' | 'error', data?: { address: string; reputationHash: string; lastUpdated: string; isFlagged: boolean; } }>({ status: 'idle' });
+  const [result, setResult] = useState<{ status: 'idle' | 'loading' | 'success' | 'error'; data?: VerificationRecord }>({ status: 'idle' });
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +26,19 @@ const VerifyPage: React.FC = () => {
       if (address.length < 42) throw new Error("Invalid address format");
       const mockScore = Math.floor(Math.random() * 100);
       const mockHash = await generateReputationHash(address, mockScore);
-      setResult({ status: 'success', data: { address, reputationHash: mockHash, lastUpdated: new Date().toISOString(), isFlagged: false } });
+      const txHash = `0x${mockHash.slice(2, 66)}`;
+      setResult({
+        status: 'success',
+        data: {
+          address,
+          reputationHash: mockHash,
+          score: mockScore,
+          date: new Date().toLocaleString(),
+          txHash,
+          explorerUrl: `https://sepolia.arbiscan.io/tx/${txHash}`,
+          isFlagged: false,
+        },
+      });
     } catch {
       setResult({ status: 'error' });
     }
@@ -45,38 +68,87 @@ const VerifyPage: React.FC = () => {
       </div>
 
       {result.status === 'success' && result.data && (
-        <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-6 md:p-8 animate-fade-in relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
-          <div className="flex items-center gap-4 mb-6 relative z-10">
-            <div className="bg-white p-3 rounded-full shadow-sm">
-              <CheckCircle className="text-emerald-500" size={32} />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-foreground">Verification Successful</h3>
-              <p className="text-emerald-700 text-sm font-medium">Proof found on Arbitrum Sepolia</p>
-            </div>
-          </div>
-          <div className="space-y-4 relative z-10">
-            <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Target Address</span>
-              <div className="flex items-center gap-2">
-                <span className="text-foreground font-mono break-all">{result.data.address}</span>
-                <ExternalLink size={14} className="text-muted-foreground/30" />
+        <div className="animate-fade-in space-y-5">
+          {/* Back to Identity button */}
+          <Link
+            to="/identity"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-primary/5 border border-primary/20 px-5 py-2.5 rounded-xl"
+          >
+            <ArrowLeft size={16} /> Back to My Identity
+          </Link>
+
+          {/* Transaction Record Card */}
+          <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
+            {/* Header */}
+            <div className="bg-emerald-50 border-b border-emerald-100 px-6 py-4 flex items-center gap-3">
+              <div className="bg-emerald-100 p-2 rounded-full">
+                <CheckCircle className="text-emerald-600" size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Verification Successful</h3>
+                <p className="text-emerald-700 text-xs font-medium">Proof confirmed on Arbitrum Sepolia</p>
               </div>
             </div>
-            <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Reputation Hash (On-Chain Proof)</span>
-              <span className="text-primary font-mono break-all text-sm">{result.data.reputationHash}</span>
+
+            {/* Transaction Details */}
+            <div className="divide-y divide-border">
+              <div className="flex items-center justify-between px-6 py-4">
+                <div className="flex items-center gap-2.5">
+                  <Clock size={16} className="text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">Verification Date</span>
+                </div>
+                <span className="text-sm font-semibold text-foreground">{result.data.date}</span>
+              </div>
+
+              <div className="flex items-center justify-between px-6 py-4">
+                <div className="flex items-center gap-2.5">
+                  <Award size={16} className="text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">Score</span>
+                </div>
+                <span className="text-sm font-bold text-foreground">
+                  {result.data.score}<span className="text-muted-foreground font-normal">/100</span>
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between px-6 py-4 gap-4">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <Hash size={16} className="text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">TX Hash</span>
+                </div>
+                <span className="text-xs font-mono text-primary truncate">{result.data.txHash}</span>
+              </div>
+
+              <div className="flex items-center justify-between px-6 py-4 gap-4">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <Shield size={16} className="text-muted-foreground" />
+                  <span className="text-sm font-semibold text-muted-foreground">Reputation Hash</span>
+                </div>
+                <span className="text-xs font-mono text-foreground/70 truncate">{result.data.reputationHash}</span>
+              </div>
             </div>
-            <div className="flex gap-4 pt-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-emerald-100 shadow-sm">
-                <CheckCircle size={18} className="text-emerald-500" />
-                <span className="text-sm font-bold text-muted-foreground">Valid Proof</span>
+
+            {/* Status badges */}
+            <div className="px-6 py-4 border-t border-border flex flex-wrap gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-100">
+                <CheckCircle size={14} className="text-emerald-500" />
+                <span className="text-xs font-bold text-emerald-700">Valid Proof</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-emerald-100 shadow-sm">
-                <CheckCircle size={18} className="text-emerald-500" />
-                <span className="text-sm font-bold text-muted-foreground">Not Flagged</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-100">
+                <CheckCircle size={14} className="text-emerald-500" />
+                <span className="text-xs font-bold text-emerald-700">Not Flagged</span>
               </div>
+            </div>
+
+            {/* Explorer Link */}
+            <div className="px-6 py-4 border-t border-border bg-muted/30">
+              <a
+                href={result.data.explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 text-sm font-bold text-secondary hover:text-primary transition-colors bg-secondary/10 hover:bg-secondary/15 px-4 py-3 rounded-xl w-full"
+              >
+                View on Arbiscan <ExternalLink size={14} />
+              </a>
             </div>
           </div>
         </div>
