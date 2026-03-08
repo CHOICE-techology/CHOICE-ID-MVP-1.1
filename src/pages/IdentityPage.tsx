@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { ConnectGuideAnimation } from '@/components/ConnectGuideAnimation';
 import { UserIdentity, GeneratedCV, Job } from '@/types';
 import { mockGenerateCV, mockGenerateBio, generateReputationHash } from '@/services/cryptoService';
 import { calculateReputation } from '@/services/reputationEngine';
@@ -95,7 +96,7 @@ const IdentityPage: React.FC = () => {
       alerts.push({ icon: <Award size={14} />, text: `Strong social presence detected! Complete a course to boost your match scores significantly.`, type: 'info' });
     }
     if (finance === 0) {
-      alerts.push({ icon: <Bell size={14} />, text: `Connect a wallet to add up to 10 Finance points and unlock DeFi job matches.`, type: 'warning' });
+      alerts.push({ icon: <Bell size={14} />, text: `Connect a wallet in Finance to add up to 10 Finance points and unlock DeFi job matches.`, type: 'warning' });
     }
     if (physical === 0) {
       alerts.push({ icon: <Lock size={14} />, text: `Add a Diploma or ID to unlock 20+ points and "Real World" badge.`, type: 'warning' });
@@ -146,11 +147,13 @@ const IdentityPage: React.FC = () => {
 
   if (!identity) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
         <div className="bg-muted p-6 rounded-full">
           <CheckCircle size={64} className="text-muted-foreground/30" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Please connect your wallet to view your identity.</h2>
+        <h2 className="text-2xl font-bold text-foreground">Connect your CHOICE ID to view your identity.</h2>
+        <p className="text-muted-foreground text-sm max-w-sm">It only takes a few seconds — here's how:</p>
+        <ConnectGuideAnimation />
       </div>
     );
   }

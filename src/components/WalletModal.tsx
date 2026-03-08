@@ -227,7 +227,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2.5">
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
-                Connect a wallet
+                Connect CHOICE ID
               </span>
               {!search && (
                 <span className="text-[9px] text-muted-foreground">

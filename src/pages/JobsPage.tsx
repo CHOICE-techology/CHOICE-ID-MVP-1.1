@@ -88,7 +88,7 @@ const JobsPage: React.FC = () => {
       {!identity && (
         <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center gap-3 text-amber-800">
           <Zap size={20} />
-          <span className="text-sm font-medium">Connect your wallet to see your AI Match Score for these roles.</span>
+          <span className="text-sm font-medium">Connect your CHOICE ID to see your AI Match Score for these roles.</span>
         </div>
       )}
 

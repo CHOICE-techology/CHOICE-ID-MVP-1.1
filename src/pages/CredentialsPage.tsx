@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ConnectGuideAnimation } from '@/components/ConnectGuideAnimation';
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
@@ -53,7 +54,13 @@ const CredentialsPage: React.FC = () => {
   const [docType, setDocType] = useState<'Diploma' | 'Certification' | 'Award' | 'ID'>('Diploma');
   const [isVerifyingDoc, setIsVerifyingDoc] = useState(false);
 
-  if (!identity) return <div className="text-center text-muted-foreground mt-20 font-medium">Please connect wallet to access credentials.</div>;
+  if (!identity) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+      <h2 className="text-xl font-bold text-foreground">Connect your CHOICE ID to access credentials.</h2>
+      <p className="text-muted-foreground text-sm max-w-sm">Here's how it works:</p>
+      <ConnectGuideAnimation />
+    </div>
+  );
 
   const handleAnalyzeWallet = async () => {
     setIsAnalyzing(true);
