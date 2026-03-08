@@ -19,7 +19,20 @@ const WalletContext = createContext<WalletContextType | null>(null);
 
 export const useWallet = () => {
   const ctx = useContext(WalletContext);
-  if (!ctx) throw new Error('useWallet must be used within WalletProvider');
+  if (!ctx) {
+    // During HMR or when context is temporarily unavailable, return safe defaults
+    console.warn('useWallet called outside WalletProvider — returning defaults');
+    return {
+      address: null,
+      isConnected: false,
+      isConnecting: false,
+      userIdentity: null,
+      connect: async () => {},
+      disconnect: () => {},
+      updateIdentity: () => {},
+      authError: null,
+    } as WalletContextType;
+  }
   return ctx;
 };
 
