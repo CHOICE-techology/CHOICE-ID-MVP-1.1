@@ -95,7 +95,7 @@ const IdentityPage: React.FC = () => {
       alerts.push({ icon: <Award size={14} />, text: `Strong social presence detected! Complete a course to boost your match scores significantly.`, type: 'info' });
     }
     if (finance === 0) {
-      alerts.push({ icon: <Bell size={14} />, text: `Connect a wallet to add up to 10 Finance points and unlock DeFi job matches.`, type: 'warning' });
+      alerts.push({ icon: <Bell size={14} />, text: `Connect a wallet in Finance to add up to 10 Finance points and unlock DeFi job matches.`, type: 'warning' });
     }
     if (physical === 0) {
       alerts.push({ icon: <Lock size={14} />, text: `Add a Diploma or ID to unlock 20+ points and "Real World" badge.`, type: 'warning' });

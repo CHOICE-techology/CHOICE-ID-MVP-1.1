@@ -53,7 +53,7 @@ const CredentialsPage: React.FC = () => {
   const [docType, setDocType] = useState<'Diploma' | 'Certification' | 'Award' | 'ID'>('Diploma');
   const [isVerifyingDoc, setIsVerifyingDoc] = useState(false);
 
-  if (!identity) return <div className="text-center text-muted-foreground mt-20 font-medium">Please connect wallet to access credentials.</div>;
+  if (!identity) return <div className="text-center text-muted-foreground mt-20 font-medium">Connect your CHOICE ID to access credentials.</div>;
 
   const handleAnalyzeWallet = async () => {
     setIsAnalyzing(true);
