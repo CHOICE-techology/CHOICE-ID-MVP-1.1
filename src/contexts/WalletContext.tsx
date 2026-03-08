@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserIdentity } from '../types';
-import { loadIdentity, saveIdentity } from '../services/storageService';
+import { loadIdentity, saveIdentity, syncIdentity, loadIdentityWithSync } from '../services/storageService';
 import { generateDID, calculateReputationScore } from '../services/cryptoService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,7 +20,6 @@ const WalletContext = createContext<WalletContextType | null>(null);
 export const useWallet = () => {
   const ctx = useContext(WalletContext);
   if (!ctx) {
-    // During HMR or when context is temporarily unavailable, return safe defaults
     console.warn('useWallet called outside WalletProvider — returning defaults');
     return {
       address: null,
@@ -34,6 +33,31 @@ export const useWallet = () => {
     } as WalletContextType;
   }
   return ctx;
+};
+
+/**
+ * Helper: given an address, load identity from DB (source of truth) then fallback to localStorage.
+ * If nothing exists, creates a new identity and persists it.
+ */
+const resolveIdentity = async (
+  addr: string,
+  meta?: { displayName?: string; avatar?: string }
+): Promise<UserIdentity> => {
+  // Try DB first, then localStorage
+  const existing = await loadIdentityWithSync(addr);
+  if (existing) return existing;
+
+  // Create fresh identity
+  const identity: UserIdentity = {
+    address: addr,
+    did: generateDID(addr),
+    displayName: meta?.displayName,
+    avatar: meta?.avatar,
+    credentials: [],
+    reputationScore: calculateReputationScore([]),
+  };
+  await syncIdentity(identity);
+  return identity;
 };
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -50,12 +74,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (savedMethod === 'metamask' && savedAddr) {
       const ethereum = (window as any).ethereum;
       if (ethereum) {
-        ethereum.request({ method: 'eth_accounts' }).then((accounts: string[]) => {
+        ethereum.request({ method: 'eth_accounts' }).then(async (accounts: string[]) => {
           if (accounts.length > 0) {
             const addr = accounts[0];
             setAddress(addr);
-            const saved = loadIdentity();
-            if (saved && saved.address === addr) setUserIdentity(saved);
+            const identity = await resolveIdentity(addr);
+            setUserIdentity(identity);
           }
         }).catch(() => {});
       }
@@ -66,19 +90,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const user = session.user;
         const addr = user.email || user.id;
         setAddress(addr);
-
-        let identity = loadIdentity();
-        if (!identity || identity.address !== addr) {
-          identity = {
-            address: addr,
-            did: generateDID(addr),
-            displayName: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
-            avatar: user.user_metadata?.avatar_url,
-            credentials: [],
-            reputationScore: calculateReputationScore([]),
-          };
-          saveIdentity(identity);
-        }
+        const identity = await resolveIdentity(addr, {
+          displayName: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+          avatar: user.user_metadata?.avatar_url,
+        });
         setUserIdentity(identity);
         setIsConnecting(false);
       } else if (event === 'SIGNED_OUT') {
@@ -88,23 +103,15 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
 
     // Check existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         const user = session.user;
         const addr = user.email || user.id;
         setAddress(addr);
-        let identity = loadIdentity();
-        if (!identity || identity.address !== addr) {
-          identity = {
-            address: addr,
-            did: generateDID(addr),
-            displayName: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
-            avatar: user.user_metadata?.avatar_url,
-            credentials: [],
-            reputationScore: calculateReputationScore([]),
-          };
-          saveIdentity(identity);
-        }
+        const identity = await resolveIdentity(addr, {
+          displayName: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+          avatar: user.user_metadata?.avatar_url,
+        });
         setUserIdentity(identity);
       } else {
         // Restore persistent wallet connection from localStorage
@@ -112,10 +119,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const savedAddr = localStorage.getItem('choice_wallet_address');
         if (savedMethod && savedAddr) {
           setAddress(savedAddr);
-          const saved = loadIdentity();
-          if (saved && saved.address === savedAddr) {
-            setUserIdentity(saved);
-          }
+          const identity = await resolveIdentity(savedAddr);
+          setUserIdentity(identity);
         } else {
           const saved = loadIdentity();
           if (saved) {
@@ -145,24 +150,13 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (accounts.length > 0) {
           const addr = accounts[0];
           setAddress(addr);
-          // Persist wallet connection
           localStorage.setItem('choice_wallet_method', 'metamask');
           localStorage.setItem('choice_wallet_address', addr);
-          let identity = loadIdentity();
-          if (!identity || identity.address !== addr) {
-            identity = {
-              address: addr,
-              did: generateDID(addr),
-              credentials: [],
-              reputationScore: calculateReputationScore([]),
-            };
-            saveIdentity(identity);
-          }
+          const identity = await resolveIdentity(addr);
           setUserIdentity(identity);
         }
         setIsConnecting(false);
       } else if (method === 'email') {
-        // Supabase email magic link
         const email = payload?.email;
         if (!email) {
           setAuthError('Please enter an email address.');
@@ -177,13 +171,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setAuthError(error.message);
           setIsConnecting(false);
         }
-        // isConnecting stays true until auth state changes or user dismisses
       } else if (method === 'google' || method === 'apple') {
-        // Real OAuth via Lovable Cloud - handled in WalletModal
-        // The actual call is made in the modal, this is a fallback
         setIsConnecting(false);
       } else {
-        // Legacy fallback - should not be used
         setAuthError('Please select a connection method.');
         setIsConnecting(false);
       }
@@ -198,6 +188,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     await supabase.auth.signOut();
     localStorage.removeItem('choice_wallet_method');
     localStorage.removeItem('choice_wallet_address');
+    // Note: we do NOT clear localStorage identity or DB data — it persists for reconnect
     setAddress(null);
     setUserIdentity(null);
   };
@@ -206,7 +197,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const score = calculateReputationScore(newIdentity.credentials);
     const updated = { ...newIdentity, reputationScore: score };
     setUserIdentity(updated);
-    saveIdentity(updated);
+    // Sync to both localStorage and database
+    syncIdentity(updated);
   };
 
   return (
