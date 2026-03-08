@@ -13,6 +13,7 @@ import JobsPage from "./pages/JobsPage";
 import AboutPage from "./pages/AboutPage";
 import VerifyPage from "./pages/VerifyPage";
 import WalletManagerPage from "./pages/WalletManagerPage";
+import ProfileSettingsPage from "./pages/ProfileSettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
