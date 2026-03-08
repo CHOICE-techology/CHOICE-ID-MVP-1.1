@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, Loader2, Star } from 'lucide-react';
 import { WalletEntry } from '@/data/walletRegistry';
+import { WalletLogo } from './WalletLogo';
 import { cn } from '@/lib/utils';
 
 interface DetectedWalletsProps {
@@ -20,7 +21,6 @@ export const DetectedWallets: React.FC<DetectedWalletsProps> = ({
 }) => {
   if (wallets.length === 0) return null;
 
-  // Sort by popularity rank, pick the single most popular as the "hero"
   const sorted = [...wallets].sort((a, b) => {
     const ra = POPULARITY_RANK[a.id] ?? 999;
     const rb = POPULARITY_RANK[b.id] ?? 999;
@@ -50,7 +50,7 @@ export const DetectedWallets: React.FC<DetectedWalletsProps> = ({
         )}
       >
         <div className="flex items-center gap-3">
-          <img src={hero.logo} alt={hero.name} className="w-8 h-8 object-contain rounded-lg" />
+          <WalletLogo src={hero.logo} name={hero.name} size={32} className="rounded-lg" />
           <div className="flex flex-col items-start">
             <span className="font-bold text-sm text-foreground">{hero.name}</span>
             <span className="text-[9px] text-muted-foreground font-medium">Recommended</span>
@@ -79,7 +79,7 @@ export const DetectedWallets: React.FC<DetectedWalletsProps> = ({
                 "bg-muted/30 hover:bg-muted/60 transition-all disabled:opacity-60 text-xs"
               )}
             >
-              <img src={wallet.logo} alt={wallet.name} className="w-5 h-5 object-contain rounded" />
+              <WalletLogo src={wallet.logo} name={wallet.name} size={20} className="rounded" />
               <span className="font-semibold text-foreground">{wallet.name}</span>
               {connecting === wallet.id && <Loader2 size={12} className="animate-spin text-primary" />}
               {successSet.has(wallet.id) && <Check size={12} className="text-emerald-500" />}
