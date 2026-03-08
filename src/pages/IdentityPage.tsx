@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { UserIdentity, GeneratedCV, Job } from '@/types';
 import { mockGenerateCV, mockGenerateBio, generateReputationHash } from '@/services/cryptoService';
 import { calculateReputation } from '@/services/reputationEngine';
@@ -10,7 +10,7 @@ import {
   Download, Edit2, Sparkles, FileText, Camera, CheckCircle, Info,
   TrendingUp, Lock, ExternalLink, Shield, Briefcase, Bell, FileCheck,
   PenTool, Target, ArrowRight, Clock, Hash, Award, Zap, Settings,
-  ArrowLeft, X, Eye, Send, Gift, Copy, Share2
+  ArrowLeft, X, Eye, Send, Gift, Copy, Share2, Move
 } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import { useWallet } from '@/contexts/WalletContext';
@@ -18,6 +18,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import GridLayout, { Layout } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 
 const IdentityPage: React.FC = () => {
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
@@ -43,6 +46,49 @@ const IdentityPage: React.FC = () => {
   const [cvPopupOpen, setCvPopupOpen] = useState(false);
   const [jobPopupOpen, setJobPopupOpen] = useState(false);
   const [selectedJobForPopup, setSelectedJobForPopup] = useState<(Job & { matchResult: { score: number; reason: string; matchingSkills: string[]; missingSkills: string[]; recommendations: string[] } }) | null>(null);
+
+  // Grid layout state
+  const [containerWidth, setContainerWidth] = useState(1200);
+  const containerRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      });
+      resizeObserver.observe(node);
+      setContainerWidth(node.offsetWidth);
+    }
+  }, []);
+
+  const defaultLayout: Layout[] = [
+    { i: 'scoreboard', x: 0, y: 0, w: 12, h: 7, minW: 6, minH: 5 },
+    { i: 'profile', x: 0, y: 7, w: 5, h: 8, minW: 3, minH: 6 },
+    { i: 'verification', x: 5, y: 7, w: 7, h: 8, minW: 4, minH: 6 },
+    { i: 'recommendations', x: 0, y: 15, w: 7, h: 9, minW: 4, minH: 6 },
+    { i: 'cv', x: 7, y: 15, w: 5, h: 9, minW: 3, minH: 5 },
+    { i: 'referral', x: 0, y: 24, w: 12, h: 4, minW: 6, minH: 3 },
+  ];
+
+  const [layout, setLayout] = useState<Layout[]>(() => {
+    try {
+      const saved = localStorage.getItem('identity_page_layout');
+      return saved ? JSON.parse(saved) : defaultLayout;
+    } catch {
+      return defaultLayout;
+    }
+  });
+
+  const onLayoutChange = (newLayout: Layout[]) => {
+    setLayout(newLayout);
+    localStorage.setItem('identity_page_layout', JSON.stringify(newLayout));
+  };
+
+  const resetLayout = () => {
+    setLayout(defaultLayout);
+    localStorage.removeItem('identity_page_layout');
+    toast({ title: 'Layout reset', description: 'Blocks returned to default positions.' });
+  };
 
   const reputation = identity ? calculateReputation(identity.credentials) : null;
   const score = reputation?.score ?? 0;
@@ -110,7 +156,6 @@ const IdentityPage: React.FC = () => {
   }, [score, social, education, finance, physical]);
 
   const verificationData = useMemo(() => {
-    // Priority: identity anchor data > navState > localStorage
     if (identity?.lastAnchorHash) {
       const mockTxHash = `0x${identity.lastAnchorHash.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
       return {
@@ -128,7 +173,6 @@ const IdentityPage: React.FC = () => {
         explorerUrl: navState.verificationData.explorerUrl || `https://sepolia.arbiscan.io/tx/${navState.verificationData.txHash}`,
       };
     }
-    // Fallback: last persisted verification from localStorage
     try {
       const stored = localStorage.getItem('choice_last_verification');
       if (stored) {
@@ -263,438 +307,425 @@ DID: ${identity.did}`;
 
   const displayCV = optimizedCV || cv;
 
+  const generateAffiliateLink = () => {
+    const link = `https://choice.love/join?ref=${identity.address.slice(0, 10)}`;
+    setAffiliateLink(link);
+    navigator.clipboard.writeText(link);
+    toast({ title: 'Link created & copied!', description: 'Share it with friends.' });
+  };
+
+  // Block wrapper with drag handle
+  const BlockWrapper = ({ children, title }: { children: React.ReactNode; title: string }) => (
+    <div className="h-full w-full relative group">
+      <div className="drag-handle absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-move bg-muted/90 backdrop-blur-sm p-1.5 rounded-lg border border-border flex items-center gap-1">
+        <Move size={12} className="text-muted-foreground" />
+        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{title}</span>
+      </div>
+      <div className="h-full overflow-auto">
+        {children}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-8 animate-fade-in pb-10">
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* BACK BUTTON (visible after verification)                       */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {verificationData && (
-        <Link to="/verify" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-primary/5 border border-primary/20 px-4 py-2 rounded-xl">
-          <ArrowLeft size={16} /> Back to Verification
-        </Link>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* HERO: TRUST SCORE — SCOREBOARD (UNCHANGED)                    */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <div className="bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden">
-        <div className="bg-[#020617] p-6 md:p-12 relative">
-          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-            <CheckCircle size={400} className="text-white" />
-          </div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
-            <div className="text-center md:text-left space-y-6">
-              <div className="inline-flex items-center gap-2 border border-white/10 bg-white/5 rounded-full px-4 py-1.5 backdrop-blur-md">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-300">CHOICE Trust ID</span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-3 justify-center md:justify-start">
-                  <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter drop-shadow-xl">{score}</h1>
-                  <span className="text-lg text-slate-500 font-bold mb-2">/100</span>
-                </div>
-                <h2 className={`text-xl md:text-3xl font-bold ${tier.color} tracking-tight`}>{tier.label}</h2>
-              </div>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-md mx-auto md:mx-0">
-                Your score is a cryptographic aggregate of your digital and physical footprint. It proves your humanity and reputation without revealing sensitive data.
-              </p>
-              <div className="flex flex-col gap-2 max-w-xs mx-auto md:mx-0">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
-                  <span>Next Tier Goal</span>
-                  <span>{Math.min(score + 20, 100)} pts</span>
-                </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5">
-                  <div className="bg-gradient-to-r from-primary to-secondary h-1.5 rounded-full shadow-glow-primary" style={{ width: `${score}%` }}></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="h-[240px] md:h-[280px] w-full relative flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
-                  <PolarGrid stroke="#334155" strokeDasharray="3 3" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 'bold' }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar name="Score" dataKey="value" stroke="#00E5FF" strokeWidth={3} fill="#00E5FF" fillOpacity={0.2} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#0F172A', borderColor: '#1E293B', color: '#F8FAFC', borderRadius: '12px' }}
-                    itemStyle={{ color: '#00E5FF' }}
-                    formatter={(value: number) => [`${Math.round(value)}%`, 'Capacity']}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-              <div className="absolute bottom-0 right-0 md:-right-4 text-[10px] text-primary font-mono bg-primary/10 border border-primary/20 px-2 py-1 rounded backdrop-blur-sm">
-                Identity Vector v1.0
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-muted p-6 grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-border border-t border-border">
-          <div className="text-center pt-2 md:pt-0">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Social</div>
-            <div className="text-xl md:text-2xl font-black text-foreground">{social}<span className="text-sm text-muted-foreground font-medium">/40</span></div>
-            <div className="text-[10px] text-blue-600 font-bold bg-blue-50 inline-block px-2 py-0.5 rounded-full mt-1">Influence</div>
-          </div>
-          <div className="text-center pt-2 md:pt-0">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Education</div>
-            <div className="text-xl md:text-2xl font-black text-foreground">{education}<span className="text-sm text-muted-foreground font-medium">/30</span></div>
-            <div className="text-[10px] text-purple-600 font-bold bg-purple-50 inline-block px-2 py-0.5 rounded-full mt-1">Skill Badges</div>
-          </div>
-          <div className="text-center pt-4 md:pt-0">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Real World</div>
-            <div className="text-xl md:text-2xl font-black text-foreground">{physical}<span className="text-sm text-muted-foreground font-medium">/20</span></div>
-            <div className="text-[10px] text-emerald-600 font-bold bg-emerald-50 inline-block px-2 py-0.5 rounded-full mt-1">Proof of Humanity</div>
-          </div>
-          <div className="text-center pt-4 md:pt-0">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Finance</div>
-            <div className="text-xl md:text-2xl font-black text-foreground">{finance}<span className="text-sm text-muted-foreground font-medium">/10</span></div>
-            <div className="text-[10px] text-amber-600 font-bold bg-amber-50 inline-block px-2 py-0.5 rounded-full mt-1">Chain Activity</div>
-          </div>
-        </div>
-      </div>
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* END SCOREBOARD                                                 */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-
-      {/* ── PROFILE + ON-CHAIN VERIFICATION ROW ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        {/* PROFILE CARD — larger, central */}
-        <div className="lg:col-span-5">
-          <div className="bg-card border border-border rounded-3xl p-8 md:p-10 shadow-xl flex flex-col items-center text-center relative overflow-hidden h-full">
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary/5 to-transparent"></div>
-
-            {/* Settings button */}
-            <Link
-              to="/profile/settings"
-              className="absolute top-5 right-5 z-20 p-2 rounded-xl bg-muted/80 border border-border hover:bg-accent transition-colors backdrop-blur-sm"
-              title="Edit Profile"
-            >
-              <Settings size={16} className="text-muted-foreground" />
-            </Link>
-
-            <div className="relative group mb-6 z-10">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-[6px] border-background shadow-2xl bg-muted flex items-center justify-center relative">
-                {identity.avatar ? (
-                  <img src={identity.avatar} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-5xl font-bold text-muted-foreground/30">{identity.displayName?.charAt(0) || '?'}</span>
-                )}
-                <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[2px] rounded-full">
-                  <Camera size={28} />
-                  <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                </label>
-              </div>
-            </div>
-
-            <div className="w-full mb-5 relative z-10">
-              {isEditing ? (
-                <div className="flex gap-2 justify-center mb-2 items-center">
-                  <input type="text" className="border-2 border-primary/20 focus:border-primary rounded-lg px-3 py-1 text-lg font-bold text-foreground w-full text-center outline-none bg-muted" defaultValue={identity.displayName} onChange={(e) => setNewName(e.target.value)} placeholder="Display Name" autoFocus />
-                  <ChoiceButton size="sm" onClick={handleSaveProfile} className="shrink-0"><CheckCircle size={16} /></ChoiceButton>
-                </div>
-              ) : (
-                <h2 className="text-2xl font-bold text-foreground mb-1 flex items-center justify-center gap-2 group cursor-pointer" onClick={() => setIsEditing(true)}>
-                  {identity.displayName || "Anonymous User"}
-                  <Edit2 size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                </h2>
-              )}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border mt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <p className="text-muted-foreground font-mono text-[10px] truncate max-w-[180px]">{identity.did}</p>
-              </div>
-            </div>
-
-            {/* Tier badge */}
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-5 ${
-              score >= 80 ? 'bg-primary/10 border-primary/20 text-primary' :
-              score >= 60 ? 'bg-secondary/10 border-secondary/20 text-secondary' :
-              'bg-muted border-border text-muted-foreground'
-            }`}>
-              <Award size={14} />
-              <span className="text-xs font-bold">{tier.label}</span>
-              <span className="text-xs font-mono">{score}/100</span>
-            </div>
-
-            {/* Bio */}
-            <div className="bg-muted p-5 rounded-2xl text-muted-foreground text-sm border border-border w-full relative">
-              <span className="absolute -top-2 left-5 bg-card px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Bio</span>
-              {identity.bio ? <p className="leading-relaxed text-sm">{identity.bio}</p> : <p className="italic text-muted-foreground/50 text-sm">No bio yet. Generate a CV to create one.</p>}
-            </div>
-
-            <Link to="/profile/settings" className="mt-5 text-xs font-bold text-primary hover:underline flex items-center gap-1">
-              <Settings size={12} /> Edit Profile & Personal Details
-            </Link>
-          </div>
-        </div>
-
-        {/* ON-CHAIN VERIFICATION — transaction-style */}
-        <div className="lg:col-span-7">
-          <div className="bg-card border border-border rounded-3xl shadow-xl overflow-hidden h-full flex flex-col">
-            <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-5 md:p-6 border-b border-border">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-2.5 rounded-xl">
-                    <Shield size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground">Verify Proofs On-Chain</h3>
-                    <p className="text-muted-foreground text-xs">Anchor your reputation hash to Arbitrum.</p>
-                  </div>
-                </div>
-                <Link to="/verify" className="shrink-0">
-                  <ChoiceButton size="sm" className="shadow-lg hover:shadow-xl transition-all">
-                    VERIFY NOW <CheckCircle className="ml-1.5" size={14} />
-                  </ChoiceButton>
-                </Link>
-              </div>
-            </div>
-
-            {verificationData ? (
-              <div className="p-5 md:p-6 flex-1 flex flex-col justify-center space-y-4">
-                {/* Verification Successful banner */}
-                {navState?.verificationSuccess && (
-                  <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3.5">
-                    <div className="bg-emerald-100 p-1.5 rounded-full">
-                      <CheckCircle size={18} className="text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-emerald-800">Verification Successful</p>
-                      <p className="text-xs text-emerald-600">Your reputation proof has been verified on-chain.</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Transaction-style record */}
-                <div className="bg-muted rounded-2xl border border-border overflow-hidden">
-                  <div className="bg-emerald-50 border-b border-emerald-100 px-5 py-3 flex items-center gap-2">
-                    <CheckCircle size={14} className="text-emerald-600" />
-                    <span className="text-xs font-bold text-emerald-700">Transaction Confirmed</span>
-                    <span className="ml-auto text-[10px] text-emerald-600 font-mono">Arbitrum Sepolia</span>
-                  </div>
-                  <div className="divide-y divide-border">
-                    <div className="flex items-center justify-between px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <Clock size={14} className="text-muted-foreground" />
-                        <span className="text-xs font-semibold text-muted-foreground">Date</span>
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">{verificationData.date}</span>
-                    </div>
-                    <div className="flex items-center justify-between px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <Award size={14} className="text-muted-foreground" />
-                        <span className="text-xs font-semibold text-muted-foreground">Anchored Score</span>
-                      </div>
-                      <span className="text-sm font-bold text-foreground">{verificationData.score}<span className="text-muted-foreground font-normal">/100</span></span>
-                    </div>
-                    <div className="flex items-center justify-between px-5 py-3.5 gap-3">
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Hash size={14} className="text-muted-foreground" />
-                        <span className="text-xs font-semibold text-muted-foreground">TX Hash</span>
-                      </div>
-                      <span className="text-xs font-mono text-primary truncate">{verificationData.txHash}</span>
-                    </div>
-                  </div>
-                  <div className="px-5 py-3.5 border-t border-border bg-muted/50">
-                    <a
-                      href={verificationData.explorerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 text-sm font-bold text-secondary hover:text-primary transition-colors bg-secondary/10 hover:bg-secondary/15 px-4 py-2.5 rounded-xl w-full"
-                    >
-                      View on Arbiscan <ExternalLink size={14} />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 md:p-8 text-center flex-1 flex items-center justify-center">
-                <div className="bg-muted rounded-2xl p-8 border-2 border-dashed border-border w-full">
-                  <Shield size={32} className="text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground text-sm font-medium">
-                    No on-chain verification yet. Anchor your reputation to create an immutable, publicly verifiable proof.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+    <div className="space-y-4 animate-fade-in pb-10">
+      {/* Header with reset layout button */}
+      <div className="flex items-center justify-between">
+        {verificationData && (
+          <Link to="/verify" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-primary/5 border border-primary/20 px-4 py-2 rounded-xl">
+            <ArrowLeft size={16} /> Back to Verification
+          </Link>
+        )}
+        <button
+          onClick={resetLayout}
+          className="ml-auto inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground bg-muted border border-border px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <Move size={12} /> Reset Layout
+        </button>
       </div>
 
-      {/* ── MAIN GRID: Recommendations (bigger) | CV compact ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Draggable/Resizable Grid */}
+      <div ref={containerRef} className="w-full">
+        <GridLayout
+          className="layout"
+          layout={layout}
+          cols={12}
+          rowHeight={50}
+          width={containerWidth}
+          onLayoutChange={onLayoutChange}
+          draggableHandle=".drag-handle"
+          isResizable={true}
+          isDraggable={true}
+          margin={[16, 16]}
+          containerPadding={[0, 0]}
+          useCSSTransforms={true}
+        >
+          {/* SCOREBOARD */}
+          <div key="scoreboard">
+            <BlockWrapper title="Score">
+              <div className="bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden h-full">
+                <div className="bg-[#020617] p-6 md:p-8 relative h-full">
+                  <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                    <CheckCircle size={300} className="text-white" />
+                  </div>
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
 
-        {/* SMART RECOMMENDATIONS — bigger, more visible */}
-        <div className="lg:col-span-7">
-          <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl">
-            <h3 className="font-bold text-foreground mb-6 flex items-center gap-2 text-xl">
-              <Sparkles className="text-primary" size={22} /> Smart Recommendations
-            </h3>
-
-            {/* Score improvement alerts */}
-            <div className="space-y-2.5 mb-6">
-              {scoreAlerts.slice(0, 4).map((alert, i) => (
-                <div key={`alert-${i}`} className={`flex items-start gap-3 p-3.5 rounded-xl text-sm border ${
-                  alert.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                  alert.type === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                  'bg-blue-50 text-blue-700 border-blue-100'
-                }`}>
-                  <span className="shrink-0 mt-0.5">{alert.icon}</span>
-                  <span className="leading-relaxed">{alert.text}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Job Match Suggestions — bigger cards */}
-            {topJobMatches.length > 0 && (
-              <div className="pt-5 border-t border-border">
-                <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Briefcase size={14} /> Top Job Matches
-                </h4>
-                <div className="space-y-3">
-                  {topJobMatches.map((job) => (
-                    <button
-                      key={job.id}
-                      onClick={() => handleJobClick(job)}
-                      className="w-full flex items-center gap-4 p-4 bg-muted rounded-2xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all group text-left"
-                    >
-                      <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-sm font-black ${
-                        job.matchResult.score >= 70 ? 'bg-emerald-100 text-emerald-700' :
-                        job.matchResult.score >= 40 ? 'bg-amber-100 text-amber-700' :
-                        'bg-red-100 text-red-600'
-                      }`}>
-                        {job.matchResult.score}%
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10 h-full">
+                    <div className="text-center md:text-left space-y-4">
+                      <div className="inline-flex items-center gap-2 border border-white/10 bg-white/5 rounded-full px-4 py-1.5 backdrop-blur-md">
+                        <span className="text-[10px] font-bold tracking-widest uppercase text-slate-300">CHOICE Trust ID</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-foreground font-bold text-sm group-hover:text-primary transition-colors">{job.title}</p>
-                        <p className="text-muted-foreground text-xs">{job.company} · {job.type} · {job.salary}</p>
+                      <div>
+                        <div className="flex items-baseline gap-3 justify-center md:justify-start">
+                          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-xl">{score}</h1>
+                          <span className="text-lg text-slate-500 font-bold mb-2">/100</span>
+                        </div>
+                        <h2 className={`text-xl md:text-2xl font-bold ${tier.color} tracking-tight`}>{tier.label}</h2>
                       </div>
-                      <ArrowRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                    </button>
-                  ))}
+                      <p className="text-slate-400 text-xs leading-relaxed max-w-md mx-auto md:mx-0">
+                        Your score is a cryptographic aggregate of your digital and physical footprint.
+                      </p>
+                    </div>
+
+                    <div className="h-[180px] md:h-[200px] w-full relative flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
+                          <PolarGrid stroke="#334155" strokeDasharray="3 3" />
+                          <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 'bold' }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                          <Radar name="Score" dataKey="value" stroke="#00E5FF" strokeWidth={3} fill="#00E5FF" fillOpacity={0.2} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#0F172A', borderColor: '#1E293B', color: '#F8FAFC', borderRadius: '12px' }}
+                            itemStyle={{ color: '#00E5FF' }}
+                            formatter={(value: number) => [`${Math.round(value)}%`, 'Capacity']}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
                 </div>
-                <Link to="/jobs" className="block mt-4 text-center">
-                  <span className="text-sm font-bold text-primary hover:underline">View all 500+ positions →</span>
-                </Link>
               </div>
-            )}
+            </BlockWrapper>
           </div>
-        </div>
 
-        {/* CHOICE CV — compact card, opens popup */}
-        <div className="lg:col-span-5">
-          <div className="bg-card border border-border rounded-3xl p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <FileText size={18} className="text-primary" /> CHOICE CV
-              </h3>
-            </div>
+          {/* PROFILE CARD */}
+          <div key="profile">
+            <BlockWrapper title="Profile">
+              <div className="bg-card border border-border rounded-3xl p-6 shadow-xl flex flex-col items-center text-center relative overflow-hidden h-full">
+                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-primary/5 to-transparent"></div>
+                <Link
+                  to="/profile/settings"
+                  className="absolute top-4 right-4 z-20 p-2 rounded-xl bg-muted/80 border border-border hover:bg-accent transition-colors backdrop-blur-sm"
+                  title="Edit Profile"
+                >
+                  <Settings size={14} className="text-muted-foreground" />
+                </Link>
 
-            {!cv ? (
-              <div className="text-center py-8">
-                <div className="bg-muted p-4 rounded-full inline-flex mb-4">
-                  <FileText size={28} className="text-muted-foreground/30" />
+                <div className="relative group mb-4 z-10">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-2xl bg-muted flex items-center justify-center relative">
+                    {identity.avatar ? (
+                      <img src={identity.avatar} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl font-bold text-muted-foreground/30">{identity.displayName?.charAt(0) || '?'}</span>
+                    )}
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[2px] rounded-full">
+                      <Camera size={20} />
+                      <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                    </label>
+                  </div>
                 </div>
-                <p className="text-muted-foreground text-sm mb-4">Generate a verifiable CV from your on-chain credentials.</p>
-                <ChoiceButton onClick={handleGenerateCV} isLoading={isGeneratingCV} className="w-full">
-                  <Sparkles size={16} className="mr-2" /> Generate CV
-                </ChoiceButton>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-muted rounded-2xl p-4 border border-border">
-                  <p className="text-foreground text-sm leading-relaxed line-clamp-3">{displayCV?.summary}</p>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {displayCV?.skills.slice(0, 6).map((skill, i) => (
-                    <span key={i} className="bg-foreground text-background px-2.5 py-1 rounded-lg text-[10px] font-bold">
-                      {skill}
-                    </span>
-                  ))}
-                  {(displayCV?.skills.length || 0) > 6 && (
-                    <span className="text-[10px] text-muted-foreground font-medium px-2 py-1">+{(displayCV?.skills.length || 0) - 6} more</span>
+
+                <div className="w-full mb-3 relative z-10">
+                  {isEditing ? (
+                    <div className="flex gap-2 justify-center mb-2 items-center">
+                      <input type="text" className="border-2 border-primary/20 focus:border-primary rounded-lg px-3 py-1 text-base font-bold text-foreground w-full text-center outline-none bg-muted" defaultValue={identity.displayName} onChange={(e) => setNewName(e.target.value)} placeholder="Display Name" autoFocus />
+                      <ChoiceButton size="sm" onClick={handleSaveProfile} className="shrink-0"><CheckCircle size={14} /></ChoiceButton>
+                    </div>
+                  ) : (
+                    <h2 className="text-lg font-bold text-foreground mb-1 flex items-center justify-center gap-2 group cursor-pointer" onClick={() => setIsEditing(true)}>
+                      {identity.displayName || "Anonymous User"}
+                      <Edit2 size={12} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                    </h2>
                   )}
+                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-full bg-muted border border-border">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <p className="text-muted-foreground font-mono text-[9px] truncate max-w-[120px]">{identity.did}</p>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <ChoiceButton size="sm" onClick={() => setCvPopupOpen(true)} className="flex-1">
-                    <Eye size={14} className="mr-1" /> Open Full CV
-                  </ChoiceButton>
-                  <ChoiceButton variant="outline" size="sm" onClick={() => alert("Downloading PDF...")}>
-                    <Download size={14} />
-                  </ChoiceButton>
-                  <ChoiceButton variant="outline" size="sm" onClick={() => { setCv(null); setOptimizedCV(null); setCoverLetter(null); }}>
-                    Redo
-                  </ChoiceButton>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* ── REFERRAL SECTION ── */}
-      <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="bg-primary/10 p-4 rounded-2xl shrink-0">
-            <Gift size={36} className="text-primary" />
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h3 className="text-lg font-bold text-foreground mb-1">Invite Friends to CHOICE.love</h3>
-            <p className="text-muted-foreground text-sm">Share your affiliate link and grow the CHOICE community.</p>
-            <div className="flex items-center gap-4 mt-3 justify-center md:justify-start">
-              <div className="bg-muted rounded-xl px-4 py-2 border border-border">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Friends Invited</span>
-                <p className="text-2xl font-black text-foreground">{invitedCount}</p>
-              </div>
-            </div>
-          </div>
-          <div className="shrink-0">
-            {score >= 50 ? (
-              affiliateLink ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="bg-muted rounded-xl px-4 py-2.5 border border-border flex items-center gap-2">
-                    <code className="text-xs text-foreground font-mono max-w-[180px] truncate">{affiliateLink}</code>
-                    <button onClick={() => { navigator.clipboard.writeText(affiliateLink); toast({ title: 'Copied!', description: 'Affiliate link copied.' }); }} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors">
-                      <Copy size={14} className="text-primary" />
-                    </button>
-                  </div>
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-3 ${
+                  score >= 80 ? 'bg-primary/10 border-primary/20 text-primary' :
+                  score >= 60 ? 'bg-secondary/10 border-secondary/20 text-secondary' :
+                  'bg-muted border-border text-muted-foreground'
+                }`}>
+                  <Award size={12} />
+                  <span className="text-[10px] font-bold">{tier.label}</span>
                 </div>
-              ) : (
-                <ChoiceButton onClick={() => { const code = Math.random().toString(36).substring(2, 10).toUpperCase(); setAffiliateLink(`https://CHOICE.love/join?ref=${code}`); }}>
-                  <Share2 size={16} className="mr-2" /> Create Invite Link
-                </ChoiceButton>
-              )
-            ) : (
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground font-semibold mb-1">Reach 50+ points to unlock</p>
-                <div className="bg-muted rounded-xl px-4 py-2 border border-border">
-                  <span className="text-sm font-bold text-foreground">{score}/50</span>
-                  <div className="w-32 bg-border rounded-full h-1.5 mt-1">
-                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${Math.min((score / 50) * 100, 100)}%` }}></div>
-                  </div>
+
+                <div className="bg-muted p-3 rounded-xl text-muted-foreground text-xs border border-border w-full relative flex-1">
+                  <span className="absolute -top-2 left-4 bg-card px-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Bio</span>
+                  {identity.bio ? <p className="leading-relaxed text-xs">{identity.bio}</p> : <p className="italic text-muted-foreground/50 text-xs">No bio yet.</p>}
                 </div>
               </div>
-            )}
+            </BlockWrapper>
           </div>
-        </div>
+
+          {/* ON-CHAIN VERIFICATION */}
+          <div key="verification">
+            <BlockWrapper title="Verify">
+              <div className="bg-card border border-border rounded-3xl shadow-xl overflow-hidden h-full flex flex-col">
+                <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-4 border-b border-border">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-primary/10 p-2 rounded-xl">
+                        <Shield size={16} className="text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-foreground">Verify On-Chain</h3>
+                        <p className="text-muted-foreground text-[10px]">Anchor your reputation hash.</p>
+                      </div>
+                    </div>
+                    <Link to="/verify" className="shrink-0">
+                      <ChoiceButton size="sm" className="shadow-lg hover:shadow-xl transition-all text-xs">
+                        VERIFY NOW <CheckCircle className="ml-1" size={12} />
+                      </ChoiceButton>
+                    </Link>
+                  </div>
+                </div>
+
+                {verificationData ? (
+                  <div className="p-4 flex-1 flex flex-col justify-center space-y-3">
+                    {navState?.verificationSuccess && (
+                      <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">
+                        <div className="bg-emerald-100 p-1 rounded-full">
+                          <CheckCircle size={14} className="text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-emerald-800">Verification Successful</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="bg-muted rounded-2xl border border-border overflow-hidden">
+                      <div className="bg-emerald-50 border-b border-emerald-100 px-4 py-2 flex items-center gap-2">
+                        <CheckCircle size={12} className="text-emerald-600" />
+                        <span className="text-[10px] font-bold text-emerald-700">Transaction Confirmed</span>
+                      </div>
+                      <div className="divide-y divide-border text-xs">
+                        <div className="flex items-center justify-between px-4 py-2">
+                          <div className="flex items-center gap-2">
+                            <Clock size={12} className="text-muted-foreground" />
+                            <span className="text-[10px] font-semibold text-muted-foreground">Date</span>
+                          </div>
+                          <span className="text-xs font-semibold text-foreground">{verificationData.date}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-2">
+                          <div className="flex items-center gap-2">
+                            <Award size={12} className="text-muted-foreground" />
+                            <span className="text-[10px] font-semibold text-muted-foreground">Score</span>
+                          </div>
+                          <span className="text-xs font-bold text-foreground">{verificationData.score}/100</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-2 gap-2">
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Hash size={12} className="text-muted-foreground" />
+                            <span className="text-[10px] font-semibold text-muted-foreground">TX Hash</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-primary truncate">{verificationData.txHash.slice(0, 20)}...</span>
+                        </div>
+                      </div>
+                      <div className="px-4 py-2 border-t border-border bg-muted/50">
+                        <a
+                          href={verificationData.explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 text-xs font-bold text-secondary hover:text-primary transition-colors"
+                        >
+                          View on Arbiscan <ExternalLink size={12} />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 text-center flex-1 flex items-center justify-center">
+                    <div className="bg-muted rounded-2xl p-6 border-2 border-dashed border-border w-full">
+                      <Shield size={24} className="text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-muted-foreground text-xs font-medium">
+                        No on-chain verification yet.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </BlockWrapper>
+          </div>
+
+          {/* SMART RECOMMENDATIONS */}
+          <div key="recommendations">
+            <BlockWrapper title="Jobs">
+              <div className="bg-card border border-border rounded-3xl p-5 shadow-xl h-full overflow-auto">
+                <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-base">
+                  <Sparkles className="text-primary" size={18} /> Smart Recommendations
+                </h3>
+
+                <div className="space-y-2 mb-4">
+                  {scoreAlerts.slice(0, 3).map((alert, i) => (
+                    <div key={`alert-${i}`} className={`flex items-start gap-2 p-2.5 rounded-xl text-xs border ${
+                      alert.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                      alert.type === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                      'bg-blue-50 text-blue-700 border-blue-100'
+                    }`}>
+                      <span className="shrink-0 mt-0.5">{alert.icon}</span>
+                      <span className="leading-relaxed">{alert.text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {topJobMatches.length > 0 && (
+                  <div className="pt-4 border-t border-border">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Briefcase size={12} /> Top Job Matches
+                    </h4>
+                    <div className="space-y-2">
+                      {topJobMatches.slice(0, 4).map((job) => (
+                        <button
+                          key={job.id}
+                          onClick={() => handleJobClick(job)}
+                          className="w-full flex items-center gap-3 p-3 bg-muted rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all group text-left"
+                        >
+                          <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-xs font-black ${
+                            job.matchResult.score >= 70 ? 'bg-emerald-100 text-emerald-700' :
+                            job.matchResult.score >= 40 ? 'bg-amber-100 text-amber-700' :
+                            'bg-red-100 text-red-600'
+                          }`}>
+                            {job.matchResult.score}%
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-foreground font-bold text-xs group-hover:text-primary transition-colors truncate">{job.title}</p>
+                            <p className="text-muted-foreground text-[10px] truncate">{job.company}</p>
+                          </div>
+                          <ArrowRight size={14} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                    <Link to="/jobs" className="block mt-3 text-center">
+                      <span className="text-xs font-bold text-primary hover:underline">View all positions →</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </BlockWrapper>
+          </div>
+
+          {/* CHOICE CV */}
+          <div key="cv">
+            <BlockWrapper title="CV">
+              <div className="bg-card border border-border rounded-3xl p-5 shadow-xl h-full">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <FileText size={16} className="text-primary" /> CHOICE CV
+                  </h3>
+                </div>
+
+                {!cv ? (
+                  <div className="text-center py-6">
+                    <div className="bg-muted p-3 rounded-full inline-flex mb-3">
+                      <FileText size={24} className="text-muted-foreground/30" />
+                    </div>
+                    <p className="text-muted-foreground text-xs mb-3">Generate a verifiable CV from your credentials.</p>
+                    <ChoiceButton onClick={handleGenerateCV} isLoading={isGeneratingCV} className="w-full text-sm">
+                      <Sparkles size={14} className="mr-2" /> Generate CV
+                    </ChoiceButton>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="bg-muted rounded-xl p-3 border border-border">
+                      <p className="text-foreground text-xs leading-relaxed line-clamp-3">{displayCV?.summary}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {displayCV?.skills.slice(0, 5).map((skill, i) => (
+                        <span key={i} className="bg-foreground text-background px-2 py-0.5 rounded-lg text-[9px] font-bold">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <ChoiceButton size="sm" onClick={() => setCvPopupOpen(true)} className="flex-1 text-xs">
+                        <Eye size={12} className="mr-1" /> View Full CV
+                      </ChoiceButton>
+                      <ChoiceButton variant="outline" size="sm" onClick={() => { setCv(null); setOptimizedCV(null); setCoverLetter(null); }} className="text-xs">
+                        Redo
+                      </ChoiceButton>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </BlockWrapper>
+          </div>
+
+          {/* REFERRAL SECTION */}
+          <div key="referral">
+            <BlockWrapper title="Invite">
+              <div className="bg-card border border-border rounded-3xl p-5 shadow-xl h-full">
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                  <div className="bg-primary/10 p-3 rounded-xl shrink-0">
+                    <Gift size={28} className="text-primary" />
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-base font-bold text-foreground mb-1">Invite Friends to CHOICE.love</h3>
+                    <p className="text-muted-foreground text-xs">Share your affiliate link and grow the CHOICE community.</p>
+                    <div className="flex items-center gap-4 mt-2 justify-center md:justify-start">
+                      <div className="bg-muted rounded-lg px-3 py-1.5 border border-border">
+                        <span className="text-[10px] text-muted-foreground">Friends Invited</span>
+                        <span className="ml-2 text-sm font-bold text-foreground">{invitedCount}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="shrink-0">
+                    {score >= 50 ? (
+                      affiliateLink ? (
+                        <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2 border border-border">
+                          <span className="text-[10px] font-mono text-primary truncate max-w-[140px]">{affiliateLink}</span>
+                          <button onClick={() => { navigator.clipboard.writeText(affiliateLink); toast({ title: 'Copied!' }); }} className="p-1 hover:bg-primary/10 rounded">
+                            <Copy size={12} className="text-primary" />
+                          </button>
+                        </div>
+                      ) : (
+                        <ChoiceButton size="sm" onClick={generateAffiliateLink} className="text-xs">
+                          <Share2 size={12} className="mr-1" /> Create Link
+                        </ChoiceButton>
+                      )
+                    ) : (
+                      <div className="text-center">
+                        <p className="text-[10px] text-muted-foreground mb-1">Unlock at 50 points</p>
+                        <div className="w-24 bg-muted rounded-full h-1.5">
+                          <div className="bg-primary h-1.5 rounded-full" style={{ width: `${(score / 50) * 100}%` }}></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </BlockWrapper>
+          </div>
+        </GridLayout>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* CV POPUP DIALOG                                                */}
+      {/* CV POPUP DIALOG                                                 */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <Dialog open={cvPopupOpen} onOpenChange={setCvPopupOpen}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText size={20} className="text-primary" /> Professional CHOICE CV
+              <FileText size={20} className="text-primary" /> CHOICE CV
+              {optimizedCV && <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-2">JD-Optimized</span>}
             </DialogTitle>
-            <DialogDescription>Your aggregated proof of on-chain and off-chain reputation.</DialogDescription>
+            <DialogDescription>Your verifiable, on-chain backed curriculum vitae.</DialogDescription>
           </DialogHeader>
 
           {displayCV && (
-            <div className="space-y-6 mt-4">
+            <div className="mt-4 space-y-5">
               <div className="bg-muted p-5 rounded-2xl border border-border space-y-5">
                 <div>
                   <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 border-b border-border pb-2 flex items-center gap-2">
@@ -733,7 +764,6 @@ DID: ${identity.did}`;
                 </div>
               </div>
 
-              {/* JD Optimizer */}
               <div className="bg-gradient-to-r from-secondary/5 to-primary/5 border border-border rounded-2xl p-5">
                 <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
                   <Target size={16} className="text-secondary" /> Optimize for Job Description
@@ -761,7 +791,6 @@ DID: ${identity.did}`;
                 )}
               </div>
 
-              {/* Cover Letter Output */}
               {coverLetter && (
                 <div className="bg-card border border-border rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -793,7 +822,7 @@ DID: ${identity.did}`;
       </Dialog>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* JOB POPUP DIALOG — shows JD + CV tools                        */}
+      {/* JOB POPUP DIALOG                                                */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <Dialog open={jobPopupOpen} onOpenChange={setJobPopupOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -807,7 +836,6 @@ DID: ${identity.did}`;
               </DialogHeader>
 
               <div className="mt-4 space-y-5">
-                {/* Match score */}
                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
                   selectedJobForPopup.matchResult.score >= 70 ? 'bg-emerald-100 text-emerald-700' :
                   selectedJobForPopup.matchResult.score >= 40 ? 'bg-amber-100 text-amber-700' :
@@ -817,7 +845,6 @@ DID: ${identity.did}`;
                   {selectedJobForPopup.matchResult.score}% Match
                 </div>
 
-                {/* Job Description */}
                 <div className="bg-muted rounded-2xl p-5 border border-border">
                   <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Job Description</h4>
                   <p className="text-foreground text-sm leading-relaxed">{selectedJobForPopup.description}</p>
@@ -828,7 +855,6 @@ DID: ${identity.did}`;
                   </div>
                 </div>
 
-                {/* Quick actions */}
                 {!cv ? (
                   <div className="text-center py-4">
                     <p className="text-muted-foreground text-sm mb-3">Generate your CV first to optimize for this role.</p>
@@ -872,7 +898,6 @@ DID: ${identity.did}`;
                       <Eye size={12} /> View Full CV
                     </button>
 
-                    {/* Send Application Button */}
                     <div className="pt-3 border-t border-border">
                       {appSent ? (
                         <div className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-5 py-3 text-sm font-bold">
