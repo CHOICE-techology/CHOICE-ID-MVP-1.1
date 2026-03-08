@@ -239,9 +239,7 @@ const CredentialsPage: React.FC = () => {
 
   const docTypeIcons: Record<string, string> = { Diploma: '🎓', Certification: '📜', Award: '🏆', ID: '🪪' };
 
-  const totalTx = wallets.reduce((sum, w) => sum + (w.stats?.txCount || 0), 0);
-  const analyzedCount = wallets.filter(w => w.stats).length;
-  const allActiveChains = [...new Set(wallets.flatMap(w => w.stats?.activeChains || (w.stats?.chain ? [w.stats.chain] : [])))];
+
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
