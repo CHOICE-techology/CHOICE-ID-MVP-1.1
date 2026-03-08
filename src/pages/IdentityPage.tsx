@@ -362,6 +362,11 @@ DID: ${identity.did}`;
       {/* END SCOREBOARD                                                 */}
       {/* ═══════════════════════════════════════════════════════════════ */}
 
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* CHOICE BALANCE CARD                                            */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <ChoiceBalanceCard userId={identity.address} />
+
       {/* ── PROFILE + ON-CHAIN VERIFICATION ROW ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
