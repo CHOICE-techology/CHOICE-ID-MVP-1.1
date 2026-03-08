@@ -372,19 +372,19 @@ const CredentialsPage: React.FC = () => {
                 onClick={() => !isConnected && initiateSocialConnect(social.id)}
                 disabled={isConnected}
                 className={cn(
-                  "relative bg-card border rounded-xl p-2.5 flex flex-col items-center gap-1 text-center transition-all duration-200 group",
+                  "relative bg-card border rounded-xl p-3.5 flex flex-col items-center gap-2 text-center transition-all duration-200 group",
                   isConnected
                     ? "border-primary/30 bg-primary/5"
                     : "border-border hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5",
                   justConnected && "animate-scale-in"
                 )}
               >
-                <social.icon className={cn("w-4 h-4", isConnected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground transition-colors')} />
-                <span className="text-[9px] font-bold text-foreground leading-tight">{social.name}</span>
+                <social.icon className={cn("w-5 h-5", isConnected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground transition-colors')} />
+                <span className="text-[11px] font-bold text-foreground leading-tight">{social.name}</span>
                 {isConnected ? (
-                  <Check size={8} className="text-primary" />
+                  <Check size={10} className="text-primary" />
                 ) : (
-                  <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">+</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">Connect</span>
                 )}
               </button>
             );
