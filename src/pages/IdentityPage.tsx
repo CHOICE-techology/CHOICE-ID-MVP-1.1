@@ -445,7 +445,7 @@ DID: ${identity.did}`;
               </div>
             </div>
 
-            {(verificationData || navState?.verificationSuccess) ? (
+            {verificationData ? (
               <div className="p-5 md:p-6 flex-1 flex flex-col justify-center space-y-4">
                 {/* Verification Successful banner */}
                 {navState?.verificationSuccess && (
@@ -461,57 +461,46 @@ DID: ${identity.did}`;
                 )}
 
                 {/* Transaction-style record */}
-                {(() => {
-                  const vData = verificationData || (navState?.verificationData ? {
-                    date: navState.verificationData.date,
-                    score,
-                    txHash: navState.verificationData.txHash,
-                    explorerUrl: navState.verificationData.explorerUrl || `https://sepolia.arbiscan.io/tx/${navState.verificationData.txHash}`,
-                  } : null);
-                  if (!vData) return null;
-                  return (
-                    <div className="bg-muted rounded-2xl border border-border overflow-hidden">
-                      <div className="bg-emerald-50 border-b border-emerald-100 px-5 py-3 flex items-center gap-2">
-                        <CheckCircle size={14} className="text-emerald-600" />
-                        <span className="text-xs font-bold text-emerald-700">Transaction Confirmed</span>
-                        <span className="ml-auto text-[10px] text-emerald-600 font-mono">Arbitrum Sepolia</span>
+                <div className="bg-muted rounded-2xl border border-border overflow-hidden">
+                  <div className="bg-emerald-50 border-b border-emerald-100 px-5 py-3 flex items-center gap-2">
+                    <CheckCircle size={14} className="text-emerald-600" />
+                    <span className="text-xs font-bold text-emerald-700">Transaction Confirmed</span>
+                    <span className="ml-auto text-[10px] text-emerald-600 font-mono">Arbitrum Sepolia</span>
+                  </div>
+                  <div className="divide-y divide-border">
+                    <div className="flex items-center justify-between px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-muted-foreground" />
+                        <span className="text-xs font-semibold text-muted-foreground">Date</span>
                       </div>
-                      <div className="divide-y divide-border">
-                        <div className="flex items-center justify-between px-5 py-3.5">
-                          <div className="flex items-center gap-2">
-                            <Clock size={14} className="text-muted-foreground" />
-                            <span className="text-xs font-semibold text-muted-foreground">Date</span>
-                          </div>
-                          <span className="text-sm font-semibold text-foreground">{vData.date}</span>
-                        </div>
-                        <div className="flex items-center justify-between px-5 py-3.5">
-                          <div className="flex items-center gap-2">
-                            <Award size={14} className="text-muted-foreground" />
-                            <span className="text-xs font-semibold text-muted-foreground">Anchored Score</span>
-                          </div>
-                          <span className="text-sm font-bold text-foreground">{vData.score}<span className="text-muted-foreground font-normal">/100</span></span>
-                        </div>
-                        <div className="flex items-center justify-between px-5 py-3.5 gap-3">
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Hash size={14} className="text-muted-foreground" />
-                            <span className="text-xs font-semibold text-muted-foreground">TX Hash</span>
-                          </div>
-                          <span className="text-xs font-mono text-primary truncate">{vData.txHash}</span>
-                        </div>
-                      </div>
-                      <div className="px-5 py-3.5 border-t border-border bg-muted/50">
-                        <a
-                          href={vData.explorerUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2 text-sm font-bold text-secondary hover:text-primary transition-colors bg-secondary/10 hover:bg-secondary/15 px-4 py-2.5 rounded-xl w-full"
-                        >
-                          View on Arbiscan <ExternalLink size={14} />
-                        </a>
-                      </div>
+                      <span className="text-sm font-semibold text-foreground">{verificationData.date}</span>
                     </div>
-                  );
-                })()}
+                    <div className="flex items-center justify-between px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <Award size={14} className="text-muted-foreground" />
+                        <span className="text-xs font-semibold text-muted-foreground">Anchored Score</span>
+                      </div>
+                      <span className="text-sm font-bold text-foreground">{verificationData.score}<span className="text-muted-foreground font-normal">/100</span></span>
+                    </div>
+                    <div className="flex items-center justify-between px-5 py-3.5 gap-3">
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Hash size={14} className="text-muted-foreground" />
+                        <span className="text-xs font-semibold text-muted-foreground">TX Hash</span>
+                      </div>
+                      <span className="text-xs font-mono text-primary truncate">{verificationData.txHash}</span>
+                    </div>
+                  </div>
+                  <div className="px-5 py-3.5 border-t border-border bg-muted/50">
+                    <a
+                      href={verificationData.explorerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 text-sm font-bold text-secondary hover:text-primary transition-colors bg-secondary/10 hover:bg-secondary/15 px-4 py-2.5 rounded-xl w-full"
+                    >
+                      View on Arbiscan <ExternalLink size={14} />
+                    </a>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="p-6 md:p-8 text-center flex-1 flex items-center justify-center">
