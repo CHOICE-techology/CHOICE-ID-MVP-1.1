@@ -19,9 +19,6 @@ import polkadotLogo from '@/assets/logos/polkadot.svg';
 import cardanoLogo from '@/assets/logos/cardano.svg';
 import tezosLogo from '@/assets/logos/tezos.svg';
 import metamaskLogo from '@/assets/logos/metamask.svg';
-import eternlLogo from '@/assets/logos/eternl.png';
-import namiLogo from '@/assets/logos/nami.png';
-import kukaiLogo from '@/assets/logos/kukai.png';
 import coreWalletLogo from '@/assets/logos/core-wallet.svg';
 import walletconnectLogo from '@/assets/logos/walletconnect.png';
 import rainbowLogo from '@/assets/logos/rainbow.png';
@@ -59,13 +56,36 @@ const BaseLogo = () => (
 
 /* ── Wallet provider logos ── */
 const MetaMaskProviderLogo = () => <SmImgLogo src={metamaskLogo} alt="MetaMask" />;
-const EternlProviderLogo = () => <SmImgLogo src={eternlLogo} alt="Eternl" />;
-const NamiProviderLogo = () => <SmImgLogo src={namiLogo} alt="Nami" />;
-const KukaiProviderLogo = () => <SmImgLogo src={kukaiLogo} alt="Kukai" />;
-const CoreProviderLogo = () => <SmImgLogo src={coreWalletLogo} alt="Core" />;
+
+// Eternl – official dark blue "E" mark
+const EternlProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <rect width="40" height="40" rx="10" fill="#1A44B7"/>
+    <path d="M12 11h16v3.5H16v4h10v3.5H16v4h12V30H12V11z" fill="white"/>
+  </svg>
+);
+
+// Nami – official Cardano-inspired teal wave
+const NamiProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <rect width="40" height="40" rx="10" fill="#349EA3"/>
+    <path d="M10 28V16l10 12V16l10 12V16" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+// Kukai – official orange/coral Tezos wallet mark
+const KukaiProviderLogo = () => (
+  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+    <rect width="40" height="40" rx="10" fill="#FF6B35"/>
+    <circle cx="20" cy="20" r="10" fill="white" fillOpacity="0.9"/>
+    <path d="M16 16l8 8M24 16l-8 8" stroke="#FF6B35" strokeWidth="2.5" strokeLinecap="round"/>
+  </svg>
+);
 const WalletConnectProviderLogo = () => <SmImgLogo src={walletconnectLogo} alt="WalletConnect" />;
 const RainbowProviderLogo = () => <SmImgLogo src={rainbowLogo} alt="Rainbow" />;
 const TalismanProviderLogo = () => <SmImgLogo src={talismanLogo} alt="Talisman" />;
+
+const CoreProviderLogo = () => <SmImgLogo src={coreWalletLogo} alt="Core" />;
 
 // Coinbase Wallet – official blue "C" mark
 const CoinbaseProviderLogo = () => (
