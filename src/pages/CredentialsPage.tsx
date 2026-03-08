@@ -458,7 +458,9 @@ const CredentialsPage: React.FC = () => {
             <p className="text-muted-foreground mb-8 font-medium leading-relaxed">
               {activePlatform === 'Custom'
                 ? "Enter the platform name and your profile URL to verify your social presence."
-                : `Paste your full ${activePlatform} profile URL. We'll validate the format and run an AI-powered reputation analysis.`}
+                : isHandlePlatform(activePlatform)
+                  ? `Enter your ${activePlatform} username or handle. We'll run an AI-powered reputation analysis.`
+                  : `Paste your full ${activePlatform} profile URL. We'll validate the format and run an AI-powered reputation analysis.`}
             </p>
             {activePlatform === 'Custom' && (
               <div className="mb-6">
@@ -468,16 +470,18 @@ const CredentialsPage: React.FC = () => {
               </div>
             )}
             <div className="mb-4">
-              <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">PROFILE URL</label>
+              <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">
+                {isHandlePlatform(activePlatform) ? 'USERNAME / HANDLE' : 'PROFILE URL'}
+              </label>
               <input
-                type="url"
+                type={isHandlePlatform(activePlatform) ? 'text' : 'url'}
                 value={handleInput}
                 onChange={(e) => handleInputChange(e.target.value)}
                 className={cn(
                   "w-full bg-muted border rounded-2xl px-5 py-4 outline-none focus:ring-2 transition-all font-medium text-foreground",
                   linkError ? "border-red-500 focus:ring-red-500/20" : "border-border focus:ring-primary/20"
                 )}
-                placeholder={PLATFORM_URL_PATTERNS[activePlatform]?.example || 'https://...'}
+                placeholder={isHandlePlatform(activePlatform) ? (HANDLE_PATTERNS[activePlatform!]?.example || '@username') : (PLATFORM_URL_PATTERNS[activePlatform!]?.example || 'https://...')}
                 autoFocus={activePlatform !== 'Custom'}
               />
             </div>
