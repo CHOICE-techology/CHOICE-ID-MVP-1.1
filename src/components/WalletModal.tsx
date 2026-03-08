@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { X, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@/contexts/WalletContext';
 import { addCredential } from '@/services/storageService';
 import { mockConnectSocial, mockUploadToIPFS } from '@/services/cryptoService';
