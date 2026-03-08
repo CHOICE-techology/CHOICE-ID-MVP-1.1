@@ -15,6 +15,7 @@ interface VerificationRecord {
 }
 
 const VerifyPage: React.FC = () => {
+  const navigate = useNavigate();
   const [address, setAddress] = useState('');
   const [result, setResult] = useState<{ status: 'idle' | 'loading' | 'success' | 'error'; data?: VerificationRecord }>({ status: 'idle' });
 
