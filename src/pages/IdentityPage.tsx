@@ -112,7 +112,7 @@ const IdentityPage: React.FC = () => {
       txHash: mockTxHash,
       explorerUrl: `https://sepolia.arbiscan.io/tx/${mockTxHash}`,
     };
-  }, [identity?.lastAnchorHash, identity?.lastAnchorTimestamp, identity?.reputationScore]);
+  }, [identity?.lastAnchorHash, identity?.lastAnchorTimestamp, score]);
 
   if (!identity) {
     return (
