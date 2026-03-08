@@ -83,10 +83,17 @@ const CredentialsPage: React.FC = () => {
   );
 
   const analyzeWallet = async (index: number) => {
-    const w = wallets[index];
-    setWallets(prev => prev.map((p, i) => i === index ? { ...p, analyzing: true, error: undefined } : p));
+    // Use functional state access to avoid stale closure issues
+    let targetWallet: WalletEntry | undefined;
+    setWallets(prev => {
+      targetWallet = prev[index];
+      return prev.map((p, i) => i === index ? { ...p, analyzing: true, error: undefined } : p);
+    });
+    // Wait a tick for state setter to run
+    await new Promise(r => setTimeout(r, 0));
+    if (!targetWallet) return;
     try {
-      const stats = await analyzeWalletHistory(w.address);
+      const stats = await analyzeWalletHistory(targetWallet.address);
       setWallets(prev => prev.map((p, i) => i === index ? { ...p, stats, analyzing: false, chain: stats.chain } : p));
       if (index === 0) {
         const historyVC: VerifiableCredential = {

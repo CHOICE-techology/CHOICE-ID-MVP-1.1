@@ -102,12 +102,33 @@ async function analyzeCardanoWallet(address: string) {
 
 async function analyzePolkadotWallet(address: string) {
   try {
+    // Use Subscan v2 API with proper headers
     const res = await fetch('https://polkadot.api.subscan.io/api/v2/scan/search', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: JSON.stringify({ key: address }),
     });
-    if (!res.ok) return { txCount: 0, balanceDot: 0, chain: 'polkadot' };
+    if (!res.ok) {
+      console.error(`Subscan returned ${res.status} for ${address}`);
+      // Fallback: try the account endpoint
+      const fallbackRes = await fetch(`https://polkadot.api.subscan.io/api/scan/account/tokens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+      });
+      if (fallbackRes.ok) {
+        const fallbackData = await fallbackRes.json();
+        return {
+          txCount: 0,
+          balanceDot: parseFloat(fallbackData.data?.native?.[0]?.balance || '0'),
+          chain: 'polkadot',
+        };
+      }
+      return { txCount: 0, balanceDot: 0, chain: 'polkadot' };
+    }
     const data = await res.json();
     const account = data.data?.account;
     return {
@@ -115,7 +136,8 @@ async function analyzePolkadotWallet(address: string) {
       balanceDot: parseFloat(account?.balance || '0'),
       chain: 'polkadot',
     };
-  } catch {
+  } catch (e) {
+    console.error('Polkadot analysis error:', e);
     return { txCount: 0, balanceDot: 0, chain: 'polkadot' };
   }
 }
@@ -139,9 +161,13 @@ function detectChain(address: string): string {
   if (address.startsWith('0x') && address.length === 42) return 'ethereum';
   if (address.startsWith('addr1') || address.startsWith('stake1')) return 'cardano';
   if (address.startsWith('tz1') || address.startsWith('tz2') || address.startsWith('tz3') || address.startsWith('KT1')) return 'tezos';
+  // Polkadot addresses: start with 1 and are typically 47-48 chars (SS58 encoding)
+  if (address.startsWith('1') && address.length >= 46 && address.length <= 48) return 'polkadot';
+  // Bitcoin addresses: start with 1 or 3 (26-35 chars) or bc1
   if (address.startsWith('1') && address.length >= 26 && address.length <= 35) return 'bitcoin';
   if (address.startsWith('3') && address.length >= 26 && address.length <= 35) return 'bitcoin';
   if (address.startsWith('bc1')) return 'bitcoin';
+  // Solana: base58, 32-44 chars
   if (address.length >= 32 && address.length <= 44 && !address.startsWith('0x')) return 'solana';
   return 'ethereum';
 }

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 // Chain logos
 import ethereumLogo from '@/assets/logos/ethereum.svg';
 import arbitrumLogo from '@/assets/logos/arbitrum.svg';
+import baseLogo from '@/assets/logos/base.svg';
 import bitcoinLogo from '@/assets/logos/bitcoin.svg';
 import solanaLogo from '@/assets/logos/solana.svg';
 import avalancheLogo from '@/assets/logos/avalanche.svg';
@@ -21,7 +22,7 @@ import tezosLogo from '@/assets/logos/tezos.svg';
 const CHAIN_META: Record<string, { logo: string; explorer: string; color: string }> = {
   ethereum: { logo: ethereumLogo, explorer: 'https://etherscan.io/address/', color: '221 83% 53%' },
   arbitrum: { logo: arbitrumLogo, explorer: 'https://arbiscan.io/address/', color: '212 96% 54%' },
-  base: { logo: ethereumLogo, explorer: 'https://basescan.org/address/', color: '220 70% 55%' },
+  base: { logo: baseLogo, explorer: 'https://basescan.org/address/', color: '220 70% 55%' },
   avalanche: { logo: avalancheLogo, explorer: 'https://snowtrace.io/address/', color: '0 84% 60%' },
   bitcoin: { logo: bitcoinLogo, explorer: 'https://blockchain.info/address/', color: '33 100% 50%' },
   solana: { logo: solanaLogo, explorer: 'https://solscan.io/account/', color: '270 80% 60%' },
