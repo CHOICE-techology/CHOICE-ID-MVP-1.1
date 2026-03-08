@@ -41,10 +41,11 @@ const JobsPage: React.FC = () => {
 
   useEffect(() => { setVisibleCount(ITEMS_PER_PAGE); }, [filterType, searchQuery]);
 
-  const handleApply = (id: string) => {
+  const handleApply = (job: JobWithMatch) => {
     if (!identity) return;
-    setApplying(id);
-    setTimeout(() => { setApplying(null); alert("Application Sent! Your CHOICE CV and Trust Score have been securely shared."); }, 1500);
+    const matchResult = job.matchResult || { score: job.matchScore || 0, reason: job.matchReason || '', matchingSkills: [], missingSkills: [], recommendations: [] };
+    setSelectedJob({ ...job, matchResult });
+    setJobDialogOpen(true);
   };
 
   const typeCounts = useMemo(() => {
