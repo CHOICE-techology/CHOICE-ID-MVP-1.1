@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User, FileBadge, BookOpen, Briefcase, PlusCircle, LogOut, Menu, X } from 'lucide-react';
+import { User, FileBadge, BookOpen, Briefcase, PlusCircle, LogOut, Menu, X, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WalletModal } from './WalletModal';
 import { useWallet } from '@/contexts/WalletContext';
+import { getChoiceBalance } from '@/services/rewardService';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,16 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [choiceBalance, setChoiceBalance] = useState(0);
+
+  // Fetch CHOICE balance when connected
+  useEffect(() => {
+    if (address) {
+      getChoiceBalance(address).then(b => setChoiceBalance(b));
+    } else {
+      setChoiceBalance(0);
+    }
+  }, [address, isConnected]);
 
   useEffect(() => {
     if (isConnecting) setStatus('Connecting...');
@@ -38,6 +49,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
       title: 'GROWTH',
       items: [
         { name: 'Education', href: '/education', icon: BookOpen },
+        { name: 'Bounty Board', href: '/bounties', icon: Target },
         { name: 'Jobs & Gigs', href: '/jobs', icon: Briefcase },
       ]
     },
@@ -116,7 +128,17 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
             ))}
           </nav>
 
-          <div className="mt-auto pt-8 border-t border-border">
+          <div className="mt-auto pt-8 border-t border-border space-y-4">
+            {/* CHOICE Balance (always visible when connected) */}
+            {address && (
+              <div className="bg-[hsl(var(--dark))] rounded-2xl px-4 py-3 border border-border/10">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">CHOICE</span>
+                  <span className="text-primary font-black text-lg tracking-tighter">◈ {choiceBalance.toLocaleString()}</span>
+                </div>
+              </div>
+            )}
+
             {address ? (
               <div className="bg-muted rounded-3xl p-5 border border-border">
                 <div className="flex items-center gap-2 mb-3">

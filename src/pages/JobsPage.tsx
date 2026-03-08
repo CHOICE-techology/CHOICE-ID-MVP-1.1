@@ -3,9 +3,12 @@ import { Job, JobMatchResult } from '@/types';
 import { calculateJobMatch } from '@/services/jobMatchingService';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { JobApplicationDialog } from '@/components/JobApplicationDialog';
-import { DollarSign, Zap, Star, MapPin, Search, CheckCircle, AlertTriangle, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, Zap, Star, MapPin, Search, CheckCircle, AlertTriangle, ArrowUpRight, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
 import { ALL_JOBS } from '@/data/jobsData';
+import { calculateReputation } from '@/services/reputationEngine';
+import { getChoiceBalance } from '@/services/rewardService';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -20,6 +23,15 @@ const JobsPage: React.FC = () => {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<JobWithMatch | null>(null);
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
+  const [choiceBalance, setChoiceBalance] = useState(0);
+
+  const score = identity ? calculateReputation(identity.credentials)?.score ?? 0 : 0;
+
+  useEffect(() => {
+    if (identity?.address) {
+      getChoiceBalance(identity.address).then(b => setChoiceBalance(b));
+    }
+  }, [identity?.address]);
 
   useEffect(() => {
     setIsMatching(true);
@@ -108,12 +120,21 @@ const JobsPage: React.FC = () => {
               const mc = getMatchColor(job.matchScore || 0);
               const isExpanded = expandedJob === job.id;
               const mr = job.matchResult;
+              // Opportunity locking: high-value jobs require score + CHOICE balance
+              const requiredScore = job.minScore;
+              const requiredBalance = job.minScore >= 70 ? 50 : 0;
+              const isJobLocked = identity && (score < requiredScore || (requiredBalance > 0 && choiceBalance < requiredBalance));
               return (
-                <div key={job.id} className={`bg-card border ${idx === 0 && identity ? 'border-emerald-400 ring-2 ring-emerald-100' : 'border-border'} rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden`}>
-                  {idx === 0 && identity && (
+                <div key={job.id} className={`bg-card border ${isJobLocked ? 'border-border opacity-60' : idx === 0 && identity ? 'border-emerald-400 ring-2 ring-emerald-100' : 'border-border'} rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden`}>
+                  {idx === 0 && identity && !isJobLocked && (
                     <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold uppercase px-3 py-1 rounded-bl-xl">Top AI Pick</div>
                   )}
-                  <div className="p-5 flex flex-col md:flex-row gap-4 items-start md:items-center">
+                  {isJobLocked && (
+                    <div className="absolute top-0 right-0 bg-muted text-muted-foreground text-[10px] font-bold uppercase px-3 py-1 rounded-bl-xl flex items-center gap-1 z-10">
+                      <Lock size={10} /> Locked
+                    </div>
+                  )}
+                  <div className={`p-5 flex flex-col md:flex-row gap-4 items-start md:items-center ${isJobLocked ? 'blur-[1px]' : ''}`}>
                     {identity && (
                       <div className="flex flex-col items-center justify-center min-w-[64px]">
                         <div className={`relative w-14 h-14 flex items-center justify-center rounded-full border-4 ${mc.border} ${mc.text}`}>
@@ -134,12 +155,28 @@ const JobsPage: React.FC = () => {
                         <div className="flex items-center gap-1"><DollarSign size={14} /> {job.salary}</div>
                         <div className="flex items-center gap-1"><MapPin size={14} /> Remote</div>
                         <div className="flex items-center gap-1"><Star size={14} className="text-amber-400" /> Min Score: {job.minScore}</div>
+                        {requiredBalance > 0 && (
+                          <div className="flex items-center gap-1 text-primary"><span className="font-bold">◈</span> {requiredBalance}+ CHOICE</div>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 w-full md:w-auto shrink-0">
-                      <ChoiceButton className="w-full md:w-auto" onClick={() => handleApply(job)} disabled={!identity}>
-                        {!identity ? 'Connect' : job.type === 'Collaboration' ? 'Join Team' : 'Auto-Apply'}
-                      </ChoiceButton>
+                      {isJobLocked ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="px-4 py-2 rounded-xl bg-muted text-muted-foreground text-sm font-bold flex items-center gap-2 cursor-not-allowed">
+                              <Lock size={14} /> Locked
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Unlock at score {requiredScore}+{requiredBalance > 0 ? ` and ◈ ${requiredBalance} CHOICE` : ''}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <ChoiceButton className="w-full md:w-auto" onClick={() => handleApply(job)} disabled={!identity}>
+                          {!identity ? 'Connect' : job.type === 'Collaboration' ? 'Join Team' : 'Auto-Apply'}
+                        </ChoiceButton>
+                      )}
                       {identity && mr && (
                         <button onClick={() => setExpandedJob(isExpanded ? null : job.id)}
                           className="text-xs text-primary flex items-center gap-1 hover:underline">
