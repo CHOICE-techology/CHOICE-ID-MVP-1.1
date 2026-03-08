@@ -29,6 +29,14 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
   const [search, setSearch] = useState('');
   const [detectedIds, setDetectedIds] = useState<Set<string>>(new Set());
 
+  // Close modal and navigate when connected
+  useEffect(() => {
+    if (isOpen && isConnected) {
+      onClose();
+      navigate('/');
+    }
+  }, [isOpen, isConnected, onClose, navigate]);
+
   // Detect browser wallets on mount
   useEffect(() => {
     if (isOpen) {
