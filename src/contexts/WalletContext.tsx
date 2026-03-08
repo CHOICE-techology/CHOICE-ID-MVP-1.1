@@ -95,7 +95,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       if (method === 'metamask' || method === 'wallet') {
-        // Real MetaMask / browser wallet connection
         const ethereum = (window as any).ethereum;
         if (!ethereum) {
           setAuthError('No wallet extension detected. Please install MetaMask.');
@@ -106,6 +105,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (accounts.length > 0) {
           const addr = accounts[0];
           setAddress(addr);
+          // Persist wallet connection
+          localStorage.setItem('choice_wallet_method', 'metamask');
+          localStorage.setItem('choice_wallet_address', addr);
           let identity = loadIdentity();
           if (!identity || identity.address !== addr) {
             identity = {
