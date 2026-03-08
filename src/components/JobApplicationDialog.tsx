@@ -32,6 +32,8 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [cvViewOpen, setCvViewOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [applicationSent, setApplicationSent] = useState(false);
 
   const reputation = calculateReputation(identity.credentials);
   const score = reputation?.score ?? 0;
