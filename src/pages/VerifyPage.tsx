@@ -71,12 +71,12 @@ const VerifyPage: React.FC = () => {
       {result.status === 'success' && result.data && (
         <div className="animate-fade-in space-y-5">
           {/* Back to Identity button */}
-          <Link
-            to="/identity"
+          <button
+            onClick={() => navigate('/', { state: { verificationSuccess: true, verificationData: result.data } })}
             className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-primary/5 border border-primary/20 px-5 py-2.5 rounded-xl"
           >
             <ArrowLeft size={16} /> Back to My Identity
-          </Link>
+          </button>
 
           {/* Transaction Record Card */}
           <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
