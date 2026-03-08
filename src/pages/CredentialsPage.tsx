@@ -122,18 +122,22 @@ const CredentialsPage: React.FC = () => {
     const platformToUse = activePlatform === 'Custom' ? customPlatformName : activePlatform;
     if (!platformToUse || !handleInput) return;
 
-    // Validate URL
-    if (!validateSocialUrl(handleInput, activePlatform || '')) {
-      setLinkError('Please provide a valid profile URL before connecting.');
+    // Validate input
+    if (!validateInput(handleInput, activePlatform || '')) {
+      setLinkError(isHandlePlatform(activePlatform) ? 'Please provide a valid handle.' : 'Please provide a valid profile URL before connecting.');
       return;
     }
 
     setIsVerifyingSocial(true);
     setLinkError(null);
     try {
-      // Call real AI-powered analysis edge function
+      // For handle-based platforms, construct a synthetic profile URL for the AI
+      const profileUrl = isHandlePlatform(activePlatform)
+        ? `https://${platformToUse.toLowerCase()}.com/${handleInput.replace(/^@/, '')}`
+        : handleInput;
+
       const { data, error } = await supabase.functions.invoke('analyze-social', {
-        body: { platform: platformToUse, profileUrl: handleInput },
+        body: { platform: platformToUse, profileUrl },
       });
 
       if (error) throw new Error(error.message || 'Analysis failed');
