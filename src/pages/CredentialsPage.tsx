@@ -352,17 +352,17 @@ const CredentialsPage: React.FC = () => {
       </section>
 
       {/* ═══════════════ 3. SOCIAL REPUTATION ═══════════════ */}
-      <section className="space-y-5">
-        <div className="flex items-center gap-2.5">
-          <div className="bg-secondary/10 p-2 rounded-lg border border-secondary/20"><Shield size={18} className="text-secondary" /></div>
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="bg-secondary/10 p-2.5 rounded-xl border border-secondary/20"><Shield size={20} className="text-secondary" /></div>
           <div>
-            <h2 className="text-lg font-black tracking-tight text-foreground leading-tight">Social<br/>Reputation</h2>
-            <p className="text-muted-foreground text-xs font-medium">Connect profiles for AI-powered reputation analysis.</p>
+            <h2 className="text-lg md:text-xl font-black tracking-tight text-foreground leading-tight">Social Reputation</h2>
+            <p className="text-muted-foreground text-xs font-medium mt-0.5">Connect your profiles for AI-powered reputation analysis</p>
           </div>
         </div>
 
-        {/* Compact social platform grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2">
+        {/* Social platform grid — 2 rows on desktop */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
           {socialPlatforms.map((social) => {
             const isConnected = connectedPlatforms.includes(social.id);
             const justConnected = recentlyConnected === social.id;
