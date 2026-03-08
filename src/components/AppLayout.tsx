@@ -16,6 +16,16 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [choiceBalance, setChoiceBalance] = useState(0);
+
+  // Fetch CHOICE balance when connected
+  useEffect(() => {
+    if (address) {
+      getChoiceBalance(address).then(b => setChoiceBalance(b));
+    } else {
+      setChoiceBalance(0);
+    }
+  }, [address, isConnected]);
 
   useEffect(() => {
     if (isConnecting) setStatus('Connecting...');
