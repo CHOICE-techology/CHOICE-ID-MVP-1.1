@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User, FileBadge, BookOpen, Briefcase, PlusCircle, LogOut, Menu, X } from 'lucide-react';
+import { User, FileBadge, BookOpen, Briefcase, PlusCircle, LogOut, Menu, X, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WalletModal } from './WalletModal';
 import { useWallet } from '@/contexts/WalletContext';
+import { getChoiceBalance } from '@/services/rewardService';
 
 interface LayoutProps {
   children: React.ReactNode;
