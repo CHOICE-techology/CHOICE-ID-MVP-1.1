@@ -21,6 +21,11 @@ async function rpcCall(rpcUrl: string, method: string, params: unknown[]) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
   });
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    console.error(`RPC returned non-JSON (${res.status}): ${contentType} from ${rpcUrl}`);
+    return null;
+  }
   const data = await res.json();
   return data.result;
 }
@@ -43,17 +48,23 @@ async function analyzeEVMWallet(address: string, chain: string) {
 async function analyzeSolanaWallet(address: string) {
   const rpcUrl = 'https://api.mainnet-beta.solana.com';
   
-  const [balanceRes, signaturesRes] = await Promise.all([
-    fetch(rpcUrl, {
+  async function safeFetch(method: string, params: unknown[]) {
+    const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [address] }),
-    }).then(r => r.json()),
-    fetch(rpcUrl, {
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSignaturesForAddress', params: [address, { limit: 1000 }] }),
-    }).then(r => r.json()),
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    });
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      console.error(`Solana RPC returned non-JSON: ${res.status}`);
+      return {};
+    }
+    return res.json();
+  }
+
+  const [balanceRes, signaturesRes] = await Promise.all([
+    safeFetch('getBalance', [address]),
+    safeFetch('getSignaturesForAddress', [address, { limit: 1000 }]),
   ]);
 
   const balanceLamports = balanceRes.result?.value || 0;
@@ -66,6 +77,8 @@ async function analyzeSolanaWallet(address: string) {
 async function analyzeBitcoinWallet(address: string) {
   const res = await fetch(`https://blockchain.info/rawaddr/${address}?limit=0`);
   if (!res.ok) throw new Error('Bitcoin API error');
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('json')) throw new Error('Bitcoin API returned non-JSON');
   const data = await res.json();
   
   return {
