@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Job, JobMatchResult, GeneratedCV, UserIdentity } from '@/types';
 import { mockGenerateCV, mockGenerateBio } from '@/services/cryptoService';
 import { calculateReputation } from '@/services/reputationEngine';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import {
-  Briefcase, Target, Sparkles, FileCheck, PenTool, CheckCircle, Eye, FileText, Download
+  Briefcase, Target, Sparkles, FileCheck, PenTool, CheckCircle, Eye, FileText, Download, Send
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
@@ -32,6 +32,10 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [cvViewOpen, setCvViewOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [applicationSent, setApplicationSent] = useState(false);
+
+  useEffect(() => { setApplicationSent(false); setCv(null); setOptimizedCV(null); setCoverLetter(null); }, [job?.id]);
 
   const reputation = calculateReputation(identity.credentials);
   const score = reputation?.score ?? 0;
@@ -185,6 +189,30 @@ DID: ${identity.did}`;
                 <button onClick={() => { setCvViewOpen(true); onOpenChange(false); }} className="text-xs font-bold text-primary hover:underline flex items-center gap-1 mx-auto">
                   <Eye size={12} /> View Full CV
                 </button>
+
+                {/* Send Application Button */}
+                <div className="pt-3 border-t border-border">
+                  {applicationSent ? (
+                    <div className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-5 py-3 text-sm font-bold">
+                      <CheckCircle size={16} /> Application Sent Successfully!
+                    </div>
+                  ) : (
+                    <ChoiceButton
+                      className="w-full"
+                      onClick={() => {
+                        setIsSending(true);
+                        setTimeout(() => {
+                          setIsSending(false);
+                          setApplicationSent(true);
+                        }, 1500);
+                      }}
+                      isLoading={isSending}
+                    >
+                      <Send size={16} className="mr-2" /> Send Application
+                    </ChoiceButton>
+                  )}
+                  <p className="text-[10px] text-muted-foreground text-center mt-2">Your CHOICE CV and Trust Score will be securely shared.</p>
+                </div>
               </div>
             )}
           </div>
