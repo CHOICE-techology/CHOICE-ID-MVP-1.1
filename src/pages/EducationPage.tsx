@@ -1,71 +1,152 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { Award, CheckCircle, Lock, PlayCircle, Star } from 'lucide-react';
+import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
 import { COURSES } from '@/data/coursesData';
+
+const LEVEL_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  Beginner: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' },
+  Intermediate: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
+  Advanced: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
+};
 
 const EducationPage: React.FC = () => {
   const { userIdentity: identity } = useWallet();
   const navigate = useNavigate();
 
-  const hasBadge = (courseTitle: string) => {
-    return identity?.credentials.some(vc => vc.type.includes('EducationCredential') && vc.credentialSubject.courseName === courseTitle);
-  };
+  const hasBadge = (courseTitle: string) =>
+    identity?.credentials.some(vc => vc.type.includes('EducationCredential') && vc.credentialSubject.courseName === courseTitle);
 
+  const completedCourses = COURSES.filter(c => hasBadge(c.title));
   const totalPoints = COURSES.reduce((sum, c) => sum + c.points, 0);
-  const earnedPoints = COURSES.filter(c => hasBadge(c.title)).reduce((sum, c) => sum + c.points, 0);
+  const earnedPoints = completedCourses.reduce((sum, c) => sum + c.points, 0);
+  const completionPercent = Math.round((completedCourses.length / COURSES.length) * 100);
 
   return (
     <div className="space-y-8 animate-fade-in pb-10">
+      {/* Header with stats */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2 tracking-tight">Education Center</h1>
           <p className="text-muted-foreground text-base md:text-lg">Earn badges and boost your Trust Score by mastering Web3 skills.</p>
         </div>
-        <div className="bg-card border border-border rounded-2xl px-5 py-3 text-center">
-          <span className="block text-2xl font-extrabold text-primary">{earnedPoints}/{totalPoints}</span>
-          <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Points Earned</span>
+        <div className="flex gap-3">
+          <div className="bg-card border border-border rounded-2xl px-4 py-3 text-center min-w-[80px]">
+            <span className="block text-2xl font-extrabold text-primary">{earnedPoints}</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">/ {totalPoints} pts</span>
+          </div>
+          <div className="bg-card border border-border rounded-2xl px-4 py-3 text-center min-w-[80px]">
+            <span className="block text-2xl font-extrabold text-foreground">{completedCourses.length}</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">/ {COURSES.length} done</span>
+          </div>
+          <div className="bg-card border border-border rounded-2xl px-4 py-3 text-center min-w-[80px]">
+            <span className="block text-2xl font-extrabold text-accent">{completionPercent}%</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Complete</span>
+          </div>
         </div>
       </header>
 
+      {/* Global progress bar */}
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-foreground flex items-center gap-2"><Zap size={14} className="text-primary" /> Overall Progress</span>
+          <span className="text-xs font-bold text-muted-foreground">{completionPercent}%</span>
+        </div>
+        <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-700" style={{ width: `${completionPercent}%` }} />
+        </div>
+      </div>
+
+      {/* Earned Badges Showcase */}
+      {completedCourses.length > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-5">
+          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+            <Trophy size={18} className="text-amber-400" /> Earned Badges
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {completedCourses.map(course => (
+              <div
+                key={course.id}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${course.badgeColor} text-white text-sm font-bold shadow-lg`}
+              >
+                <span className="text-base">{course.icon}</span>
+                <span>{course.title}</span>
+                <CheckCircle size={14} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Course Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {COURSES.map((course) => {
           const isCompleted = hasBadge(course.title);
+          const level = LEVEL_STYLES[course.level];
           return (
-            <div key={course.id} className="bg-card border border-border rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden group">
-              <div className={`absolute top-0 left-0 w-full h-2 ${course.color}`}></div>
+            <div key={course.id} className={`bg-card border rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden group transition-all duration-300 hover:shadow-2xl ${isCompleted ? 'border-emerald-500/30' : 'border-border'}`}>
+              {/* Top color bar */}
+              <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${course.badgeColor}`} />
+
+              {/* Icon + Level + Status */}
               <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-muted text-muted-foreground">{course.level}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{course.icon}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${level.bg} ${level.text} ${level.border}`}>
+                    {course.level}
+                  </span>
+                </div>
                 {isCompleted ? (
-                  <div className="bg-emerald-100 text-emerald-600 p-1.5 rounded-full"><CheckCircle size={20} /></div>
+                  <div className="bg-emerald-500/10 text-emerald-400 p-1.5 rounded-full border border-emerald-500/20">
+                    <CheckCircle size={18} />
+                  </div>
                 ) : (
-                  <div className="bg-muted text-muted-foreground/30 p-1.5 rounded-full"><Lock size={20} /></div>
+                  <div className="bg-muted text-muted-foreground/30 p-1.5 rounded-full">
+                    <Lock size={18} />
+                  </div>
                 )}
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">{course.title}</h3>
+
+              <h3 className="text-lg font-bold text-foreground mb-2">{course.title}</h3>
               <p className="text-sm text-muted-foreground mb-4 flex-1 leading-relaxed">{course.description}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 font-medium">
-                <PlayCircle size={14} /> {course.duration}
-                <span className="mx-1">•</span>
-                <Star size={14} className="text-amber-400 fill-amber-400" /> +{course.points} Points
+
+              {/* Meta info */}
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2 font-medium">
+                <span className="flex items-center gap-1"><PlayCircle size={13} /> {course.duration}</span>
+                <span className="text-border">•</span>
+                <span className="flex items-center gap-1"><Star size={13} className="text-amber-400 fill-amber-400" /> +{course.points} pts</span>
+                <span className="text-border">•</span>
+                <span>{course.lessons.length} lessons</span>
               </div>
-              <div className="text-xs text-muted-foreground mb-6">
-                {course.lessons.length} lesson{course.lessons.length > 1 ? 's' : ''} with quizzes
+
+              {/* Progress indicator */}
+              <div className="mb-4">
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${course.badgeColor}`}
+                    style={{ width: isCompleted ? '100%' : '0%' }}
+                  />
+                </div>
+                <span className="text-[10px] text-muted-foreground mt-1 block">
+                  {isCompleted ? '✓ Completed' : 'Not started'}
+                </span>
               </div>
+
               <ChoiceButton
                 onClick={() => navigate(`/education/${course.id}`)}
                 disabled={!identity}
-                variant={isCompleted ? "outline" : "primary"}
+                variant={isCompleted ? 'outline' : 'primary'}
                 className="w-full"
               >
-                {isCompleted ? "Review Course" : "Start Lesson"}
+                {isCompleted ? 'Review Course' : 'Start Lesson'}
               </ChoiceButton>
             </div>
           );
         })}
       </div>
 
+      {/* Gamified banner */}
       <div className="bg-gradient-to-r from-primary to-purple-600 rounded-3xl p-6 md:p-10 relative overflow-hidden">
         <div className="relative z-10 max-w-2xl">
           <div className="flex items-center gap-3 mb-4">

@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { COURSES, Lesson } from '@/data/coursesData';
+import { COURSES } from '@/data/coursesData';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { ArrowLeft, ArrowRight, CheckCircle, XCircle, Award } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, XCircle, Award, BookOpen, Zap } from 'lucide-react';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { useWallet } from '@/contexts/WalletContext';
+import LessonContent from '@/components/education/LessonContent';
+import LessonQuiz from '@/components/education/LessonQuiz';
+import LessonComplete from '@/components/education/LessonComplete';
 
 const LessonPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -84,104 +87,79 @@ const LessonPage: React.FC = () => {
   };
 
   if (completed) {
-    return (
-      <div className="max-w-2xl mx-auto text-center py-16 animate-fade-in space-y-6">
-        <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-          <Award size={40} className="text-emerald-600" />
-        </div>
-        <h1 className="text-3xl font-extrabold text-foreground">Course Completed!</h1>
-        <p className="text-muted-foreground text-lg">
-          You scored <strong className="text-foreground">{correctCount}/{course.lessons.length}</strong> on quizzes and earned <strong className="text-primary">+{course.points} points</strong>.
-        </p>
-        <div className="bg-card border border-border rounded-2xl p-6 inline-block">
-          <p className="text-sm text-muted-foreground mb-1">Badge Earned</p>
-          <p className="text-xl font-bold text-foreground">{course.level} Badge — {course.title}</p>
-        </div>
-        <div>
-          <ChoiceButton onClick={() => navigate('/education')} className="mt-4">Back to Education Center</ChoiceButton>
-        </div>
-      </div>
-    );
+    return <LessonComplete course={course} correctCount={correctCount} onBack={() => navigate('/education')} />;
   }
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-10">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/education')} className="text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{course.title}</p>
-          <p className="text-sm text-muted-foreground">Lesson {currentLessonIdx + 1} of {course.lessons.length}</p>
+      {/* Course header with badge color accent */}
+      <div className={`bg-gradient-to-r ${course.badgeColor} rounded-2xl p-4 mb-6`}>
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/education')} className="text-white/80 hover:text-white transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <span className="text-2xl">{course.icon}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-bold text-sm">{course.title}</p>
+            <p className="text-white/70 text-xs">Lesson {currentLessonIdx + 1} of {course.lessons.length} · {course.level}</p>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30">
+            <span className="text-white text-xs font-bold">+{course.points} pts</span>
+          </div>
         </div>
-        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded ${course.color} text-white`}>{course.level}</span>
       </div>
 
-      {/* Progress bar */}
-      <div className="w-full h-2 bg-muted rounded-full mb-8 overflow-hidden">
-        <div className={`h-full ${course.color} transition-all duration-500 rounded-full`} style={{ width: `${progress}%` }} />
+      {/* Progress bar with lesson markers */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Zap size={12} className="text-primary" /> Progress
+          </span>
+          <span className="text-xs font-bold text-primary">{Math.round(progress)}%</span>
+        </div>
+        <div className="relative w-full h-2.5 bg-muted rounded-full overflow-hidden">
+          <div className={`h-full bg-gradient-to-r ${course.badgeColor} transition-all duration-500 rounded-full`} style={{ width: `${progress}%` }} />
+        </div>
+        {/* Lesson dots */}
+        <div className="flex justify-between mt-2 px-1">
+          {course.lessons.map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <div className={`w-2.5 h-2.5 rounded-full transition-all ${
+                i < currentLessonIdx ? 'bg-emerald-400' :
+                i === currentLessonIdx ? `bg-gradient-to-r ${course.badgeColor} ring-2 ring-primary/30` :
+                'bg-muted-foreground/20'
+              }`} />
+              <span className={`text-[9px] font-medium ${i === currentLessonIdx ? 'text-foreground' : 'text-muted-foreground/50'}`}>
+                {i + 1}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Lesson Content */}
-      <div className="bg-card border border-border rounded-2xl p-6 md:p-8 mb-6 shadow-sm">
-        <h2 className="text-2xl font-extrabold text-foreground mb-6">{lesson.title}</h2>
-        <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed">
-          {lesson.content.split('\n').map((line, i) => {
-            if (line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold text-foreground mt-6 mb-3">{line.replace('### ', '')}</h3>;
-            if (line.startsWith('```')) return null;
-            if (line.startsWith('- ')) return <li key={i} className="ml-4 mb-1">{line.replace('- ', '')}</li>;
-            if (line.startsWith('| ')) return <p key={i} className="font-mono text-xs bg-muted px-3 py-1 rounded mb-1">{line}</p>;
-            if (line.match(/^[0-9]+\. /)) return <li key={i} className="ml-4 mb-1 list-decimal">{line.replace(/^[0-9]+\. /, '')}</li>;
-            if (line.startsWith('✅') || line.startsWith('🔴')) return <p key={i} className="mb-1">{line}</p>;
-            if (line.trim() === '') return <br key={i} />;
-            return <p key={i} className="mb-2">{line.split('**').map((part, j) => j % 2 === 1 ? <strong key={j} className="text-foreground font-semibold">{part}</strong> : part)}</p>;
-          })}
+      {/* Lesson Content Card */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden mb-6 shadow-sm">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border bg-muted/30">
+          <BookOpen size={18} className="text-primary" />
+          <h2 className="text-lg font-extrabold text-foreground">{lesson.title}</h2>
+        </div>
+        <div className="p-6 md:p-8">
+          <LessonContent content={lesson.content} />
         </div>
       </div>
 
       {/* Quiz */}
       {lesson.quiz && (
-        <div className="bg-card border border-border rounded-2xl p-6 md:p-8 mb-6 shadow-sm">
-          <h3 className="text-lg font-bold text-foreground mb-4">📝 Quiz</h3>
-          <p className="text-foreground font-medium mb-4">{lesson.quiz.question}</p>
-          <div className="space-y-2">
-            {lesson.quiz.options.map((option, idx) => {
-              const isCorrect = idx === lesson.quiz!.correctIndex;
-              const isSelected = idx === selectedAnswer;
-              let borderClass = 'border-border hover:border-primary';
-              if (answered) {
-                if (isCorrect) borderClass = 'border-emerald-500 bg-emerald-50';
-                else if (isSelected && !isCorrect) borderClass = 'border-red-400 bg-red-50';
-                else borderClass = 'border-border opacity-50';
-              }
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswer(idx)}
-                  disabled={answered}
-                  className={`w-full text-left p-4 rounded-xl border-2 ${borderClass} transition-all flex items-center gap-3`}
-                >
-                  <span className="w-7 h-7 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold shrink-0">
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  <span className="text-sm font-medium text-foreground flex-1">{option}</span>
-                  {answered && isCorrect && <CheckCircle size={20} className="text-emerald-500 shrink-0" />}
-                  {answered && isSelected && !isCorrect && <XCircle size={20} className="text-red-400 shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
-          {answered && (
-            <div className={`mt-4 p-3 rounded-xl text-sm font-medium ${selectedAnswer === lesson.quiz.correctIndex ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-              {selectedAnswer === lesson.quiz.correctIndex ? '✅ Correct! Well done.' : `❌ Incorrect. The correct answer is: ${lesson.quiz.options[lesson.quiz.correctIndex]}`}
-            </div>
-          )}
-        </div>
+        <LessonQuiz
+          quiz={lesson.quiz}
+          selectedAnswer={selectedAnswer}
+          answered={answered}
+          onAnswer={handleAnswer}
+        />
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mt-6">
         <ChoiceButton
           variant="outline"
           onClick={() => { setCurrentLessonIdx(prev => prev - 1); setSelectedAnswer(null); setAnswered(false); }}
