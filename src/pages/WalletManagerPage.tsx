@@ -244,49 +244,8 @@ const WalletManagerPage: React.FC = () => {
     }
   };
 
-  const connectWalletProvider = async (providerName: string) => {
-    if (providerName === "MetaMask") {
-      const ethereum = (window as any).ethereum;
-      if (!ethereum) {
-        alert("MetaMask is not installed. Please install it from metamask.io");
-        window.open("https://metamask.io/download/", "_blank");
-        return;
-      }
-      try {
-        await ethereum.request({ method: 'eth_requestAccounts' });
-        alert(`Connected to ${providerName} successfully!`);
-      } catch {
-        alert("Connection rejected.");
-      }
-    } else if (providerName === "Phantom") {
-      const phantom = (window as any).solana;
-      if (!phantom?.isPhantom) {
-        alert("Phantom is not installed. Redirecting to download...");
-        window.open("https://phantom.app/download", "_blank");
-        return;
-      }
-      try {
-        await phantom.connect();
-        alert("Connected to Phantom successfully!");
-      } catch {
-        alert("Connection rejected.");
-      }
-    } else if (providerName === "Talisman") {
-      const talisman = (window as any).talismanEth;
-      if (!talisman) {
-        alert("Talisman is not installed. Redirecting to download...");
-        window.open("https://talisman.xyz/download", "_blank");
-        return;
-      }
-      try {
-        await talisman.request({ method: 'eth_requestAccounts' });
-        alert("Connected to Talisman successfully!");
-      } catch {
-        alert("Connection rejected.");
-      }
-    } else {
-      alert(`${providerName} connection requires SDK integration. Check their official site for setup.`);
-    }
+  const connectWalletProvider = (provider: WalletProvider) => {
+    window.open(provider.url, '_blank');
   };
 
   return (
