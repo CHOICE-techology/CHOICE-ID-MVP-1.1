@@ -104,15 +104,39 @@ const IdentityPage: React.FC = () => {
   }, [score, social, education, finance, physical]);
 
   const verificationData = useMemo(() => {
-    if (!identity?.lastAnchorHash) return null;
-    const mockTxHash = `0x${identity.lastAnchorHash?.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
-    return {
-      date: identity.lastAnchorTimestamp ? new Date(identity.lastAnchorTimestamp).toLocaleString() : null,
-      score,
-      txHash: mockTxHash,
-      explorerUrl: `https://sepolia.arbiscan.io/tx/${mockTxHash}`,
-    };
-  }, [identity?.lastAnchorHash, identity?.lastAnchorTimestamp, score]);
+    // Priority: identity anchor data > navState > localStorage
+    if (identity?.lastAnchorHash) {
+      const mockTxHash = `0x${identity.lastAnchorHash.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
+      return {
+        date: identity.lastAnchorTimestamp ? new Date(identity.lastAnchorTimestamp).toLocaleString() : null,
+        score,
+        txHash: mockTxHash,
+        explorerUrl: `https://sepolia.arbiscan.io/tx/${mockTxHash}`,
+      };
+    }
+    if (navState?.verificationData) {
+      return {
+        date: navState.verificationData.date,
+        score,
+        txHash: navState.verificationData.txHash,
+        explorerUrl: navState.verificationData.explorerUrl || `https://sepolia.arbiscan.io/tx/${navState.verificationData.txHash}`,
+      };
+    }
+    // Fallback: last persisted verification from localStorage
+    try {
+      const stored = localStorage.getItem('choice_last_verification');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          date: parsed.date,
+          score,
+          txHash: parsed.txHash,
+          explorerUrl: parsed.explorerUrl || `https://sepolia.arbiscan.io/tx/${parsed.txHash}`,
+        };
+      }
+    } catch {}
+    return null;
+  }, [identity?.lastAnchorHash, identity?.lastAnchorTimestamp, score, navState]);
 
   if (!identity) {
     return (
