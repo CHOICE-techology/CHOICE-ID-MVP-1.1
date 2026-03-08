@@ -820,6 +820,30 @@ DID: ${identity.did}`;
                     <button onClick={() => { setCvPopupOpen(true); setJobPopupOpen(false); }} className="text-xs font-bold text-primary hover:underline flex items-center gap-1 mx-auto">
                       <Eye size={12} /> View Full CV
                     </button>
+
+                    {/* Send Application Button */}
+                    <div className="pt-3 border-t border-border">
+                      {appSent ? (
+                        <div className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-5 py-3 text-sm font-bold">
+                          <CheckCircle size={16} /> Application Sent Successfully!
+                        </div>
+                      ) : (
+                        <ChoiceButton
+                          className="w-full"
+                          onClick={() => {
+                            setIsSendingApp(true);
+                            setTimeout(() => {
+                              setIsSendingApp(false);
+                              setAppSent(true);
+                            }, 1500);
+                          }}
+                          isLoading={isSendingApp}
+                        >
+                          <Send size={16} className="mr-2" /> Send Application
+                        </ChoiceButton>
+                      )}
+                      <p className="text-[10px] text-muted-foreground text-center mt-2">Your CHOICE CV and Trust Score will be securely shared.</p>
+                    </div>
                   </div>
                 )}
               </div>
