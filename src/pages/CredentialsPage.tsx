@@ -37,17 +37,8 @@ const HANDLE_PATTERNS: Record<string, { regex: RegExp; example: string }> = {
   Farcaster: { regex: /^@?[a-zA-Z0-9_.-]{1,20}$/, example: '@username' },
 };
 
-const SUPPORTED_CHAINS = [
-  'Ethereum', 'Arbitrum', 'Base', 'Avalanche', 'Bitcoin', 'Solana', 'Cardano', 'Polkadot', 'Tezos'
-];
 
-interface WalletEntry {
-  address: string;
-  chain?: string;
-  stats?: BlockchainStats;
-  analyzing?: boolean;
-  error?: string;
-}
+
 
 /** Generate human-readable insights from wallet stats */
 function deriveInsights(stats: BlockchainStats): string[] {
