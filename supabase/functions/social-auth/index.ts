@@ -114,7 +114,7 @@ serve(async (req) => {
     <div id="connect-view">
       <div class="icon">${config.icon}</div>
       <h1>Connect ${config.name}</h1>
-      <p>Link your ${config.name} account to your <span class="brand">CHOICE iD</span> to build your verifiable social reputation.</p>
+      <p>Link your ${config.name} account to your <span class="brand">CHOICE ID</span> to build your verifiable social reputation.</p>
       <button class="btn btn-primary" onclick="authorize()">Authorize ${config.name}</button>
       <button class="btn btn-cancel" onclick="window.close()">Cancel</button>
     </div>
