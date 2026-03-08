@@ -8,47 +8,48 @@ import { mockUploadToIPFS } from '@/services/cryptoService';
 import { VerifiableCredential } from '@/types';
 
 /* ══════════════════════════════════════════════
-   Official Brand Logos – Blockchain Networks
+   Official Brand Logos – imported SVG files
+   ══════════════════════════════════════════════ */
+import ethereumLogo from '@/assets/logos/ethereum.svg';
+import bitcoinLogo from '@/assets/logos/bitcoin.svg';
+import solanaLogo from '@/assets/logos/solana.svg';
+import arbitrumLogo from '@/assets/logos/arbitrum.svg';
+import avalancheLogo from '@/assets/logos/avalanche.svg';
+import polkadotLogo from '@/assets/logos/polkadot.svg';
+import cardanoLogo from '@/assets/logos/cardano.svg';
+import tezosLogo from '@/assets/logos/tezos.svg';
+import metamaskLogo from '@/assets/logos/metamask.svg';
+import eternlLogo from '@/assets/logos/eternl.png';
+import namiLogo from '@/assets/logos/nami.png';
+import kukaiLogo from '@/assets/logos/kukai.png';
+import coreWalletLogo from '@/assets/logos/core-wallet.svg';
+import walletconnectLogo from '@/assets/logos/walletconnect.png';
+import rainbowLogo from '@/assets/logos/rainbow.png';
+import talismanLogo from '@/assets/logos/talisman.png';
+
+/* ══════════════════════════════════════════════
+   Logo components using official assets
    ══════════════════════════════════════════════ */
 
-const EthereumLogo = () => (
-  <svg viewBox="0 0 256 417" className="w-7 h-7" fill="none">
-    <path d="M127.961 0l-2.795 9.5v275.668l2.795 2.79 127.962-75.638z" fill="#343434"/>
-    <path d="M127.962 0L0 212.32l127.962 75.639V154.158z" fill="#8C8C8C"/>
-    <path d="M127.962 312.187l-1.575 1.92V414.45l1.575 4.6L256 236.587z" fill="#3C3C3B"/>
-    <path d="M127.962 419.05V312.188L0 236.585z" fill="#8C8C8C"/>
-    <path d="M127.962 287.958l127.961-75.637-127.961-58.162z" fill="#141414"/>
-    <path d="M0 212.32l127.96 75.64V154.159z" fill="#393939"/>
-  </svg>
+const ImgLogo: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "w-7 h-7" }) => (
+  <img src={src} alt={alt} className={`${className} object-contain`} />
 );
 
-const BitcoinLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7">
-    <circle cx="16" cy="16" r="14" fill="#F7931A"/>
-    <path d="M21.2 13.8c.3-2-1.2-3.1-3.3-3.8l.7-2.7-1.6-.4-.7 2.6c-.4-.1-.8-.2-1.3-.3l.7-2.7-1.6-.4-.7 2.7c-.3-.1-.7-.2-1-.3l-2.2-.5-.4 1.7s1.2.3 1.2.3c.6.2.8.6.7 1l-.7 2.9c0 .1.1.1.1.1l-.1 0-1 4.1c-.1.2-.3.6-.8.4 0 0-1.2-.3-1.2-.3L7 19.5l2.1.5c.4.1.8.2 1.2.3l-.7 2.7 1.6.4.7-2.7c.4.1.9.2 1.3.3l-.7 2.7 1.6.4.7-2.7c2.8.5 5 .3 5.9-2.2.7-2-.1-3.2-1.5-3.9 1.1-.3 1.9-1 2.1-2.5zm-3.7 5.2c-.5 2-4 .9-5.1.7l.9-3.7c1.1.3 4.7.8 4.2 3zm.5-5.3c-.5 1.8-3.4.9-4.3.7l.8-3.3c.9.2 4 .7 3.5 2.6z" fill="white"/>
-  </svg>
+const SmImgLogo: React.FC<{ src: string; alt: string }> = ({ src, alt }) => (
+  <img src={src} alt={alt} className="w-6 h-6 object-contain" />
 );
 
-const SolanaLogo = () => (
-  <svg viewBox="0 0 397 311" className="w-7 h-7" fill="none">
-    <defs><linearGradient id="sol-a" x1="360" y1="0" x2="141" y2="311" gradientUnits="userSpaceOnUse"><stop stopColor="#00FFA3"/><stop offset="1" stopColor="#DC1FFF"/></linearGradient></defs>
-    <path d="M64.6 237.9a12.2 12.2 0 0 1 8.6-3.6h317.4a6.1 6.1 0 0 1 4.3 10.4l-61.3 61.4a12.2 12.2 0 0 1-8.6 3.5H7.6a6.1 6.1 0 0 1-4.3-10.4l61.3-61.3z" fill="url(#sol-a)"/>
-    <path d="M64.6 3.8A12.5 12.5 0 0 1 73.2 0h317.4a6.1 6.1 0 0 1 4.3 10.4l-61.3 61.4a12.2 12.2 0 0 1-8.6 3.5H7.6a6.1 6.1 0 0 1-4.3-10.4L64.6 3.8z" fill="url(#sol-a)"/>
-    <path d="M333 120.6a12.2 12.2 0 0 0-8.6-3.6H7a6.1 6.1 0 0 0-4.3 10.4l61.3 61.4a12.2 12.2 0 0 0 8.6 3.5h317.4a6.1 6.1 0 0 0 4.3-10.4L333 120.6z" fill="url(#sol-a)"/>
-  </svg>
-);
+/* ── Blockchain logos ── */
+const EthereumLogo = () => <ImgLogo src={ethereumLogo} alt="Ethereum" />;
+const BitcoinLogo = () => <ImgLogo src={bitcoinLogo} alt="Bitcoin" />;
+const SolanaLogo = () => <ImgLogo src={solanaLogo} alt="Solana" />;
+const ArbitrumLogo = () => <ImgLogo src={arbitrumLogo} alt="Arbitrum" />;
+const AvalancheLogo = () => <ImgLogo src={avalancheLogo} alt="Avalanche" />;
+const PolkadotLogo = () => <ImgLogo src={polkadotLogo} alt="Polkadot" />;
+const CardanoLogo = () => <ImgLogo src={cardanoLogo} alt="Cardano" />;
+const TezosLogo = () => <ImgLogo src={tezosLogo} alt="Tezos" />;
 
-// Official Arbitrum logo – stylized "A" in blue circle
-const ArbitrumLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-7 h-7" fill="none">
-    <rect width="40" height="40" rx="20" fill="#213147"/>
-    <path d="M20.7 9.5l7.8 13.5c.3.5.3 1.1 0 1.6l-2.8 4.9c-.3.5-.8.8-1.4.8h-1.1l-6-10.4 3.5-6.1-1.4-2.4-.7-1.2c.3-.5.8-.8 1.4-.8h.7z" fill="#28A0F0"/>
-    <path d="M23.2 30.3h-1.1l-2.4-4.2-2.4 4.2h-1.1c-.6 0-1.1-.3-1.4-.8l-2.8-4.9c-.3-.5-.3-1.1 0-1.6l7.8-13.5h.7c.6 0 1.1.3 1.4.8l5.3 9.2-6 10.4c-.3.5-.8.8-1.4.8l1.4.1z" fill="white"/>
-    <path d="M14.1 25.4l-1.3 2.3c-.2.3-.1.7.2.9l1.3.8 1.4-2.5-1.6-1.5z" fill="#28A0F0"/>
-    <path d="M25.9 25.4l1.3 2.3c.2.3.1.7-.2.9l-1.3.8-1.4-2.5 1.6-1.5z" fill="#28A0F0"/>
-  </svg>
-);
-
+// Base – no downloadable logo, accurate inline SVG
 const BaseLogo = () => (
   <svg viewBox="0 0 111 111" className="w-7 h-7" fill="none">
     <circle cx="55.5" cy="55.5" r="55.5" fill="#0052FF"/>
@@ -56,69 +57,17 @@ const BaseLogo = () => (
   </svg>
 );
 
-const AvalancheLogo = () => (
-  <svg viewBox="0 0 254 254" className="w-7 h-7" fill="none">
-    <circle cx="127" cy="127" r="127" fill="#E84142"/>
-    <path d="M171.8 170.3h27.4L132.5 56.6c-3.9-7.2-10.3-7.2-14.2 0L99 92.5l19.2 35.1c3.3-6 9.5-6 12.8 0l40.8 42.7z" fill="white"/>
-    <path d="M99 92.5L58.8 170.3h27.4l21.3-42.7L99 92.5z" fill="white"/>
-  </svg>
-);
+/* ── Wallet provider logos ── */
+const MetaMaskProviderLogo = () => <SmImgLogo src={metamaskLogo} alt="MetaMask" />;
+const EternlProviderLogo = () => <SmImgLogo src={eternlLogo} alt="Eternl" />;
+const NamiProviderLogo = () => <SmImgLogo src={namiLogo} alt="Nami" />;
+const KukaiProviderLogo = () => <SmImgLogo src={kukaiLogo} alt="Kukai" />;
+const CoreProviderLogo = () => <SmImgLogo src={coreWalletLogo} alt="Core" />;
+const WalletConnectProviderLogo = () => <SmImgLogo src={walletconnectLogo} alt="WalletConnect" />;
+const RainbowProviderLogo = () => <SmImgLogo src={rainbowLogo} alt="Rainbow" />;
+const TalismanProviderLogo = () => <SmImgLogo src={talismanLogo} alt="Talisman" />;
 
-// Official Polkadot logo – pink circle with dot pattern
-const PolkadotLogo = () => (
-  <svg viewBox="0 0 80 80" className="w-7 h-7" fill="none">
-    <circle cx="40" cy="40" r="40" fill="#E6007A"/>
-    <circle cx="40" cy="16" r="7" fill="white"/>
-    <circle cx="40" cy="64" r="7" fill="white"/>
-    <circle cx="40" cy="40" r="7" fill="white"/>
-    <circle cx="23" cy="28" r="4.5" fill="white"/>
-    <circle cx="57" cy="28" r="4.5" fill="white"/>
-    <circle cx="23" cy="52" r="4.5" fill="white"/>
-    <circle cx="57" cy="52" r="4.5" fill="white"/>
-  </svg>
-);
-
-// Official Cardano logo – starburst pattern
-const CardanoLogo = () => (
-  <svg viewBox="0 0 375 346" className="w-7 h-7" fill="none">
-    <circle cx="187.5" cy="173" r="170" fill="#0033AD"/>
-    <circle cx="187.5" cy="173" r="50" fill="white"/>
-    <circle cx="187.5" cy="70" r="16" fill="white"/>
-    <circle cx="187.5" cy="276" r="16" fill="white"/>
-    <circle cx="98" cy="121" r="16" fill="white"/>
-    <circle cx="277" cy="121" r="16" fill="white"/>
-    <circle cx="98" cy="225" r="16" fill="white"/>
-    <circle cx="277" cy="225" r="16" fill="white"/>
-    <circle cx="130" cy="90" r="10" fill="white" opacity="0.7"/>
-    <circle cx="245" cy="90" r="10" fill="white" opacity="0.7"/>
-    <circle cx="130" cy="256" r="10" fill="white" opacity="0.7"/>
-    <circle cx="245" cy="256" r="10" fill="white" opacity="0.7"/>
-    <circle cx="80" cy="173" r="10" fill="white" opacity="0.7"/>
-    <circle cx="295" cy="173" r="10" fill="white" opacity="0.7"/>
-  </svg>
-);
-
-// Official Tezos logo – angular "T" shape
-const TezosLogo = () => (
-  <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-    <circle cx="16" cy="16" r="15" fill="#2C7DF7"/>
-    <path d="M22.5 10.5h-4.8v-3h-3.4v3H9.5v3h4.8v8.3c0 2.4 1.5 3.7 3.7 3.7 1 0 2-.3 2.6-.7l-.8-2.5c-.3.2-.7.3-1.1.3-.8 0-1.3-.5-1.3-1.4v-7.7h4.8l.3-3z" fill="white"/>
-  </svg>
-);
-
-/* ══════════════════════════════════════════════
-   Official Brand Logos – Wallet Providers
-   ══════════════════════════════════════════════ */
-
-const MetaMaskProviderLogo = () => (
-  <svg viewBox="0 0 35 33" className="w-6 h-6" fill="none">
-    <path d="M32.958 1l-13.134 9.718 2.442-5.727z" fill="#E17726" stroke="#E17726" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M2.066 1l13.003 9.809-2.312-5.818zM28.146 23.898l-3.487 5.34 7.463 2.053 2.143-7.283zM.889 24.008l2.13 7.283 7.463-2.053-3.487-5.34z" fill="#E27625" stroke="#E27625" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M10.115 14.558l-2.077 3.14 7.405.337-.247-7.969zM24.91 14.558l-5.16-4.583-.169 8.06 7.405-.337z" fill="#E27625" stroke="#E27625" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M10.482 29.238l4.465-2.173-3.86-3.006zM20.078 27.065l4.446 2.173-.587-5.18z" fill="#E27625" stroke="#E27625" strokeWidth=".25" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
+// Coinbase Wallet – official blue "C" mark
 const CoinbaseProviderLogo = () => (
   <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
     <rect width="40" height="40" rx="10" fill="#0052FF"/>
@@ -127,94 +76,43 @@ const CoinbaseProviderLogo = () => (
   </svg>
 );
 
+// Phantom – official purple gradient with ghost icon
 const PhantomProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <defs><linearGradient id="ppg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#534BB1"/><stop offset="100%" stopColor="#551BF9"/></linearGradient></defs>
-    <rect width="40" height="40" rx="10" fill="url(#ppg)"/>
-    <circle cx="16" cy="19" r="2.5" fill="white"/><circle cx="24" cy="19" r="2.5" fill="white"/>
+  <svg viewBox="0 0 128 128" className="w-6 h-6" fill="none">
+    <rect width="128" height="128" rx="26" fill="url(#phantom-grad)"/>
+    <defs><linearGradient id="phantom-grad" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse"><stop stopColor="#534BB1"/><stop offset="1" stopColor="#551BF9"/></linearGradient></defs>
+    <path d="M110.584 64.914C110.584 90.472 96.47 107.194 74.696 107.194C56.324 107.194 43.574 95.174 40.97 77.67H29.124C31.996 101.88 49.586 117 74.696 117C102.564 117 120 95.174 120 64.914C120 34.654 102.564 12.828 74.696 12.828C49.586 12.828 31.996 27.948 29.124 52.158H40.97C43.574 34.654 56.324 22.634 74.696 22.634C96.47 22.634 110.584 39.356 110.584 64.914Z" fill="white"/>
+    <circle cx="65" cy="57" r="7" fill="white"/>
+    <circle cx="90" cy="57" r="7" fill="white"/>
   </svg>
 );
 
-const RainbowProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <defs><linearGradient id="rpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#FF4000"/><stop offset="25%" stopColor="#FF9901"/><stop offset="50%" stopColor="#01DA40"/><stop offset="75%" stopColor="#00AAFF"/><stop offset="100%" stopColor="#A259FF"/></linearGradient></defs>
-    <rect rx="10" width="40" height="40" fill="url(#rpg)"/>
-    <path d="M8 28v-4a12 12 0 0 1 24 0v4" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-    <path d="M12 28v-4a8 8 0 0 1 16 0v4" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-    <path d="M16 28v-4a4 4 0 0 1 8 0v4" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-  </svg>
-);
-
-const WalletConnectProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect rx="10" width="40" height="40" fill="#3B99FC"/>
-    <path d="M12.5 16.5c4.1-4 10.9-4 15 0l.5.5-1.7 1.7-.5-.5c-3.2-3.1-8.4-3.1-11.6 0l-.5.5L12 17l.5-.5zm18.5 3.4l1.5 1.5-7.1 7-1.5-1.5 5.6-5.5zm-24.5 1.5L8 19.9l5.6 5.5L12 27z" fill="white"/>
-  </svg>
-);
-
-// Talisman Wallet – official star logo
-const TalismanProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect width="40" height="40" rx="10" fill="#D5FF5C"/>
-    <path d="M20 6l3.5 10.5H34L25.5 22l3.5 10.5L20 26l-9 6.5L14.5 22 6 16.5h10.5z" fill="#1A1A1A"/>
-  </svg>
-);
-
-// Eternl – Cardano wallet
-const EternlProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect width="40" height="40" rx="10" fill="#1A44B7"/>
-    <text x="20" y="25" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold" fontFamily="sans-serif">E</text>
-  </svg>
-);
-
-// Nami – Cardano wallet
-const NamiProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect width="40" height="40" rx="10" fill="#349EA3"/>
-    <path d="M12 28V14l8 10 8-10v14" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-// Temple – Tezos wallet
+// Temple Wallet – official Tezos temple icon
 const TempleProviderLogo = () => (
   <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
     <rect width="40" height="40" rx="10" fill="#4B72FF"/>
-    <path d="M13 28l7-18 7 18M15 22h10" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 8l10 7v3H10v-3l10-7z" fill="white"/>
+    <rect x="12" y="20" width="4" height="10" rx="1" fill="white"/>
+    <rect x="18" y="20" width="4" height="10" rx="1" fill="white"/>
+    <rect x="24" y="20" width="4" height="10" rx="1" fill="white"/>
+    <rect x="9" y="30" width="22" height="3" rx="1" fill="white"/>
   </svg>
 );
 
-// Kukai – Tezos wallet
-const KukaiProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect width="40" height="40" rx="10" fill="#2B6CB0"/>
-    <circle cx="20" cy="20" r="8" stroke="white" strokeWidth="2.5" fill="none"/>
-    <circle cx="20" cy="20" r="3" fill="white"/>
-  </svg>
-);
-
-// Core – Avalanche wallet
-const CoreProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect width="40" height="40" rx="10" fill="#E84142"/>
-    <path d="M14 26h12L20 14z" fill="white"/>
-  </svg>
-);
-
-// Xverse – Bitcoin wallet
+// Xverse – official orange X mark
 const XverseProviderLogo = () => (
   <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
     <rect width="40" height="40" rx="10" fill="#EE7A30"/>
-    <path d="M13 13l14 14M27 13L13 27" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M13 13l14 14M27 13L13 27" stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
   </svg>
 );
 
-// Unisat – Bitcoin wallet
+// Unisat – official orange circle with "U" shape
 const UnisatProviderLogo = () => (
   <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect width="40" height="40" rx="10" fill="#F7931A"/>
-    <circle cx="20" cy="20" r="10" fill="white"/>
-    <path d="M20 12v16M14 16l6-4 6 4M14 24l6 4 6-4" stroke="#F7931A" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect width="40" height="40" rx="10" fill="#000"/>
+    <circle cx="20" cy="20" r="12" fill="#F7931A"/>
+    <path d="M14.5 15v6.5a5.5 5.5 0 0 0 11 0V15" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
   </svg>
 );
 
@@ -226,7 +124,7 @@ interface WalletProvider {
   name: string;
   description: string;
   Logo: React.FC;
-  chains: string[]; // which chains this wallet supports
+  chains: string[];
 }
 
 const ALL_WALLET_PROVIDERS: WalletProvider[] = [
@@ -283,7 +181,6 @@ const WalletManagerPage: React.FC = () => {
     }
   }, [location.state]);
 
-  // Filter wallet providers by selected chain
   const compatibleProviders = selectedChain
     ? ALL_WALLET_PROVIDERS.filter(wp => wp.chains.includes(selectedChain))
     : ALL_WALLET_PROVIDERS;
