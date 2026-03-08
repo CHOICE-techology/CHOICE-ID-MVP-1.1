@@ -90,25 +90,11 @@ const TalismanProviderLogo = () => <SmImgLogo src={talismanLogo} alt="Talisman" 
 
 const CoreProviderLogo = () => <SmImgLogo src={coreWalletLogo} alt="Core" />;
 
-// Coinbase Wallet – official blue "C" mark
-const CoinbaseProviderLogo = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-    <rect width="40" height="40" rx="10" fill="#0052FF"/>
-    <rect x="12" y="12" width="16" height="16" rx="8" fill="white"/>
-    <rect x="16" y="16" width="8" height="8" rx="2" fill="#0052FF"/>
-  </svg>
-);
+// Coinbase Wallet – official logo
+const CoinbaseProviderLogo = () => <SmImgLogo src={coinbaseOfficialLogo} alt="Coinbase Wallet" />;
 
-// Phantom – official purple gradient with ghost icon
-const PhantomProviderLogo = () => (
-  <svg viewBox="0 0 128 128" className="w-6 h-6" fill="none">
-    <rect width="128" height="128" rx="26" fill="url(#phantom-grad)"/>
-    <defs><linearGradient id="phantom-grad" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse"><stop stopColor="#534BB1"/><stop offset="1" stopColor="#551BF9"/></linearGradient></defs>
-    <path d="M110.584 64.914C110.584 90.472 96.47 107.194 74.696 107.194C56.324 107.194 43.574 95.174 40.97 77.67H29.124C31.996 101.88 49.586 117 74.696 117C102.564 117 120 95.174 120 64.914C120 34.654 102.564 12.828 74.696 12.828C49.586 12.828 31.996 27.948 29.124 52.158H40.97C43.574 34.654 56.324 22.634 74.696 22.634C96.47 22.634 110.584 39.356 110.584 64.914Z" fill="white"/>
-    <circle cx="65" cy="57" r="7" fill="white"/>
-    <circle cx="90" cy="57" r="7" fill="white"/>
-  </svg>
-);
+// Phantom – official logo
+const PhantomProviderLogo = () => <SmImgLogo src={phantomOfficialLogo} alt="Phantom" />;
 
 // Temple Wallet – official Tezos temple icon
 const TempleProviderLogo = () => (
