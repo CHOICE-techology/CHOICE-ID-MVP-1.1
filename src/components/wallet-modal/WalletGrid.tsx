@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { WalletEntry } from '@/data/walletRegistry';
+import { WalletLogo } from './WalletLogo';
 import { cn } from '@/lib/utils';
 
 interface WalletGridProps {
@@ -12,18 +13,11 @@ interface WalletGridProps {
   isSearching: boolean;
 }
 
-// The 6 most popular wallets to show by default
 const TOP_6_IDS = ['metamask', 'phantom', 'coinbase', 'trust', 'rainbow', 'walletconnect'];
 
 export const WalletGrid: React.FC<WalletGridProps> = ({
-  wallets,
-  connecting,
-  successSet,
-  detectedIds,
-  onConnect,
-  isSearching,
+  wallets, connecting, successSet, detectedIds, onConnect, isSearching,
 }) => {
-  // When not searching, show only top 6 (excluding detected ones)
   const displayWallets = isSearching
     ? wallets
     : wallets.filter(w => TOP_6_IDS.includes(w.id));
@@ -56,14 +50,7 @@ export const WalletGrid: React.FC<WalletGridProps> = ({
           ) : successSet.has(wallet.id) ? (
             <Check size={24} className="text-emerald-500" />
           ) : (
-            <img
-              src={wallet.logo}
-              alt={wallet.name}
-              className="w-8 h-8 object-contain rounded-md"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
+            <WalletLogo src={wallet.logo} name={wallet.name} size={32} />
           )}
           <span className="text-[10px] font-bold text-foreground leading-tight text-center line-clamp-1">
             {wallet.name}

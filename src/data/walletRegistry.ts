@@ -1,16 +1,43 @@
 /**
  * Registry of the 50 most popular wallets for the Connect CHOICE ID modal.
- * Each entry includes: id, display name, logo URL (official CDN), category,
- * and an optional `detect` function that checks for browser extension injection.
+ * All logos use local assets for reliability and consistent display.
  */
 
-// Local asset imports for wallets we already have
+// ── Local asset imports ──
 import metamaskLogo from '@/assets/logos/metamask-official.png';
 import trustWalletLogo from '@/assets/logos/trust-wallet-new.png';
 import phantomLogo from '@/assets/logos/phantom-new.png';
 import coinbaseLogo from '@/assets/logos/coinbase.webp';
 import rainbowLogo from '@/assets/logos/rainbow.png';
 import walletconnectLogo from '@/assets/logos/walletconnect.png';
+import rabbyLogo from '@/assets/logos/rabby.png';
+import zerionLogo from '@/assets/logos/zerion.png';
+import braveLogo from '@/assets/logos/brave.png';
+import okxLogo from '@/assets/logos/okx.png';
+import bitgetLogo from '@/assets/logos/bitget.png';
+import tokenPocketLogo from '@/assets/logos/token-pocket.png';
+import onekeyLogo from '@/assets/logos/onekey.png';
+import safeLogo from '@/assets/logos/safe.png';
+import solflareLogo from '@/assets/logos/solflare.png';
+import backpackLogo from '@/assets/logos/backpack.png';
+import xverseLogo from '@/assets/logos/xverse.png';
+import unisatLogo from '@/assets/logos/unisat.png';
+import leatherLogo from '@/assets/logos/leather.png';
+import keplrLogo from '@/assets/logos/keplr.png';
+import leapLogo from '@/assets/logos/leap.png';
+import exodusLogo from '@/assets/logos/exodus.png';
+import talismanLogo from '@/assets/logos/talisman-wallet.png';
+import subwalletLogo from '@/assets/logos/subwallet.png';
+import coin98Logo from '@/assets/logos/coin98.png';
+import frontierLogo from '@/assets/logos/frontier.png';
+import safepalLogo from '@/assets/logos/safepal.png';
+import ledgerLogo from '@/assets/logos/ledger.png';
+import trezorLogo from '@/assets/logos/trezor.png';
+import argentLogo from '@/assets/logos/argent.png';
+import imtokenLogo from '@/assets/logos/imtoken.png';
+import hashpackLogo from '@/assets/logos/hashpack.png';
+import petraLogo from '@/assets/logos/petra.png';
+import tonkeeperLogo from '@/assets/logos/tonkeeper.png';
 
 export interface WalletEntry {
   id: string;
@@ -25,10 +52,10 @@ const w = (window as any);
 
 /**
  * Top 50 wallets — ordered by popularity / market share.
- * CDN logos from official sources where local assets aren't available.
+ * All logos are local assets for guaranteed rendering.
  */
 export const walletRegistry: WalletEntry[] = [
-  // ── Top tier (local assets) ──
+  // ── Top tier (popular) ──
   { id: 'metamask', name: 'MetaMask', logo: metamaskLogo, category: 'popular',
     detect: () => !!w.ethereum?.isMetaMask },
   { id: 'phantom', name: 'Phantom', logo: phantomLogo, category: 'popular',
@@ -42,76 +69,76 @@ export const walletRegistry: WalletEntry[] = [
   { id: 'walletconnect', name: 'WalletConnect', logo: walletconnectLogo, category: 'popular' },
 
   // ── EVM wallets ──
-  { id: 'rabby', name: 'Rabby Wallet', logo: 'https://rabby.io/assets/images/logo.svg', category: 'evm',
+  { id: 'rabby', name: 'Rabby Wallet', logo: rabbyLogo, category: 'evm',
     detect: () => !!w.ethereum?.isRabby },
-  { id: 'zerion', name: 'Zerion', logo: 'https://app.zerion.io/logo192.png', category: 'evm',
+  { id: 'zerion', name: 'Zerion', logo: zerionLogo, category: 'evm',
     detect: () => !!w.ethereum?.isZerion },
-  { id: 'brave', name: 'Brave Wallet', logo: 'https://brave.com/static-assets/images/brave-logo-sans-text.svg', category: 'evm',
+  { id: 'brave', name: 'Brave Wallet', logo: braveLogo, category: 'evm',
     detect: () => !!w.ethereum?.isBraveWallet },
-  { id: 'okx', name: 'OKX Wallet', logo: 'https://static.okx.com/cdn/assets/imgs/2112/D91A9BD5D5D3FEBA.png', category: 'evm',
+  { id: 'okx', name: 'OKX Wallet', logo: okxLogo, category: 'evm',
     detect: () => !!w.okxwallet },
   { id: 'frame', name: 'Frame', logo: 'https://frame.sh/icons/frame256.png', category: 'evm',
     detect: () => !!w.ethereum?.isFrame },
   { id: 'taho', name: 'Taho', logo: 'https://taho.xyz/favicon.svg', category: 'evm',
     detect: () => !!w.tpiProvider || !!w.ethereum?.isTally },
-  { id: 'bitget', name: 'Bitget Wallet', logo: 'https://img.bitgetimg.com/image/third/1711959488482.png', category: 'evm',
+  { id: 'bitget', name: 'Bitget Wallet', logo: bitgetLogo, category: 'evm',
     detect: () => !!w.bitkeep },
-  { id: 'token-pocket', name: 'TokenPocket', logo: 'https://extension.tokenpocket.pro/logo.png', category: 'evm',
+  { id: 'token-pocket', name: 'TokenPocket', logo: tokenPocketLogo, category: 'evm',
     detect: () => !!w.ethereum?.isTokenPocket },
   { id: 'math', name: 'MathWallet', logo: 'https://medishares-cn.oss-cn-hangzhou.aliyuncs.com/mathwallet/logo_b.png', category: 'evm',
     detect: () => !!w.ethereum?.isMathWallet },
-  { id: 'onekey', name: 'OneKey', logo: 'https://onekey.so/favicon.svg', category: 'evm',
+  { id: 'onekey', name: 'OneKey', logo: onekeyLogo, category: 'evm',
     detect: () => !!w.$onekey },
-  { id: 'safe', name: 'Safe (Gnosis)', logo: 'https://app.safe.global/images/safe-logo-green.png', category: 'evm' },
+  { id: 'safe', name: 'Safe (Gnosis)', logo: safeLogo, category: 'evm' },
   { id: 'sequence', name: 'Sequence', logo: 'https://sequence.xyz/icon.svg', category: 'evm' },
   { id: 'enkrypt', name: 'Enkrypt', logo: 'https://www.enkrypt.com/favicon.svg', category: 'evm',
     detect: () => !!w.enkrypt },
 
   // ── Solana wallets ──
-  { id: 'solflare', name: 'Solflare', logo: 'https://solflare.com/favicon.svg', category: 'solana',
+  { id: 'solflare', name: 'Solflare', logo: solflareLogo, category: 'solana',
     detect: () => !!w.solflare?.isSolflare },
-  { id: 'backpack', name: 'Backpack', logo: 'https://backpack.app/favicon.ico', category: 'solana',
+  { id: 'backpack', name: 'Backpack', logo: backpackLogo, category: 'solana',
     detect: () => !!w.backpack },
   { id: 'glow', name: 'Glow', logo: 'https://glow.app/favicon.svg', category: 'solana',
     detect: () => !!w.glowSolana },
   { id: 'slope', name: 'Slope', logo: 'https://slope.finance/assets/icon/slope_icon.svg', category: 'solana' },
 
   // ── Bitcoin wallets ──
-  { id: 'xverse', name: 'Xverse', logo: 'https://www.xverse.app/icons/xverse-logo.svg', category: 'bitcoin',
+  { id: 'xverse', name: 'Xverse', logo: xverseLogo, category: 'bitcoin',
     detect: () => !!w.XverseProviders },
-  { id: 'unisat', name: 'UniSat', logo: 'https://unisat.io/favicon.ico', category: 'bitcoin',
+  { id: 'unisat', name: 'UniSat', logo: unisatLogo, category: 'bitcoin',
     detect: () => !!w.unisat },
-  { id: 'leather', name: 'Leather (Hiro)', logo: 'https://leather.io/leather-logo-mark.svg', category: 'bitcoin',
+  { id: 'leather', name: 'Leather (Hiro)', logo: leatherLogo, category: 'bitcoin',
     detect: () => !!w.LeatherProvider || !!w.HiroWalletProvider },
   { id: 'ordinals', name: 'Ordinals Wallet', logo: 'https://ordinalswallet.com/favicon.ico', category: 'bitcoin' },
 
   // ── Multi-chain wallets ──
-  { id: 'keplr', name: 'Keplr', logo: 'https://wallet.keplr.app/keplr-logo.svg', category: 'multi',
+  { id: 'keplr', name: 'Keplr', logo: keplrLogo, category: 'multi',
     detect: () => !!w.keplr },
-  { id: 'leap', name: 'Leap Wallet', logo: 'https://assets.leapwallet.io/logos/leap-cosmos-logo.svg', category: 'multi',
+  { id: 'leap', name: 'Leap Wallet', logo: leapLogo, category: 'multi',
     detect: () => !!w.leap },
-  { id: 'exodus', name: 'Exodus', logo: 'https://www.exodus.com/brand/exodus-logo-mark.svg', category: 'multi',
+  { id: 'exodus', name: 'Exodus', logo: exodusLogo, category: 'multi',
     detect: () => !!w.exodus },
-  { id: 'talisman', name: 'Talisman', logo: 'https://www.talisman.xyz/favicon.svg', category: 'multi',
+  { id: 'talisman', name: 'Talisman', logo: talismanLogo, category: 'multi',
     detect: () => !!w.talismanEth },
   { id: 'polkadot-js', name: 'Polkadot.js', logo: 'https://polkadot.js.org/docs/img/logo.svg', category: 'multi',
     detect: () => !!w.injectedWeb3?.['polkadot-js'] },
-  { id: 'subwallet', name: 'SubWallet', logo: 'https://www.subwallet.app/favicon.svg', category: 'multi',
+  { id: 'subwallet', name: 'SubWallet', logo: subwalletLogo, category: 'multi',
     detect: () => !!w.SubWallet || !!w.injectedWeb3?.subwallet },
   { id: 'core', name: 'Core Wallet', logo: 'https://core.app/favicon.svg', category: 'multi',
     detect: () => !!w.avalanche },
-  { id: 'coin98', name: 'Coin98', logo: 'https://coin98.com/favicon.svg', category: 'multi',
+  { id: 'coin98', name: 'Coin98', logo: coin98Logo, category: 'multi',
     detect: () => !!w.coin98 },
-  { id: 'frontier', name: 'Frontier', logo: 'https://frontier.xyz/favicon.svg', category: 'multi',
+  { id: 'frontier', name: 'Frontier', logo: frontierLogo, category: 'multi',
     detect: () => !!w.frontier },
-  { id: 'safepal', name: 'SafePal', logo: 'https://www.safepal.com/favicon.ico', category: 'multi' },
+  { id: 'safepal', name: 'SafePal', logo: safepalLogo, category: 'multi' },
   { id: 'keystone', name: 'Keystone', logo: 'https://keyst.one/favicon.svg', category: 'multi' },
-  { id: 'ledger', name: 'Ledger Live', logo: 'https://www.ledger.com/wp-content/uploads/2023/05/cropped-Favicon-32x32.png', category: 'multi' },
-  { id: 'trezor', name: 'Trezor', logo: 'https://trezor.io/favicon.ico', category: 'multi' },
-  { id: 'argent', name: 'Argent', logo: 'https://www.argent.xyz/favicon.svg', category: 'multi' },
-  { id: 'imtoken', name: 'imToken', logo: 'https://token.im/favicon.ico', category: 'multi',
+  { id: 'ledger', name: 'Ledger Live', logo: ledgerLogo, category: 'multi' },
+  { id: 'trezor', name: 'Trezor', logo: trezorLogo, category: 'multi' },
+  { id: 'argent', name: 'Argent', logo: argentLogo, category: 'multi' },
+  { id: 'imtoken', name: 'imToken', logo: imtokenLogo, category: 'multi',
     detect: () => !!w.ethereum?.isImToken },
-  { id: 'hashpack', name: 'HashPack', logo: 'https://www.hashpack.app/favicon.ico', category: 'multi',
+  { id: 'hashpack', name: 'HashPack', logo: hashpackLogo, category: 'multi',
     detect: () => !!w.hashpack },
   { id: 'blade', name: 'Blade Wallet', logo: 'https://www.bladewallet.io/favicon.ico', category: 'multi' },
 
@@ -122,11 +149,11 @@ export const walletRegistry: WalletEntry[] = [
     detect: () => !!w.cardano?.nami },
   { id: 'eternl', name: 'Eternl (Cardano)', logo: 'https://eternl.io/favicon.ico', category: 'other',
     detect: () => !!w.cardano?.eternl },
-  { id: 'petra', name: 'Petra (Aptos)', logo: 'https://petra.app/favicon.ico', category: 'other',
+  { id: 'petra', name: 'Petra (Aptos)', logo: petraLogo, category: 'other',
     detect: () => !!w.aptos },
   { id: 'sui', name: 'Sui Wallet', logo: 'https://sui.io/favicon.ico', category: 'other',
     detect: () => !!w.suiWallet },
-  { id: 'tonkeeper', name: 'Tonkeeper', logo: 'https://tonkeeper.com/favicon.ico', category: 'other',
+  { id: 'tonkeeper', name: 'Tonkeeper', logo: tonkeeperLogo, category: 'other',
     detect: () => !!w.tonkeeper },
 ];
 
