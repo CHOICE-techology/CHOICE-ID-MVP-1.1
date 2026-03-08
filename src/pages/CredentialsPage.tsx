@@ -14,7 +14,8 @@ import {
   Zap, X, Upload, FileCheck,
   Github,
   Send, MessageSquare, Music,
-  PlusCircle, CheckCircle, AlertCircle, Shield
+  PlusCircle, CheckCircle, AlertCircle, Shield,
+  GraduationCap, Award, BadgeCheck, CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -244,6 +245,7 @@ const CredentialsPage: React.FC = () => {
     { name: 'Other', icon: PlusCircle, id: 'Custom' },
   ];
 
+  const docTypeIconComponents: Record<string, React.ElementType> = { Diploma: GraduationCap, Certification: BadgeCheck, Award: Award, ID: CreditCard };
   const docTypeIcons: Record<string, string> = { Diploma: '🎓', Certification: '📜', Award: '🏆', ID: '🪪' };
 
 
@@ -262,76 +264,82 @@ const CredentialsPage: React.FC = () => {
       <WalletHistorySection wallets={wallets} setWallets={setWallets} onAnalyze={analyzeWallet} />
 
       {/* ═══════════════ 2. REAL-WORLD PROOFS ═══════════════ */}
-      <section className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg border border-primary/20"><FileCheck size={20} className="text-primary" /></div>
+      <section className="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-primary/10 p-1.5 rounded-lg border border-primary/20"><FileCheck size={16} className="text-primary" /></div>
             <div>
-              <h2 className="text-lg font-black text-foreground tracking-tight">Real-World Proofs</h2>
-              <p className="text-muted-foreground text-xs font-medium">Anchor your physical identity with verified documents.</p>
+              <h2 className="text-base font-black text-foreground tracking-tight leading-tight">Real-World Proofs</h2>
+              <p className="text-muted-foreground text-[10px] font-medium">Verified physical documents</p>
             </div>
           </div>
-          <span className="md:ml-auto bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 w-fit">+20 pts</span>
+          <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-emerald-500/20">+20 pts</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Upload area */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 items-start">
+          {/* Upload area — compact */}
           <div className="relative group">
-            <div className="bg-muted border-2 border-dashed border-border rounded-xl p-6 md:p-10 text-center hover:bg-muted/70 hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden">
+            <div className="bg-muted border-2 border-dashed border-border rounded-xl p-4 text-center hover:bg-muted/70 hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden">
               <input type="file" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept=".pdf,.jpg,.png" />
               {selectedFile ? (
-                <div className="flex flex-col items-center gap-3 text-primary animate-fade-in">
-                  <div className="p-3 bg-primary/10 rounded-full"><FileText size={36} /></div>
-                  <span className="font-black text-base tracking-tight">{selectedFile.name}</span>
-                  <span className="text-xs text-muted-foreground font-medium">Type: <strong className="text-foreground">{docType}</strong></span>
+                <div className="flex items-center gap-3 text-primary animate-fade-in">
+                  <div className="p-2 bg-primary/10 rounded-lg"><FileText size={20} /></div>
+                  <div className="text-left min-w-0">
+                    <span className="font-black text-sm tracking-tight block truncate">{selectedFile.name}</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">Type: <strong className="text-foreground">{docType}</strong></span>
+                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                  <div className="p-3 bg-card rounded-full shadow-sm"><Upload size={36} /></div>
-                  <span className="font-bold text-sm tracking-tight">Upload PDF / Image</span>
-                  <p className="text-[10px] font-medium text-muted-foreground">Diploma, ID, Certification, Award</p>
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="p-2 bg-card rounded-lg shadow-sm"><Upload size={20} /></div>
+                  <div className="text-left">
+                    <span className="font-bold text-xs tracking-tight block">Upload PDF / Image</span>
+                    <p className="text-[10px] font-medium text-muted-foreground">Diploma, ID, Certification, Award</p>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex flex-col gap-5 justify-center">
-            <div>
-              <label className="block text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-3">Document Type</label>
-              <div className="flex flex-wrap gap-2">
-                {(['Diploma', 'Certification', 'Award', 'ID'] as const).map(type => (
+          {/* Controls — compact inline */}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-1.5">
+              {(['Diploma', 'Certification', 'Award', 'ID'] as const).map(type => {
+                const IconComp = docTypeIconComponents[type];
+                return (
                   <button key={type} onClick={() => setDocType(type)}
-                    className={cn("px-4 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5",
+                    className={cn("px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border flex items-center gap-1.5",
                       docType === type ? "bg-foreground text-background border-foreground shadow-md" : "bg-card border-border text-muted-foreground hover:bg-muted")}>
-                    <span>{docTypeIcons[type]}</span> {type}
+                    <IconComp size={12} /> {type}
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
-            <ChoiceButton onClick={verifyPhysicalDocument} isLoading={isVerifyingDoc} disabled={!selectedFile} className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow-primary">
-              Verify & Mint Credential
+            <ChoiceButton onClick={verifyPhysicalDocument} isLoading={isVerifyingDoc} disabled={!selectedFile} className="w-full py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-glow-primary">
+              Verify & Mint
             </ChoiceButton>
           </div>
         </div>
 
-        {/* Verified documents */}
+        {/* Verified documents — compact list */}
         {physicalCredentials.length > 0 && (
-          <div className="mt-6 pt-5 border-t border-border">
-            <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">Verified Documents</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="mt-4 pt-3 border-t border-border">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {physicalCredentials.map((vc) => {
                 const dtype = vc.credentialSubject.documentType as string;
                 const fname = vc.credentialSubject.fileName as string;
+                const IconComp = docTypeIconComponents[dtype] || FileText;
                 return (
-                  <div key={vc.id} className="bg-muted border border-border rounded-xl p-3.5 flex items-start gap-3">
-                    <div className="text-2xl flex-shrink-0">{docTypeIcons[dtype] || '📄'}</div>
+                  <div key={vc.id} className="bg-muted border border-border rounded-lg p-2.5 flex items-center gap-2.5">
+                    <div className="p-1.5 bg-primary/10 rounded-md flex-shrink-0">
+                      <IconComp size={14} className="text-primary" />
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="font-black text-foreground text-xs">{dtype}</span>
-                        <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest border border-emerald-500/20">Verified</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-black text-foreground text-[11px]">{dtype}</span>
+                        <span className="bg-emerald-500/10 text-emerald-500 text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase border border-emerald-500/20">Verified</span>
                       </div>
-                      <p className="text-[10px] text-muted-foreground font-medium truncate">{fname}</p>
+                      <p className="text-[9px] text-muted-foreground font-medium truncate">{fname}</p>
                     </div>
                   </div>
                 );
@@ -346,7 +354,7 @@ const CredentialsPage: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <div className="bg-secondary/10 p-2 rounded-lg border border-secondary/20"><Shield size={18} className="text-secondary" /></div>
           <div>
-            <h2 className="text-lg font-black tracking-tight text-foreground">Social Reputation</h2>
+            <h2 className="text-lg font-black tracking-tight text-foreground leading-tight">Social<br/>Reputation</h2>
             <p className="text-muted-foreground text-xs font-medium">Connect profiles for AI-powered reputation analysis.</p>
           </div>
         </div>
