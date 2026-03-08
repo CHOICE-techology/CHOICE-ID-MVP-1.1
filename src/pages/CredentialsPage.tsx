@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ConnectGuideAnimation } from '@/components/ConnectGuideAnimation';
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
@@ -14,7 +14,7 @@ import {
   Zap, X, Upload, FileCheck,
   Activity, Github,
   Send, MessageSquare, Music,
-  PlusCircle, CheckCircle, AlertCircle
+  PlusCircle, CheckCircle, AlertCircle, Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,18 +33,29 @@ const PLATFORM_URL_PATTERNS: Record<string, { regex: RegExp; example: string }> 
   Meta: { regex: /^https?:\/\/(www\.)?(facebook\.com|meta\.com)\/[a-zA-Z0-9._]+\/?$/, example: 'https://facebook.com/username' },
 };
 
-// Handle validation patterns
 const HANDLE_PATTERNS: Record<string, { regex: RegExp; example: string }> = {
   Telegram: { regex: /^@?[a-zA-Z][a-zA-Z0-9_]{4,31}$/, example: '@username' },
   Discord: { regex: /^@?[a-zA-Z0-9_.]{2,32}$/, example: '@username#0000 or @username' },
   Farcaster: { regex: /^@?[a-zA-Z0-9_.-]{1,20}$/, example: '@username' },
 };
 
+const SUPPORTED_CHAINS = [
+  'Ethereum', 'Arbitrum', 'Base', 'Avalanche', 'Bitcoin', 'Solana', 'Cardano', 'Polkadot', 'Tezos'
+];
+
+interface WalletEntry {
+  address: string;
+  chain?: string;
+  stats?: BlockchainStats;
+  analyzing?: boolean;
+  error?: string;
+}
+
 const CredentialsPage: React.FC = () => {
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [blockchainStats, setBlockchainStats] = useState<BlockchainStats | null>(null);
-  const [walletError, setWalletError] = useState<string | null>(null);
+  const [wallets, setWallets] = useState<WalletEntry[]>([]);
+  const [newWalletAddress, setNewWalletAddress] = useState('');
+  const [showAddWallet, setShowAddWallet] = useState(false);
   const [activePlatform, setActivePlatform] = useState<string | null>(null);
   const [customPlatformName, setCustomPlatformName] = useState('');
   const [handleInput, setHandleInput] = useState('');
@@ -53,6 +64,14 @@ const CredentialsPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [docType, setDocType] = useState<'Diploma' | 'Certification' | 'Award' | 'ID'>('Diploma');
   const [isVerifyingDoc, setIsVerifyingDoc] = useState(false);
+  const [recentlyConnected, setRecentlyConnected] = useState<string | null>(null);
+
+  // Initialize primary wallet
+  useEffect(() => {
+    if (identity && wallets.length === 0) {
+      setWallets([{ address: identity.address }]);
+    }
+  }, [identity]);
 
   if (!identity) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
@@ -62,28 +81,39 @@ const CredentialsPage: React.FC = () => {
     </div>
   );
 
-  const handleAnalyzeWallet = async () => {
-    setIsAnalyzing(true);
-    setWalletError(null);
+  const analyzeWallet = async (index: number) => {
+    const w = wallets[index];
+    setWallets(prev => prev.map((p, i) => i === index ? { ...p, analyzing: true, error: undefined } : p));
     try {
-      const stats = await analyzeWalletHistory(identity.address);
-      setBlockchainStats(stats);
-      const historyVC: VerifiableCredential = {
-        id: `urn:uuid:${Math.random().toString(36).substring(2)}`,
-        type: ['VerifiableCredential', 'WalletHistoryCredential'],
-        issuer: 'did:ethr:0xAnalyticsOracle',
-        issuanceDate: new Date().toISOString(),
-        credentialSubject: { id: identity.did, ...stats }
-      };
-      await mockUploadToIPFS(historyVC);
-      const newIdentity = addCredential(identity, historyVC);
-      onUpdateIdentity(newIdentity);
+      const stats = await analyzeWalletHistory(w.address);
+      setWallets(prev => prev.map((p, i) => i === index ? { ...p, stats, analyzing: false, chain: stats.chain } : p));
+      // Mint credential for the first wallet analysis
+      if (index === 0) {
+        const historyVC: VerifiableCredential = {
+          id: `urn:uuid:${Math.random().toString(36).substring(2)}`,
+          type: ['VerifiableCredential', 'WalletHistoryCredential'],
+          issuer: 'did:ethr:0xAnalyticsOracle',
+          issuanceDate: new Date().toISOString(),
+          credentialSubject: { id: identity.did, ...stats }
+        };
+        await mockUploadToIPFS(historyVC);
+        const newIdentity = addCredential(identity, historyVC);
+        onUpdateIdentity(newIdentity);
+      }
     } catch (e: any) {
-      console.error("Wallet analysis failed", e);
-      setWalletError(e.message || 'Analysis failed. Ensure your wallet address is valid.');
-    } finally {
-      setIsAnalyzing(false);
+      setWallets(prev => prev.map((p, i) => i === index ? { ...p, analyzing: false, error: e.message || 'Analysis failed' } : p));
     }
+  };
+
+  const addNewWallet = () => {
+    if (!newWalletAddress.trim()) return;
+    if (wallets.some(w => w.address.toLowerCase() === newWalletAddress.toLowerCase())) return;
+    const newIndex = wallets.length;
+    setWallets(prev => [...prev, { address: newWalletAddress.trim() }]);
+    setNewWalletAddress('');
+    setShowAddWallet(false);
+    // Auto-analyze
+    setTimeout(() => analyzeWallet(newIndex), 100);
   };
 
   const initiateSocialConnect = (platform: string) => {
@@ -128,43 +158,35 @@ const CredentialsPage: React.FC = () => {
   const confirmSocialConnect = async () => {
     const platformToUse = activePlatform === 'Custom' ? customPlatformName : activePlatform;
     if (!platformToUse || !handleInput) return;
-
-    // Validate input
     if (!validateInput(handleInput, activePlatform || '')) {
       setLinkError(isHandlePlatform(activePlatform) ? 'Please provide a valid handle.' : 'Please provide a valid profile URL before connecting.');
       return;
     }
-
     setIsVerifyingSocial(true);
     setLinkError(null);
     try {
-      // For handle-based platforms, construct a synthetic profile URL for the AI
       const profileUrl = isHandlePlatform(activePlatform)
         ? `https://${platformToUse.toLowerCase()}.com/${handleInput.replace(/^@/, '')}`
         : handleInput;
-
       const { data, error } = await supabase.functions.invoke('analyze-social', {
         body: { platform: platformToUse, profileUrl },
       });
-
       if (error) throw new Error(error.message || 'Analysis failed');
       if (data?.error) throw new Error(data.error);
-
-      const result = data;
-
       const socialVC: VerifiableCredential = {
         id: `urn:uuid:${Math.random().toString(36).substring(2)}`,
         type: ['VerifiableCredential', 'SocialCredential'],
         issuer: `did:web:${platformToUse.toLowerCase().replace(/\s+/g, '')}.com`,
         issuanceDate: new Date().toISOString(),
-        credentialSubject: { id: identity.did, ...result }
+        credentialSubject: { id: identity.did, ...data }
       };
       await mockUploadToIPFS(socialVC);
       const newIdentity = addCredential(identity, socialVC);
       onUpdateIdentity(newIdentity);
+      setRecentlyConnected(platformToUse);
+      setTimeout(() => setRecentlyConnected(null), 3000);
       setActivePlatform(null);
     } catch (e: any) {
-      console.error(`Failed to connect ${activePlatform}`, e);
       setLinkError(e.message || 'Analysis failed. Please try again.');
     } finally {
       setIsVerifyingSocial(false);
@@ -200,10 +222,6 @@ const CredentialsPage: React.FC = () => {
   const socialCredentials = identity.credentials.filter(vc => vc.type.includes('SocialCredential'));
   const physicalCredentials = identity.credentials.filter(vc => vc.type.includes('PhysicalCredential'));
   const connectedPlatforms = socialCredentials.map(vc => vc.credentialSubject.platform);
-  const chartData = [
-    { name: 'Jan', tx: 12 }, { name: 'Feb', tx: 19 }, { name: 'Mar', tx: 3 },
-    { name: 'Apr', tx: 5 }, { name: 'May', tx: 22 }, { name: 'Jun', tx: 30 }
-  ];
 
   const socialPlatforms = [
     { name: 'X (Twitter)', icon: Twitter, id: 'X' },
@@ -220,161 +238,131 @@ const CredentialsPage: React.FC = () => {
     { name: 'Other Platform', icon: PlusCircle, id: 'Custom' },
   ];
 
-  const docTypeIcons: Record<string, string> = {
-    Diploma: '🎓',
-    Certification: '📜',
-    Award: '🏆',
-    ID: '🪪',
-  };
+  const docTypeIcons: Record<string, string> = { Diploma: '🎓', Certification: '📜', Award: '🏆', ID: '🪪' };
+
+  // Aggregate stats across all analyzed wallets
+  const totalTx = wallets.reduce((sum, w) => sum + (w.stats?.txCount || 0), 0);
+  const analyzedCount = wallets.filter(w => w.stats).length;
 
   return (
-    <div className="space-y-12 animate-fade-in pb-20">
-      <header className="mb-10">
+    <div className="space-y-10 animate-fade-in pb-20">
+      <header className="mb-8">
         <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2 tracking-tighter">Credentials Manager</h1>
-        <p className="text-muted-foreground text-base md:text-lg font-medium">Manage real-world proofs, social connections, and chain history.</p>
+        <p className="text-muted-foreground text-base md:text-lg font-medium">Manage wallet history, real-world proofs, and social reputation.</p>
       </header>
 
-      {/* Wallet History */}
+      {/* ═══════════════ 1. WALLET HISTORY ANALYSIS ═══════════════ */}
       <section className="bg-[#020617] rounded-[2.5rem] p-6 md:p-10 shadow-2xl relative overflow-hidden border border-white/5">
         <div className="absolute top-1/2 right-0 -translate-y-1/2 p-8 opacity-[0.03] pointer-events-none"><History size={320} className="text-white" /></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-6">
             <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20"><Wallet size={24} className="text-primary" /></div>
             <h2 className="text-2xl font-bold tracking-tight text-white">Wallet History Analysis</h2>
             <span className="ml-2 bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30">Live On-Chain</span>
           </div>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-             <div className="lg:col-span-7 space-y-4">
-              <p className="text-slate-400 text-sm leading-relaxed font-medium">
-                Live analysis across <span className="text-primary">Ethereum</span>, <span className="text-primary">Arbitrum</span>, <span className="text-primary">Base</span>, <span className="text-primary">Polygon</span>, <span className="text-primary">Bitcoin</span> &amp; <span className="text-primary">Solana</span>.
-              </p>
-              <div className="flex flex-wrap gap-3 items-center">
-                <ChoiceButton onClick={handleAnalyzeWallet} isLoading={isAnalyzing} className="rounded-2xl py-4 px-8 font-black text-xs uppercase tracking-widest shadow-glow-primary">
-                  {identity.credentials.some(vc => vc.type.includes('WalletHistoryCredential')) ? 'Refresh Analysis' : 'Analyze Wallet History'}
-                </ChoiceButton>
-                {blockchainStats?.activeChains && (
-                  <div className="flex flex-wrap gap-2">
-                    {blockchainStats.activeChains.map(chain => (
-                      <span key={chain} className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20 flex items-center gap-1.5">
-                        <Check size={10} strokeWidth={3} /> {chain}
-                      </span>
+
+          <p className="text-slate-400 text-sm leading-relaxed font-medium mb-4">
+            Live analysis across {SUPPORTED_CHAINS.map((c, i) => (
+              <span key={c}><span className="text-primary">{c}</span>{i < SUPPORTED_CHAINS.length - 1 ? ', ' : '.'}</span>
+            ))}
+          </p>
+
+          {/* Wallet cards */}
+          <div className="space-y-4 mb-6">
+            {wallets.map((w, i) => (
+              <div key={i} className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 md:p-6">
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <code className="text-xs text-slate-300 font-mono bg-white/5 px-3 py-1.5 rounded-lg truncate max-w-[280px] md:max-w-none">{w.address}</code>
+                  {w.stats?.chain && (
+                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20">
+                      {w.stats.chain}
+                    </span>
+                  )}
+                  {w.stats?.activeChains && w.stats.activeChains.length > 1 && w.stats.activeChains.slice(1).map(chain => (
+                    <span key={chain} className="bg-white/5 text-slate-400 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/10">
+                      <Check size={8} className="inline mr-1" />{chain}
+                    </span>
+                  ))}
+                  {!w.stats && !w.analyzing && (
+                    <ChoiceButton onClick={() => analyzeWallet(i)} isLoading={false} className="rounded-xl py-2 px-5 font-black text-[10px] uppercase tracking-widest">
+                      Analyze
+                    </ChoiceButton>
+                  )}
+                  {w.analyzing && <span className="text-primary text-xs font-bold animate-pulse">Analyzing...</span>}
+                </div>
+
+                {w.error && (
+                  <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-3 py-2 rounded-xl text-xs font-medium">
+                    <AlertCircle size={14} /> {w.error}
+                  </div>
+                )}
+
+                {w.stats && (
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {[
+                      { label: 'Transactions', value: w.stats.txCount.toLocaleString() },
+                      { label: 'Age', value: w.stats.accountAge },
+                      { label: 'Volume', value: w.stats.totalVolume, color: 'text-primary' },
+                      { label: 'Assets', value: w.stats.assetsHeld, color: 'text-purple-400' },
+                      { label: 'Net Value', value: w.stats.netValue, color: 'text-emerald-400' },
+                    ].map((stat, si) => (
+                      <div key={si} className="bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">{stat.label}</span>
+                        <span className={cn("text-sm font-black tracking-tight", stat.color || "text-white")}>{stat.value}</span>
+                      </div>
                     ))}
                   </div>
                 )}
-              </div>
-              {walletError && (
-                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl text-sm font-medium">
-                  <AlertCircle size={16} /> {walletError}
-                </div>
-              )}
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { label: 'Age', value: blockchainStats?.accountAge || '—' },
-                  { label: 'Volume', value: blockchainStats?.totalVolume || '—', color: 'text-primary' },
-                  { label: 'Assets', value: blockchainStats?.assetsHeld || '—', color: 'text-purple-400' },
-                  { label: 'Net Value', value: blockchainStats?.netValue || '—', color: 'text-emerald-400' }
-                ].map((stat, i) => (
-                  <div key={i} className="bg-white/5 px-3 py-2.5 rounded-xl border border-white/10">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">{stat.label}</span>
-                    <span className={cn("text-sm font-black tracking-tight", stat.color || "text-white")}>{stat.value}</span>
+
+                {w.stats?.activityData && (
+                  <div className="mt-4 h-[120px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={w.stats.activityData}>
+                        <Bar dataKey="tx" fill="#00E5FF" radius={[4, 4, 0, 0]} />
+                        <XAxis dataKey="name" stroke="#334155" fontSize={9} fontWeight="bold" tickLine={false} axisLine={false} />
+                        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0F172A', border: '1px solid #1E293B', borderRadius: '10px', color: '#F8FAFC', fontSize: '11px' }} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-            <div className="lg:col-span-5 flex flex-col">
-              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">ACTIVITY (LAST 6 MONTHS)</h3>
-              <div className="flex-1 min-h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={blockchainStats?.activityData || chartData}>
-                    <Bar dataKey="tx" fill="#00E5FF" radius={[6, 6, 0, 0]} />
-                    <XAxis dataKey="name" stroke="#334155" fontSize={10} fontWeight="bold" tickLine={false} axisLine={false} dy={10} />
-                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0F172A', border: '1px solid #1E293B', borderRadius: '12px', color: '#F8FAFC', fontSize: '12px' }} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            ))}
           </div>
+
+          {/* Add wallet */}
+          {showAddWallet ? (
+            <div className="flex gap-3 items-center animate-fade-in">
+              <input
+                type="text"
+                value={newWalletAddress}
+                onChange={e => setNewWalletAddress(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addNewWallet()}
+                placeholder="Paste wallet address (any chain)..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-primary/30 font-mono"
+                autoFocus
+              />
+              <ChoiceButton onClick={addNewWallet} className="rounded-xl py-3 px-6 font-black text-[10px] uppercase tracking-widest">Add</ChoiceButton>
+              <button onClick={() => setShowAddWallet(false)} className="text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
+            </div>
+          ) : (
+            <button onClick={() => setShowAddWallet(true)}
+              className="flex items-center gap-2 text-sm text-slate-400 hover:text-primary font-bold transition-colors group">
+              <Plus size={18} className="group-hover:scale-110 transition-transform" />
+              Add another wallet from any chain
+            </button>
+          )}
+
+          {analyzedCount > 1 && (
+            <div className="mt-4 bg-white/5 rounded-xl border border-white/10 px-4 py-3 flex items-center gap-4">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total across {analyzedCount} wallets</span>
+              <span className="text-white font-black text-sm">{totalTx.toLocaleString()} txns</span>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Social Reputation */}
-      <section className="space-y-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"><Globe size={24} className="text-blue-500" /></div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">High-Fidelity Social Reputation</h2>
-          </div>
-          <p className="text-muted-foreground text-lg max-w-3xl font-medium">
-            Connect your profiles with a <strong className="text-foreground">real profile URL</strong>. We verify the link format and run AI-powered reputation analysis.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {socialPlatforms.map((social) => {
-            const isConnected = connectedPlatforms.includes(social.id);
-            return (
-              <div key={social.id} className="bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
-                <div className="mb-6 p-4 bg-muted rounded-2xl group-hover:bg-primary/5 transition-colors">
-                  <social.icon className={cn("w-8 h-8 md:w-10 md:h-10", isConnected ? 'text-primary' : 'text-muted-foreground')} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-6">{social.name}</h3>
-                <ChoiceButton variant={isConnected ? "primary" : "outline"}
-                  className={cn("w-full rounded-2xl py-4 font-black text-xs uppercase tracking-widest transition-all", !isConnected && "border-border hover:border-primary hover:text-primary")}
-                  onClick={() => !isConnected && initiateSocialConnect(social.id)} disabled={isConnected}>
-                  {isConnected ? "Connected" : "Connect & Analyze"}
-                </ChoiceButton>
-              </div>
-            );
-          })}
-        </div>
-
-        {socialCredentials.length > 0 && (
-          <div className="border-t border-border pt-10 animate-fade-in">
-            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] mb-6">SOCIAL CAPITAL ANALYSIS</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {socialCredentials.map((vc) => (
-                <div key={vc.id} className="bg-[#020617] text-white rounded-2xl shadow-xl relative overflow-hidden group border border-white/5 flex flex-col">
-                  <div className="relative z-10 p-5 flex flex-col flex-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-black text-base tracking-tight truncate">{vc.credentialSubject.platform as string}</h4>
-                      <span className="bg-white/10 px-2.5 py-0.5 rounded-md text-[9px] text-primary font-black uppercase tracking-wider shrink-0 ml-2">
-                        @{(vc.credentialSubject.handle as string)?.split('/').pop()}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 flex-1">
-                      <div className="bg-white/5 rounded-lg px-3 py-2">
-                        <span className="text-slate-500 block text-[9px] font-black uppercase tracking-widest mb-0.5">Followers</span>
-                        <span className="font-black text-lg tracking-tighter">{(vc.credentialSubject.followers as number)?.toLocaleString() || '—'}</span>
-                      </div>
-                      <div className="bg-white/5 rounded-lg px-3 py-2">
-                        <span className="text-slate-500 block text-[9px] font-black uppercase tracking-widest mb-0.5">Engagement</span>
-                        <span className="font-black text-lg text-primary tracking-tighter">{(vc.credentialSubject.engagementRate as string) || '—'}</span>
-                      </div>
-                      <div className="bg-white/5 rounded-lg px-3 py-2">
-                        <span className="text-slate-500 block text-[9px] font-black uppercase tracking-widest mb-0.5">Bot Risk</span>
-                        <span className="font-black text-lg text-emerald-400 tracking-tighter">{(vc.credentialSubject.botProbability as string) || '—'}</span>
-                      </div>
-                      <div className="bg-white/5 rounded-lg px-3 py-2">
-                        <span className="text-slate-500 block text-[9px] font-black uppercase tracking-widest mb-0.5">Behavior</span>
-                        <span className="font-bold text-white text-[10px] bg-white/10 px-2 py-1 rounded-md inline-block uppercase tracking-wider leading-tight">{(vc.credentialSubject.behaviorScore as string) || '—'}</span>
-                      </div>
-                    </div>
-                    {vc.credentialSubject.sector && (
-                      <div className="mt-3 pt-3 border-t border-white/10">
-                        <span className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Sector: </span>
-                        <span className="text-white text-xs font-bold">{vc.credentialSubject.sector as string}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="absolute -bottom-8 -right-8 text-white/[0.03] pointer-events-none"><Activity size={140} /></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Physical Verification */}
+      {/* ═══════════════ 2. REAL-WORLD PROOFS ═══════════════ */}
       <section className="bg-card border border-border rounded-[2.5rem] p-6 md:p-10 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-8">
           <div className="flex items-center gap-4">
@@ -384,7 +372,7 @@ const CredentialsPage: React.FC = () => {
               <p className="text-muted-foreground text-sm md:text-base font-medium">Verify official documents to anchor your physical identity.</p>
             </div>
           </div>
-          <span className="md:ml-auto bg-emerald-50 text-emerald-600 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-emerald-100 w-fit">+20 Points Max</span>
+          <span className="md:ml-auto bg-emerald-50 text-emerald-600 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 w-fit">+20 Points Max</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div className="relative group">
@@ -412,7 +400,7 @@ const CredentialsPage: React.FC = () => {
                 {(['Diploma', 'Certification', 'Award', 'ID'] as const).map(type => (
                   <button key={type} onClick={() => setDocType(type)}
                     className={cn("px-6 py-3 rounded-2xl text-sm font-bold transition-all border flex items-center gap-2",
-                      docType === type ? "bg-dark text-white border-dark shadow-lg scale-105" : "bg-card border-border text-muted-foreground hover:bg-muted hover:border-border")}>
+                      docType === type ? "bg-foreground text-background border-foreground shadow-lg scale-105" : "bg-card border-border text-muted-foreground hover:bg-muted hover:border-border")}>
                     <span>{docTypeIcons[type]}</span> {type}
                   </button>
                 ))}
@@ -423,8 +411,6 @@ const CredentialsPage: React.FC = () => {
             </ChoiceButton>
           </div>
         </div>
-
-        {/* Verified Documents List */}
         {physicalCredentials.length > 0 && (
           <div className="mt-10 pt-8 border-t border-border">
             <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] mb-6">VERIFIED DOCUMENTS</h3>
@@ -451,9 +437,108 @@ const CredentialsPage: React.FC = () => {
         )}
       </section>
 
-      {/* Social Modal */}
+      {/* ═══════════════ 3. SOCIAL REPUTATION ═══════════════ */}
+      <section className="space-y-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"><Globe size={24} className="text-blue-500" /></div>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">High-Fidelity Social Reputation</h2>
+          </div>
+          <p className="text-muted-foreground text-sm max-w-3xl font-medium">
+            Connect profiles with a <strong className="text-foreground">real profile URL</strong>. AI-powered reputation analysis runs instantly.
+          </p>
+        </div>
+
+        {/* Compact social platform grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {socialPlatforms.map((social) => {
+            const isConnected = connectedPlatforms.includes(social.id);
+            const justConnected = recentlyConnected === social.id;
+            return (
+              <button
+                key={social.id}
+                onClick={() => !isConnected && initiateSocialConnect(social.id)}
+                disabled={isConnected}
+                className={cn(
+                  "relative bg-card border rounded-2xl p-4 flex flex-col items-center gap-2 text-center transition-all duration-300 group overflow-hidden",
+                  isConnected
+                    ? "border-primary/30 bg-primary/5"
+                    : "border-border hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5",
+                  justConnected && "animate-scale-in"
+                )}
+              >
+                <social.icon className={cn("w-6 h-6", isConnected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground transition-colors')} />
+                <span className="text-xs font-bold text-foreground leading-tight">{social.name}</span>
+                {isConnected ? (
+                  <span className="text-[9px] font-black text-primary uppercase tracking-widest">Connected</span>
+                ) : (
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">Connect</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Social Capital Analysis - with animated entry */}
+        {socialCredentials.length > 0 && (
+          <div className="border-t border-border pt-8">
+            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] mb-5">SOCIAL CAPITAL ANALYSIS</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {socialCredentials.map((vc, idx) => {
+                const isNew = recentlyConnected === (vc.credentialSubject.platform as string);
+                return (
+                  <div
+                    key={vc.id}
+                    className={cn(
+                      "bg-[#020617] text-white rounded-2xl shadow-xl relative overflow-hidden border border-white/5 flex flex-col transition-all duration-500",
+                      isNew && "animate-[flipIn_0.6s_ease-out]"
+                    )}
+                    style={{ animationDelay: `${idx * 80}ms` }}
+                  >
+                    <div className="relative z-10 p-4 flex flex-col flex-1">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-black text-sm tracking-tight truncate">{vc.credentialSubject.platform as string}</h4>
+                        <span className="bg-white/10 px-2 py-0.5 rounded-md text-[9px] text-primary font-black uppercase tracking-wider shrink-0 ml-2">
+                          @{(vc.credentialSubject.handle as string)?.split('/').pop()}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 flex-1">
+                        <div className="bg-white/5 rounded-lg px-2.5 py-1.5">
+                          <span className="text-slate-500 block text-[8px] font-black uppercase tracking-widest mb-0.5">Followers</span>
+                          <span className="font-black text-base tracking-tighter">{(vc.credentialSubject.followers as number)?.toLocaleString() || '—'}</span>
+                        </div>
+                        <div className="bg-white/5 rounded-lg px-2.5 py-1.5">
+                          <span className="text-slate-500 block text-[8px] font-black uppercase tracking-widest mb-0.5">Engagement</span>
+                          <span className="font-black text-base text-primary tracking-tighter">{(vc.credentialSubject.engagementRate as string) || '—'}</span>
+                        </div>
+                        <div className="bg-white/5 rounded-lg px-2.5 py-1.5">
+                          <span className="text-slate-500 block text-[8px] font-black uppercase tracking-widest mb-0.5">Bot Risk</span>
+                          <span className="font-black text-base text-emerald-400 tracking-tighter">{(vc.credentialSubject.botProbability as string) || '—'}</span>
+                        </div>
+                        <div className="bg-white/5 rounded-lg px-2.5 py-1.5">
+                          <span className="text-slate-500 block text-[8px] font-black uppercase tracking-widest mb-0.5">Behavior</span>
+                          <span className="font-bold text-white text-[9px] bg-white/10 px-1.5 py-0.5 rounded inline-block uppercase tracking-wider leading-tight">{(vc.credentialSubject.behaviorScore as string) || '—'}</span>
+                        </div>
+                      </div>
+                      {vc.credentialSubject.sector && (
+                        <div className="mt-2 pt-2 border-t border-white/10">
+                          <span className="text-slate-500 text-[8px] font-black uppercase tracking-widest">Sector: </span>
+                          <span className="text-white text-[11px] font-bold">{vc.credentialSubject.sector as string}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-6 -right-6 text-white/[0.03] pointer-events-none"><Activity size={100} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ═══════════════ SOCIAL MODAL ═══════════════ */}
       {activePlatform && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-dark/40 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/40 backdrop-blur-md animate-fade-in">
           <div className="bg-card rounded-[2.5rem] p-6 md:p-10 max-w-md w-full shadow-2xl border border-border">
             <div className="flex justify-between items-center mb-8">
               <div className="flex items-center gap-3">
