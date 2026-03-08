@@ -32,6 +32,8 @@ const IdentityPage: React.FC = () => {
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [selectedJobForCover, setSelectedJobForCover] = useState<Job | null>(null);
+  const [isSendingApp, setIsSendingApp] = useState(false);
+  const [appSent, setAppSent] = useState(false);
 
   // Popup states
   const [cvPopupOpen, setCvPopupOpen] = useState(false);
