@@ -261,16 +261,16 @@ const CredentialsPage: React.FC = () => {
                   <AlertCircle size={16} /> {walletError}
                 </div>
               )}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 gap-2">
                 {[
-                  { label: 'Account Age', value: blockchainStats?.accountAge || '—' },
-                  { label: 'Total Volume', value: blockchainStats?.totalVolume || '—', color: 'text-primary' },
-                  { label: 'Assets Held', value: blockchainStats?.assetsHeld || '—', color: 'text-purple-400' },
-                  { label: 'Est. Net Value', value: blockchainStats?.netValue || '—', color: 'text-emerald-400' }
+                  { label: 'Age', value: blockchainStats?.accountAge || '—' },
+                  { label: 'Volume', value: blockchainStats?.totalVolume || '—', color: 'text-primary' },
+                  { label: 'Assets', value: blockchainStats?.assetsHeld || '—', color: 'text-purple-400' },
+                  { label: 'Net Value', value: blockchainStats?.netValue || '—', color: 'text-emerald-400' }
                 ].map((stat, i) => (
-                  <div key={i} className="bg-white/5 p-4 md:p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">{stat.label}</span>
-                    <span className={cn("text-base md:text-lg font-black tracking-tight", stat.color || "text-white")}>{stat.value}</span>
+                  <div key={i} className="bg-white/5 px-3 py-2.5 rounded-xl border border-white/10">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">{stat.label}</span>
+                    <span className={cn("text-sm font-black tracking-tight", stat.color || "text-white")}>{stat.value}</span>
                   </div>
                 ))}
               </div>
