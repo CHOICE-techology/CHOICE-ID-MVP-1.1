@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface WalletLogoProps {
@@ -9,31 +9,36 @@ interface WalletLogoProps {
 }
 
 /** Wallet logo with graceful initial-letter fallback */
-export const WalletLogo: React.FC<WalletLogoProps> = ({ src, name, size = 32, className }) => {
-  const [failed, setFailed] = useState(false);
+export const WalletLogo = forwardRef<HTMLImageElement, WalletLogoProps>(
+  ({ src, name, size = 32, className }, ref) => {
+    const [failed, setFailed] = useState(false);
 
-  if (failed) {
+    if (failed) {
+      return (
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-lg bg-muted text-foreground font-black text-xs shrink-0",
+            className
+          )}
+          style={{ width: size, height: size }}
+        >
+          {name.charAt(0).toUpperCase()}
+        </div>
+      );
+    }
+
     return (
-      <div
-        className={cn(
-          "flex items-center justify-center rounded-lg bg-muted text-foreground font-black text-xs shrink-0",
-          className
-        )}
+      <img
+        ref={ref}
+        src={src}
+        alt={name}
+        className={cn("object-contain rounded-lg shrink-0", className)}
         style={{ width: size, height: size }}
-      >
-        {name.charAt(0).toUpperCase()}
-      </div>
+        onError={() => setFailed(true)}
+        loading="lazy"
+      />
     );
   }
+);
 
-  return (
-    <img
-      src={src}
-      alt={name}
-      className={cn("object-contain rounded-lg shrink-0", className)}
-      style={{ width: size, height: size }}
-      onError={() => setFailed(true)}
-      loading="lazy"
-    />
-  );
-};
+WalletLogo.displayName = 'WalletLogo';
