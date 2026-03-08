@@ -20,6 +20,8 @@ import {
 
 const IdentityPage: React.FC = () => {
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
+  const location = useLocation();
+  const navState = location.state as { verificationSuccess?: boolean; verificationData?: any } | null;
   const [cv, setCv] = useState<GeneratedCV | null>(null);
   const [isGeneratingCV, setIsGeneratingCV] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
