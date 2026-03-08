@@ -69,12 +69,13 @@ const EducationPage: React.FC = () => {
             {completedCourses.map(course => (
               <div
                 key={course.id}
-                className="group relative flex flex-col items-center text-center p-4 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-all duration-300"
+                className="group relative flex flex-col items-center text-center p-4 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-all duration-300 hover:shadow-lg"
               >
-                {/* Glow ring behind the badge */}
+                {/* Neon glow ring behind the badge */}
                 <div className={`relative w-16 h-16 mb-3`}>
-                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-20 blur-md group-hover:opacity-40 transition-opacity`} />
-                  <div className={`relative w-full h-full rounded-full bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-lg border-2 border-white/10`}>
+                  <div className={`absolute -inset-2 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-0 blur-xl group-hover:opacity-50 transition-opacity duration-500`} />
+                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-25 blur-md group-hover:opacity-40 transition-opacity`} />
+                  <div className={`relative w-full h-full rounded-full bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-lg border-2 border-white/20 group-hover:border-white/40 transition-all`}>
                     <CourseIcon courseId={course.id} size={24} className="text-white drop-shadow-md" />
                   </div>
                   {/* Checkmark overlay */}
@@ -103,14 +104,16 @@ const EducationPage: React.FC = () => {
           const level = LEVEL_STYLES[course.level];
           return (
             <div key={course.id} className={`bg-card border rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden group transition-all duration-300 hover:shadow-2xl ${isCompleted ? 'border-emerald-500/30' : 'border-border'}`}>
-              {/* Top color bar */}
+              {/* Top neon color bar */}
               <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${course.badgeColor}`} />
+              <div className={`absolute top-0 left-0 w-full h-8 bg-gradient-to-b ${course.badgeColor} opacity-[0.06] pointer-events-none`} />
 
               {/* Icon + Level + Status */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-md`}>
-                    <CourseIcon courseId={course.id} size={18} className="text-white" />
+                  <div className={`relative w-10 h-10 rounded-xl bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow`}>
+                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${course.badgeColor} opacity-0 blur-md group-hover:opacity-40 transition-opacity duration-500`} />
+                    <CourseIcon courseId={course.id} size={18} className="relative text-white" />
                   </div>
                   <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${level.bg} ${level.text} ${level.border}`}>
                     {course.level}
