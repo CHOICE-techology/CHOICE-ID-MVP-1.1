@@ -10,7 +10,7 @@ import {
   Download, Edit2, Sparkles, FileText, Camera, CheckCircle, Info,
   TrendingUp, Lock, ExternalLink, Shield, Briefcase, Bell, FileCheck,
   PenTool, Target, ArrowRight, Clock, Hash, Award, Zap, Settings,
-  ArrowLeft, X, Eye, Send
+  ArrowLeft, X, Eye, Send, Gift, Copy, Share2
 } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import { useWallet } from '@/contexts/WalletContext';
