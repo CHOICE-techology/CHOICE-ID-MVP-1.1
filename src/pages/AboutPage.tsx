@@ -44,7 +44,7 @@ const AboutPage: React.FC = () => {
           </a>
           <a href="https://www.choice.love/choice-id" target="_blank" rel="noreferrer"
             className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:brightness-110 transition-all">
-            Choice iD Details
+            CHOICE ID Details
           </a>
         </div>
       </div>

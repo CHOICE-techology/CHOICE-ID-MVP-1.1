@@ -234,7 +234,7 @@ const IdentityPage: React.FC = () => {
           <div className="bg-card border border-border rounded-3xl p-6 md:p-10 shadow-xl flex-1 relative overflow-hidden flex flex-col">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 relative z-10 gap-4">
               <div>
-                <h3 className="text-2xl font-bold text-foreground flex items-center gap-3">Professional Choice CV</h3>
+                <h3 className="text-2xl font-bold text-foreground flex items-center gap-3">Professional CHOICE CV</h3>
                 <p className="text-muted-foreground text-sm mt-1">Aggregated proof of your on-chain and off-chain reputation.</p>
               </div>
               {!cv ? (

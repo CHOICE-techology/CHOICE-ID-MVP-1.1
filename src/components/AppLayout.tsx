@@ -172,7 +172,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
                 About Us
               </Link>
               <a href="https://www.choice.love/choice-id" target="_blank" rel="noreferrer" className="text-[10px] md:text-xs font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">
-                About Choice iD
+                About CHOICE ID
               </a>
             </div>
             <div className="text-[10px] md:text-xs font-bold text-muted-foreground/50 uppercase tracking-[0.2em] text-center md:text-right">
