@@ -121,7 +121,7 @@ serve(async (req) => {
     <div class="success" id="success-view">
       <div class="check">✓</div>
       <h2>Connected!</h2>
-      <p>${config.name} linked to your CHOICE iD</p>
+      <p>${config.name} linked to your CHOICE ID</p>
     </div>
   </div>
   <script>
