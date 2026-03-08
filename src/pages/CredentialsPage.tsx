@@ -7,14 +7,14 @@ import { mockUploadToIPFS, mockVerifyPhysicalDocument } from '@/services/cryptoS
 import { analyzeWalletHistory, BlockchainStats } from '@/services/blockchainService';
 import { supabase } from '@/integrations/supabase/client';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from 'recharts';
+import { WalletHistorySection, WalletEntry } from '@/components/WalletHistorySection';
 import {
-  FileText, Check, Wallet, History,
+  FileText, Check,
   Linkedin, Twitter, Facebook, Instagram, Youtube, Globe,
   Zap, X, Upload, FileCheck,
-  Activity, Github,
+  Github,
   Send, MessageSquare, Music,
-  PlusCircle, CheckCircle, AlertCircle, Plus, TrendingUp, Shield, Layers
+  PlusCircle, CheckCircle, AlertCircle, Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
