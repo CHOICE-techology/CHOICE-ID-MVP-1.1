@@ -69,12 +69,13 @@ const EducationPage: React.FC = () => {
             {completedCourses.map(course => (
               <div
                 key={course.id}
-                className="group relative flex flex-col items-center text-center p-4 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-all duration-300"
+                className="group relative flex flex-col items-center text-center p-4 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-all duration-300 hover:shadow-lg"
               >
-                {/* Glow ring behind the badge */}
+                {/* Neon glow ring behind the badge */}
                 <div className={`relative w-16 h-16 mb-3`}>
-                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-20 blur-md group-hover:opacity-40 transition-opacity`} />
-                  <div className={`relative w-full h-full rounded-full bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-lg border-2 border-white/10`}>
+                  <div className={`absolute -inset-2 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-0 blur-xl group-hover:opacity-50 transition-opacity duration-500`} />
+                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-25 blur-md group-hover:opacity-40 transition-opacity`} />
+                  <div className={`relative w-full h-full rounded-full bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-lg border-2 border-white/20 group-hover:border-white/40 transition-all`}>
                     <CourseIcon courseId={course.id} size={24} className="text-white drop-shadow-md" />
                   </div>
                   {/* Checkmark overlay */}
