@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { COURSES } from '@/data/coursesData';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { ArrowLeft, ArrowRight, CheckCircle, XCircle, Award, BookOpen, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Zap, Layers } from 'lucide-react';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
@@ -10,6 +10,7 @@ import { useWallet } from '@/contexts/WalletContext';
 import LessonContent from '@/components/education/LessonContent';
 import LessonQuiz from '@/components/education/LessonQuiz';
 import LessonComplete from '@/components/education/LessonComplete';
+import CourseIcon from '@/components/education/CourseIcon';
 
 const LessonPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -93,12 +94,14 @@ const LessonPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-10">
       {/* Course header with badge color accent */}
-      <div className={`bg-gradient-to-r ${course.badgeColor} rounded-2xl p-4 mb-6`}>
+      <div className={`bg-gradient-to-r ${course.badgeColor} rounded-2xl p-4 mb-6 shadow-lg`}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/education')} className="text-white/80 hover:text-white transition-colors">
             <ArrowLeft size={20} />
           </button>
-          <span className="text-2xl">{course.icon}</span>
+          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+            <CourseIcon courseId={course.id} size={20} className="text-white" />
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-white font-bold text-sm">{course.title}</p>
             <p className="text-white/70 text-xs">Lesson {currentLessonIdx + 1} of {course.lessons.length} · {course.level}</p>
@@ -121,15 +124,15 @@ const LessonPage: React.FC = () => {
           <div className={`h-full bg-gradient-to-r ${course.badgeColor} transition-all duration-500 rounded-full`} style={{ width: `${progress}%` }} />
         </div>
         {/* Lesson dots */}
-        <div className="flex justify-between mt-2 px-1">
-          {course.lessons.map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <div className={`w-2.5 h-2.5 rounded-full transition-all ${
-                i < currentLessonIdx ? 'bg-emerald-400' :
-                i === currentLessonIdx ? `bg-gradient-to-r ${course.badgeColor} ring-2 ring-primary/30` :
-                'bg-muted-foreground/20'
+        <div className="flex justify-between mt-3 px-1">
+          {course.lessons.map((l, i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5">
+              <div className={`w-3 h-3 rounded-full transition-all border-2 ${
+                i < currentLessonIdx ? 'bg-emerald-400 border-emerald-400 shadow-sm shadow-emerald-400/30' :
+                i === currentLessonIdx ? `bg-gradient-to-r ${course.badgeColor} border-transparent ring-2 ring-primary/30 shadow-sm` :
+                'bg-transparent border-muted-foreground/20'
               }`} />
-              <span className={`text-[9px] font-medium ${i === currentLessonIdx ? 'text-foreground' : 'text-muted-foreground/50'}`}>
+              <span className={`text-[9px] font-bold ${i === currentLessonIdx ? 'text-foreground' : 'text-muted-foreground/40'}`}>
                 {i + 1}
               </span>
             </div>
@@ -139,9 +142,16 @@ const LessonPage: React.FC = () => {
 
       {/* Lesson Content Card */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden mb-6 shadow-sm">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border bg-muted/30">
-          <BookOpen size={18} className="text-primary" />
-          <h2 className="text-lg font-extrabold text-foreground">{lesson.title}</h2>
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border bg-muted/20">
+          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${course.badgeColor} flex items-center justify-center`}>
+            <BookOpen size={14} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-extrabold text-foreground">{lesson.title}</h2>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1">
+              <Layers size={10} /> Lesson {currentLessonIdx + 1} of {course.lessons.length}
+            </p>
+          </div>
         </div>
         <div className="p-6 md:p-8">
           <LessonContent content={lesson.content} />
