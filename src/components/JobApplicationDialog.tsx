@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Job, JobMatchResult, GeneratedCV, UserIdentity } from '@/types';
 import { mockGenerateCV, mockGenerateBio } from '@/services/cryptoService';
 import { calculateReputation } from '@/services/reputationEngine';
