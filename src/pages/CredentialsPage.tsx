@@ -6,6 +6,8 @@ import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS, mockVerifyPhysicalDocument } from '@/services/cryptoService';
 import { analyzeWalletHistory, BlockchainStats } from '@/services/blockchainService';
 import { supabase } from '@/integrations/supabase/client';
+import { grantWalletAnalysisReward, grantSocialConnectReward } from '@/services/rewardService';
+import { triggerRewardAnimation } from '@/components/RewardAnimation';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { WalletHistorySection, WalletEntry } from '@/components/WalletHistorySection';
 import {
