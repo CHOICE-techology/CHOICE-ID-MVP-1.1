@@ -354,7 +354,7 @@ const CredentialsPage: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <div className="bg-secondary/10 p-2 rounded-lg border border-secondary/20"><Shield size={18} className="text-secondary" /></div>
           <div>
-            <h2 className="text-lg font-black tracking-tight text-foreground">Social Reputation</h2>
+            <h2 className="text-lg font-black tracking-tight text-foreground leading-tight">Social<br/>Reputation</h2>
             <p className="text-muted-foreground text-xs font-medium">Connect profiles for AI-powered reputation analysis.</p>
           </div>
         </div>
