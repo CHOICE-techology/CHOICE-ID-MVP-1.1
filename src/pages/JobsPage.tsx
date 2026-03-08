@@ -137,7 +137,7 @@ const JobsPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 w-full md:w-auto shrink-0">
-                      <ChoiceButton className="w-full md:w-auto" onClick={() => handleApply(job.id)} isLoading={applying === job.id} disabled={!!applying || !identity}>
+                      <ChoiceButton className="w-full md:w-auto" onClick={() => handleApply(job)} disabled={!identity}>
                         {!identity ? 'Connect' : job.type === 'Collaboration' ? 'Join Team' : 'Auto-Apply'}
                       </ChoiceButton>
                       {identity && mr && (
