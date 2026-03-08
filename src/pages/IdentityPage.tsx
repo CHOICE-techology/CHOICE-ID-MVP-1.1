@@ -92,7 +92,7 @@ const IdentityPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="text-center md:text-left space-y-6">
               <div className="inline-flex items-center gap-2 border border-white/10 bg-white/5 rounded-full px-4 py-1.5 backdrop-blur-md">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-300">Choice Trust ID</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-300">CHOICE Trust ID</span>
               </div>
               <div>
                 <div className="flex items-baseline gap-3 justify-center md:justify-start">
