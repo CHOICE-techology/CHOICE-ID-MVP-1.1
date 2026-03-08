@@ -264,82 +264,84 @@ const CredentialsPage: React.FC = () => {
       <WalletHistorySection wallets={wallets} setWallets={setWallets} onAnalyze={analyzeWallet} />
 
       {/* ═══════════════ 2. REAL-WORLD PROOFS ═══════════════ */}
-      <section className="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-primary/10 p-1.5 rounded-lg border border-primary/20"><FileCheck size={16} className="text-primary" /></div>
+      <section className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20"><FileCheck size={20} className="text-primary" /></div>
             <div>
-              <h2 className="text-base font-black text-foreground tracking-tight leading-tight">Real-World Proofs</h2>
-              <p className="text-muted-foreground text-[10px] font-medium">Verified physical documents</p>
+              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Real-World Proofs</h2>
+              <p className="text-muted-foreground text-xs font-medium mt-0.5">Upload and verify physical documents to strengthen your identity</p>
             </div>
           </div>
-          <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-emerald-500/20">+20 pts</span>
+          <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">+20 pts</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 items-start">
-          {/* Upload area — compact */}
-          <div className="relative group">
-            <div className="bg-muted border-2 border-dashed border-border rounded-xl p-4 text-center hover:bg-muted/70 hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden">
-              <input type="file" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept=".pdf,.jpg,.png" />
-              {selectedFile ? (
-                <div className="flex items-center gap-3 text-primary animate-fade-in">
-                  <div className="p-2 bg-primary/10 rounded-lg"><FileText size={20} /></div>
-                  <div className="text-left min-w-0">
-                    <span className="font-black text-sm tracking-tight block truncate">{selectedFile.name}</span>
-                    <span className="text-[10px] text-muted-foreground font-medium">Type: <strong className="text-foreground">{docType}</strong></span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="p-2 bg-card rounded-lg shadow-sm"><Upload size={20} /></div>
-                  <div className="text-left">
-                    <span className="font-bold text-xs tracking-tight block">Upload PDF / Image</span>
-                    <p className="text-[10px] font-medium text-muted-foreground">Diploma, ID, Certification, Award</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Controls — compact inline */}
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap gap-1.5">
-              {(['Diploma', 'Certification', 'Award', 'ID'] as const).map(type => {
-                const IconComp = docTypeIconComponents[type];
-                return (
-                  <button key={type} onClick={() => setDocType(type)}
-                    className={cn("px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border flex items-center gap-1.5",
-                      docType === type ? "bg-foreground text-background border-foreground shadow-md" : "bg-card border-border text-muted-foreground hover:bg-muted")}>
-                    <IconComp size={12} /> {type}
-                  </button>
-                );
-              })}
-            </div>
-            <ChoiceButton onClick={verifyPhysicalDocument} isLoading={isVerifyingDoc} disabled={!selectedFile} className="w-full py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-glow-primary">
-              Verify & Mint
-            </ChoiceButton>
+        {/* Document type selector */}
+        <div className="mb-5">
+          <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-2.5">Document Type</label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(['Diploma', 'Certification', 'Award', 'ID'] as const).map(type => {
+              const IconComp = docTypeIconComponents[type];
+              return (
+                <button key={type} onClick={() => setDocType(type)}
+                  className={cn("px-4 py-3 rounded-xl text-xs font-bold transition-all border flex items-center gap-2.5",
+                    docType === type ? "bg-foreground text-background border-foreground shadow-md" : "bg-muted border-border text-muted-foreground hover:bg-muted/70 hover:border-primary/30")}>
+                  <IconComp size={16} /> {type}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Verified documents — compact list */}
+        {/* Upload area */}
+        <div className="relative group mb-5">
+          <div className="bg-muted border-2 border-dashed border-border rounded-xl p-6 md:p-8 text-center hover:bg-muted/70 hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden">
+            <input type="file" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept=".pdf,.jpg,.png" />
+            {selectedFile ? (
+              <div className="flex items-center gap-4 text-primary animate-fade-in justify-center">
+                <div className="p-3 bg-primary/10 rounded-xl"><FileText size={24} /></div>
+                <div className="text-left min-w-0">
+                  <span className="font-black text-sm tracking-tight block truncate">{selectedFile.name}</span>
+                  <span className="text-xs text-muted-foreground font-medium">Type: <strong className="text-foreground">{docType}</strong></span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <div className="p-3 bg-card rounded-xl shadow-sm"><Upload size={28} /></div>
+                <div className="text-center">
+                  <span className="font-bold text-sm tracking-tight block">Drop file here or click to upload</span>
+                  <p className="text-xs font-medium text-muted-foreground mt-1">Supports PDF, JPG, PNG</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Verify button */}
+        <ChoiceButton onClick={verifyPhysicalDocument} isLoading={isVerifyingDoc} disabled={!selectedFile} className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow-primary">
+          Verify & Mint Credential
+        </ChoiceButton>
+
+        {/* Verified documents list */}
         {physicalCredentials.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-border">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="mt-6 pt-5 border-t border-border">
+            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-3">Verified Documents</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {physicalCredentials.map((vc) => {
                 const dtype = vc.credentialSubject.documentType as string;
                 const fname = vc.credentialSubject.fileName as string;
                 const IconComp = docTypeIconComponents[dtype] || FileText;
                 return (
-                  <div key={vc.id} className="bg-muted border border-border rounded-lg p-2.5 flex items-center gap-2.5">
-                    <div className="p-1.5 bg-primary/10 rounded-md flex-shrink-0">
-                      <IconComp size={14} className="text-primary" />
+                  <div key={vc.id} className="bg-muted border border-border rounded-xl p-3.5 flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                      <IconComp size={18} className="text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-black text-foreground text-[11px]">{dtype}</span>
-                        <span className="bg-emerald-500/10 text-emerald-500 text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase border border-emerald-500/20">Verified</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-foreground text-sm">{dtype}</span>
+                        <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase border border-emerald-500/20">Verified</span>
                       </div>
-                      <p className="text-[9px] text-muted-foreground font-medium truncate">{fname}</p>
+                      <p className="text-xs text-muted-foreground font-medium truncate mt-0.5">{fname}</p>
                     </div>
                   </div>
                 );
