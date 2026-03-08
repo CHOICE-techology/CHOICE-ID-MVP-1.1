@@ -30,7 +30,7 @@ export const mockUploadToIPFS = async (data: unknown): Promise<string> => {
 
 export const mockVerifyPhysicalDocument = async (_file?: File) => {
   await new Promise(resolve => setTimeout(resolve, 3000));
-  return { verified: true, issuer: 'Choice AI Verifier', confidence: 0.98 };
+  return { verified: true, issuer: 'CHOICE AI Verifier', confidence: 0.98 };
 };
 
 export const mockAnalyzeWalletHistory = async (address: string) => {
@@ -91,30 +91,52 @@ export const calculateJobMatch = (job: Job, score: number, credentials: Verifiab
   let match = 0;
   const reasons: string[] = [];
 
+  // Score component (0-40 points) — produces a range of values
   if (score >= job.minScore) {
-    match += 50;
-    reasons.push(`Trust Score (${score}) meets requirement`);
+    const surplus = score - job.minScore;
+    match += 30 + Math.min(surplus * 0.5, 10); // 30-40 based on how much you exceed
+    reasons.push(`Trust Score (${score}) exceeds minimum (${job.minScore})`);
   } else {
-    match += (score / job.minScore) * 50;
+    const ratio = score / job.minScore;
+    match += Math.floor(ratio * 30); // 0-30 proportionally
+    if (ratio > 0.5) reasons.push(`Trust Score (${score}) partially meets requirement (${job.minScore})`);
   }
 
+  // Badge component (0-30 points)
   const userBadges = credentials.filter(vc => vc.type.includes('EducationCredential')).map(vc => vc.credentialSubject.badge);
   if (job.requiredBadges.length === 0) {
-    match += 30;
+    match += 20; // no badge requirement = moderate match
   } else {
     const found = job.requiredBadges.filter(b => userBadges.includes(b)).length;
-    match += (found / job.requiredBadges.length) * 30;
+    match += Math.floor((found / job.requiredBadges.length) * 30);
     if (found > 0) reasons.push("Has required Education Badges");
+    if (found === 0 && job.requiredBadges.length > 0) reasons.push("Missing required badges");
   }
 
+  // Wallet history component (0-20 points)
   const walletVC = credentials.find(vc => vc.type.includes('WalletHistoryCredential'));
   if (walletVC) {
-    match += 20;
     const years = new Date().getFullYear() - new Date(walletVC.credentialSubject.firstTxDate as string).getFullYear();
-    if (years > 2) reasons.push(`Verified ${years} years on-chain activity`);
+    if (years > 3) {
+      match += 20;
+      reasons.push(`Verified ${years} years on-chain activity`);
+    } else if (years > 1) {
+      match += 12;
+      reasons.push(`${years} years on-chain history`);
+    } else {
+      match += 6;
+      reasons.push("Recent on-chain activity");
+    }
   }
 
-  return { score: Math.floor(match), reason: reasons.length > 0 ? reasons.join(". ") : "Partial match based on profile." };
+  // Social credentials bonus (0-10 points)
+  const socialCount = credentials.filter(vc => vc.type.includes('SocialCredential')).length;
+  if (socialCount > 0) {
+    match += Math.min(socialCount * 3, 10);
+    if (socialCount >= 3) reasons.push("Strong social presence verified");
+  }
+
+  return { score: Math.min(Math.floor(match), 100), reason: reasons.length > 0 ? reasons.join(". ") : "Partial match based on profile." };
 };
 
 export const mockGenerateCV = async (identity: UserIdentity): Promise<GeneratedCV> => {
@@ -156,8 +178,8 @@ export const mockGenerateCV = async (identity: UserIdentity): Promise<GeneratedC
     })),
     ...eduVCs.map(vc => ({
       degree: (vc.credentialSubject.level as string) + " Certificate",
-      institution: "Choice Academy",
-      year: "2024"
+      institution: "CHOICE Academy",
+      year: "2026"
     }))
   ];
 
@@ -177,5 +199,5 @@ export const mockGenerateBio = async (identity: UserIdentity): Promise<string> =
   if (docs.includes('Diploma')) intro = "I am a university graduate and Web3 professional";
   if (docs.includes('Certification')) intro = "I am a certified expert";
 
-  return `${intro} active on ${socials.join(', ') || 'multiple platforms'}. My verified Choice ID score reflects my commitment to building a trusted reputation in the digital economy.`;
+  return `${intro} active on ${socials.join(', ') || 'multiple platforms'}. My verified CHOICE ID score reflects my commitment to building a trusted reputation in the digital economy.`;
 };

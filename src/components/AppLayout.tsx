@@ -136,7 +136,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => setIsWalletModalOpen(true)}
                 className="w-full bg-primary text-primary-foreground font-black py-4 rounded-2xl shadow-glow-primary hover:opacity-90 transition-all transform active:scale-95 uppercase text-xs tracking-widest flex items-center justify-center gap-2"
               >
-                <PlusCircle size={18} /> Connect CHOICE iD
+                <PlusCircle size={18} /> Connect CHOICE ID
               </button>
             )}
           </div>
@@ -172,7 +172,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
                 About Us
               </Link>
               <a href="https://www.choice.love/choice-id" target="_blank" rel="noreferrer" className="text-[10px] md:text-xs font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">
-                About Choice iD
+                About CHOICE ID
               </a>
             </div>
             <div className="text-[10px] md:text-xs font-bold text-muted-foreground/50 uppercase tracking-[0.2em] text-center md:text-right">

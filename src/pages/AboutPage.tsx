@@ -23,7 +23,7 @@ const AboutPage: React.FC = () => {
         <div className="bg-card p-8 rounded-3xl border border-border shadow-xl">
           <Globe className="text-accent mb-4" size={40} />
           <h3 className="text-xl font-bold text-foreground mb-2">Universal Access</h3>
-          <p className="text-muted-foreground">Choice iD works across borders and blockchains, providing a unified reputation score for the global web.</p>
+          <p className="text-muted-foreground">CHOICE ID works across borders and blockchains, providing a unified reputation score for the global web.</p>
         </div>
         <div className="bg-card p-8 rounded-3xl border border-border shadow-xl">
           <Users className="text-primary mb-4" size={40} />
@@ -44,7 +44,7 @@ const AboutPage: React.FC = () => {
           </a>
           <a href="https://www.choice.love/choice-id" target="_blank" rel="noreferrer"
             className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:brightness-110 transition-all">
-            Choice iD Details
+            CHOICE ID Details
           </a>
         </div>
       </div>

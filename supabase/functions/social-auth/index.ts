@@ -32,7 +32,7 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connect ${config.name} — CHOICE iD</title>
+  <title>Connect ${config.name} — CHOICE ID</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -114,14 +114,14 @@ serve(async (req) => {
     <div id="connect-view">
       <div class="icon">${config.icon}</div>
       <h1>Connect ${config.name}</h1>
-      <p>Link your ${config.name} account to your <span class="brand">CHOICE iD</span> to build your verifiable social reputation.</p>
+      <p>Link your ${config.name} account to your <span class="brand">CHOICE ID</span> to build your verifiable social reputation.</p>
       <button class="btn btn-primary" onclick="authorize()">Authorize ${config.name}</button>
       <button class="btn btn-cancel" onclick="window.close()">Cancel</button>
     </div>
     <div class="success" id="success-view">
       <div class="check">✓</div>
       <h2>Connected!</h2>
-      <p>${config.name} linked to your CHOICE iD</p>
+      <p>${config.name} linked to your CHOICE ID</p>
     </div>
   </div>
   <script>

@@ -40,7 +40,7 @@ const JobsPage: React.FC = () => {
   const handleApply = (id: string) => {
     if (!identity) return;
     setApplying(id);
-    setTimeout(() => { setApplying(null); alert("Application Sent! Your Choice CV and Trust Score have been securely shared."); }, 1500);
+    setTimeout(() => { setApplying(null); alert("Application Sent! Your CHOICE CV and Trust Score have been securely shared."); }, 1500);
   };
 
   const typeCounts = useMemo(() => {
@@ -54,7 +54,7 @@ const JobsPage: React.FC = () => {
       <header className="flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-foreground mb-2 tracking-tight">Jobs, Gigs & Collabs</h1>
-          <p className="text-muted-foreground text-lg">AI-matched opportunities based on your Verified Choice iD. <strong className="text-foreground">{ALL_JOBS.length} roles</strong> available.</p>
+          <p className="text-muted-foreground text-lg">AI-matched opportunities based on your Verified CHOICE ID. <strong className="text-foreground">{ALL_JOBS.length} roles</strong> available.</p>
         </div>
       </header>
 
