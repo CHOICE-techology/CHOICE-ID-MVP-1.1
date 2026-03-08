@@ -440,7 +440,7 @@ DID: ${identity.did}`;
                 {(() => {
                   const vData = verificationData || (navState?.verificationData ? {
                     date: navState.verificationData.date,
-                    score: navState.verificationData.score,
+                    score,
                     txHash: navState.verificationData.txHash,
                     explorerUrl: navState.verificationData.explorerUrl || `https://sepolia.arbiscan.io/tx/${navState.verificationData.txHash}`,
                   } : null);
