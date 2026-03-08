@@ -80,6 +80,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
     setUserIdentity(identity);
     setIsConnecting(false);
+    // Grant Google/OAuth connect reward
+    grantGoogleConnectReward(addr).then(r => {
+      if (r.success) triggerRewardAnimation(100, 'Identity Connected');
+    });
   }, []);
 
   // Listen for Supabase auth state changes (handles OAuth redirect)
