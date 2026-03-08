@@ -21,6 +21,11 @@ async function rpcCall(rpcUrl: string, method: string, params: unknown[]) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
   });
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    console.error(`RPC returned non-JSON (${res.status}): ${contentType} from ${rpcUrl}`);
+    return null;
+  }
   const data = await res.json();
   return data.result;
 }
