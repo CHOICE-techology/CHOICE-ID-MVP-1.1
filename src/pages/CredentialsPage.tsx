@@ -237,8 +237,8 @@ const CredentialsPage: React.FC = () => {
             <h2 className="text-2xl font-bold tracking-tight text-white">Wallet History Analysis</h2>
             <span className="ml-2 bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30">Live On-Chain</span>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            <div className="lg:col-span-7 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+             <div className="lg:col-span-7 space-y-4">
               <p className="text-slate-400 text-sm leading-relaxed font-medium">
                 Live analysis across <span className="text-primary">Ethereum</span>, <span className="text-primary">Arbitrum</span>, <span className="text-primary">Base</span>, <span className="text-primary">Polygon</span>, <span className="text-primary">Bitcoin</span> &amp; <span className="text-primary">Solana</span>.
               </p>
