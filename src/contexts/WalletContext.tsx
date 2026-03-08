@@ -4,6 +4,8 @@ import { UserIdentity } from '../types';
 import { loadIdentity, saveIdentity, syncIdentity, loadIdentityWithSync, clearIdentity } from '../services/storageService';
 import { generateDID, calculateReputationScore } from '../services/cryptoService';
 import { supabase } from '@/integrations/supabase/client';
+import { grantWalletConnectReward, grantGoogleConnectReward } from '@/services/rewardService';
+import { triggerRewardAnimation } from '@/components/RewardAnimation';
 
 interface WalletContextType {
   address: string | null;
