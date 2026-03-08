@@ -632,52 +632,50 @@ DID: ${identity.did}`;
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* ── REFERRAL SECTION ── */}
-      <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="bg-primary/10 p-4 rounded-2xl shrink-0">
-            <Gift size={36} className="text-primary" />
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h3 className="text-lg font-bold text-foreground mb-1">Invite Friends to CHOICE.love</h3>
-            <p className="text-muted-foreground text-sm">Share your affiliate link and grow the CHOICE community.</p>
-            <div className="flex items-center gap-4 mt-3 justify-center md:justify-start">
-              <div className="bg-muted rounded-xl px-4 py-2 border border-border">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Friends Invited</span>
-                <p className="text-2xl font-black text-foreground">{invitedCount}</p>
+          {/* INVITE FRIENDS */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-xl flex-1 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-primary/10 p-3 rounded-xl shrink-0">
+                <Gift size={24} className="text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Invite Friends</h3>
+                <p className="text-muted-foreground text-xs">Share & grow the CHOICE community</p>
               </div>
             </div>
-          </div>
-          <div className="shrink-0">
-            {score >= 50 ? (
-              affiliateLink ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="bg-muted rounded-xl px-4 py-2.5 border border-border flex items-center gap-2">
-                    <code className="text-xs text-foreground font-mono max-w-[180px] truncate">{affiliateLink}</code>
-                    <button onClick={() => { navigator.clipboard.writeText(affiliateLink); toast({ title: 'Copied!', description: 'Affiliate link copied.' }); }} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors">
+
+            <div className="bg-muted rounded-xl px-4 py-3 border border-border mb-4">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Friends Invited</span>
+              <p className="text-2xl font-black text-foreground">{invitedCount}</p>
+            </div>
+
+            <div className="mt-auto">
+              {score >= 50 ? (
+                affiliateLink ? (
+                  <div className="bg-muted rounded-xl px-4 py-3 border border-border flex items-center gap-2">
+                    <code className="text-xs text-foreground font-mono truncate flex-1">{affiliateLink}</code>
+                    <button onClick={() => { navigator.clipboard.writeText(affiliateLink); toast({ title: 'Copied!', description: 'Affiliate link copied.' }); }} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors shrink-0">
                       <Copy size={14} className="text-primary" />
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <ChoiceButton onClick={() => { const code = Math.random().toString(36).substring(2, 10).toUpperCase(); setAffiliateLink(`https://CHOICE.love/join?ref=${code}`); }} className="w-full">
+                    <Share2 size={16} className="mr-2" /> Create Invite Link
+                  </ChoiceButton>
+                )
               ) : (
-                <ChoiceButton onClick={() => { const code = Math.random().toString(36).substring(2, 10).toUpperCase(); setAffiliateLink(`https://CHOICE.love/join?ref=${code}`); }}>
-                  <Share2 size={16} className="mr-2" /> Create Invite Link
-                </ChoiceButton>
-              )
-            ) : (
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground font-semibold mb-1">Reach 50+ points to unlock</p>
-                <div className="bg-muted rounded-xl px-4 py-2 border border-border">
-                  <span className="text-sm font-bold text-foreground">{score}/50</span>
-                  <div className="w-32 bg-border rounded-full h-1.5 mt-1">
-                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${Math.min((score / 50) * 100, 100)}%` }}></div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-semibold mb-2">Reach 50+ points to unlock</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-foreground">{score}/50</span>
+                    <div className="flex-1 bg-border rounded-full h-1.5">
+                      <div className="bg-primary h-1.5 rounded-full" style={{ width: `${Math.min((score / 50) * 100, 100)}%` }}></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
