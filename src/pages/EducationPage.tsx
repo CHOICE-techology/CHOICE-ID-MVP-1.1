@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap } from 'lucide-react';
+import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
 import { COURSES } from '@/data/coursesData';
+import CourseIcon from '@/components/education/CourseIcon';
 
 const LEVEL_STYLES: Record<string, { bg: string; text: string; border: string }> = {
   Beginner: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' },
@@ -58,21 +59,37 @@ const EducationPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Earned Badges Showcase */}
+      {/* Earned Badges Showcase — Redesigned */}
       {completedCourses.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <h2 className="text-lg font-bold text-foreground mb-5 flex items-center gap-2">
             <Trophy size={18} className="text-amber-400" /> Earned Badges
           </h2>
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {completedCourses.map(course => (
               <div
                 key={course.id}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${course.badgeColor} text-white text-sm font-bold shadow-lg`}
+                className="group relative flex flex-col items-center text-center p-4 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-all duration-300"
               >
-                <span className="text-base">{course.icon}</span>
-                <span>{course.title}</span>
-                <CheckCircle size={14} />
+                {/* Glow ring behind the badge */}
+                <div className={`relative w-16 h-16 mb-3`}>
+                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-20 blur-md group-hover:opacity-40 transition-opacity`} />
+                  <div className={`relative w-full h-full rounded-full bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-lg border-2 border-white/10`}>
+                    <CourseIcon courseId={course.id} size={24} className="text-white drop-shadow-md" />
+                  </div>
+                  {/* Checkmark overlay */}
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-card flex items-center justify-center shadow-sm">
+                    <CheckCircle size={12} className="text-white" />
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-foreground leading-tight mb-1">{course.title}</span>
+                <span className={`text-[9px] font-bold uppercase tracking-widest ${LEVEL_STYLES[course.level].text}`}>
+                  {course.level}
+                </span>
+                <div className="flex items-center gap-1 mt-1.5">
+                  <Star size={10} className="text-amber-400 fill-amber-400" />
+                  <span className="text-[10px] font-bold text-muted-foreground">+{course.points} pts</span>
+                </div>
               </div>
             ))}
           </div>
@@ -91,8 +108,10 @@ const EducationPage: React.FC = () => {
 
               {/* Icon + Level + Status */}
               <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{course.icon}</span>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-md`}>
+                    <CourseIcon courseId={course.id} size={18} className="text-white" />
+                  </div>
                   <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${level.bg} ${level.text} ${level.border}`}>
                     {course.level}
                   </span>
