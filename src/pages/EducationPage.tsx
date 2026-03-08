@@ -103,17 +103,20 @@ const EducationPage: React.FC = () => {
           const isCompleted = hasBadge(course.title);
           const level = LEVEL_STYLES[course.level];
           return (
-            <div key={course.id} className={`bg-card border rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden group transition-all duration-300 hover:shadow-2xl ${isCompleted ? 'border-emerald-500/30' : 'border-border'}`}>
-              {/* Top neon color bar */}
+            <div key={course.id} className={`bg-card border rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden group transition-all duration-500 hover:shadow-2xl ${isCompleted ? 'border-emerald-500/30 shadow-emerald-500/10' : 'border-border'}`}
+              style={{ boxShadow: isCompleted ? undefined : undefined }}
+            >
+              {/* Top neon color bar with glow */}
               <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${course.badgeColor}`} />
-              <div className={`absolute top-0 left-0 w-full h-8 bg-gradient-to-b ${course.badgeColor} opacity-[0.06] pointer-events-none`} />
+              <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${course.badgeColor} blur-sm opacity-60`} />
+              <div className={`absolute top-0 left-0 w-full h-12 bg-gradient-to-b ${course.badgeColor} opacity-[0.08] pointer-events-none`} />
 
               {/* Icon + Level + Status */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`relative w-10 h-10 rounded-xl bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow`}>
-                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${course.badgeColor} opacity-0 blur-md group-hover:opacity-40 transition-opacity duration-500`} />
-                    <CourseIcon courseId={course.id} size={18} className="relative text-white" />
+                  <div className={`relative w-10 h-10 rounded-xl bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-md transition-shadow`}>
+                    <div className={`absolute -inset-1 rounded-xl bg-gradient-to-br ${course.badgeColor} opacity-20 blur-md group-hover:opacity-60 transition-opacity duration-500`} />
+                    <CourseIcon courseId={course.id} size={18} className="relative text-white drop-shadow-sm" />
                   </div>
                   <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${level.bg} ${level.text} ${level.border}`}>
                     {course.level}
