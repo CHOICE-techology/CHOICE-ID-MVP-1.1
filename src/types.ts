@@ -56,10 +56,20 @@ export interface Job {
   company: string;
   type: 'Full-time' | 'Contract' | 'DAO' | 'Collaboration' | 'Gig';
   salary: string;
+  description: string;
+  requiredSkills: string[];
   minScore: number;
   requiredBadges: string[];
   matchScore?: number;
   matchReason?: string;
+}
+
+export interface JobMatchResult {
+  score: number;
+  reason: string;
+  matchingSkills: string[];
+  missingSkills: string[];
+  recommendations: string[];
 }
 
 export interface GeneratedCV {

@@ -87,57 +87,7 @@ export const mockConnectSocial = async (platform: string, handle: string) => {
   };
 };
 
-export const calculateJobMatch = (job: Job, score: number, credentials: VerifiableCredential[]): { score: number, reason: string } => {
-  let match = 0;
-  const reasons: string[] = [];
-
-  // Score component (0-40 points) — produces a range of values
-  if (score >= job.minScore) {
-    const surplus = score - job.minScore;
-    match += 30 + Math.min(surplus * 0.5, 10); // 30-40 based on how much you exceed
-    reasons.push(`Trust Score (${score}) exceeds minimum (${job.minScore})`);
-  } else {
-    const ratio = score / job.minScore;
-    match += Math.floor(ratio * 30); // 0-30 proportionally
-    if (ratio > 0.5) reasons.push(`Trust Score (${score}) partially meets requirement (${job.minScore})`);
-  }
-
-  // Badge component (0-30 points)
-  const userBadges = credentials.filter(vc => vc.type.includes('EducationCredential')).map(vc => vc.credentialSubject.badge);
-  if (job.requiredBadges.length === 0) {
-    match += 20; // no badge requirement = moderate match
-  } else {
-    const found = job.requiredBadges.filter(b => userBadges.includes(b)).length;
-    match += Math.floor((found / job.requiredBadges.length) * 30);
-    if (found > 0) reasons.push("Has required Education Badges");
-    if (found === 0 && job.requiredBadges.length > 0) reasons.push("Missing required badges");
-  }
-
-  // Wallet history component (0-20 points)
-  const walletVC = credentials.find(vc => vc.type.includes('WalletHistoryCredential'));
-  if (walletVC) {
-    const years = new Date().getFullYear() - new Date(walletVC.credentialSubject.firstTxDate as string).getFullYear();
-    if (years > 3) {
-      match += 20;
-      reasons.push(`Verified ${years} years on-chain activity`);
-    } else if (years > 1) {
-      match += 12;
-      reasons.push(`${years} years on-chain history`);
-    } else {
-      match += 6;
-      reasons.push("Recent on-chain activity");
-    }
-  }
-
-  // Social credentials bonus (0-10 points)
-  const socialCount = credentials.filter(vc => vc.type.includes('SocialCredential')).length;
-  if (socialCount > 0) {
-    match += Math.min(socialCount * 3, 10);
-    if (socialCount >= 3) reasons.push("Strong social presence verified");
-  }
-
-  return { score: Math.min(Math.floor(match), 100), reason: reasons.length > 0 ? reasons.join(". ") : "Partial match based on profile." };
-};
+// calculateJobMatch has been moved to jobMatchingService.ts
 
 export const mockGenerateCV = async (identity: UserIdentity): Promise<GeneratedCV> => {
   await new Promise(resolve => setTimeout(resolve, 2000));
