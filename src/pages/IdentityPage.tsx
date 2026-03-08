@@ -36,6 +36,8 @@ const IdentityPage: React.FC = () => {
   const [selectedJobForCover, setSelectedJobForCover] = useState<Job | null>(null);
   const [isSendingApp, setIsSendingApp] = useState(false);
   const [appSent, setAppSent] = useState(false);
+  const [affiliateLink, setAffiliateLink] = useState('');
+  const [invitedCount] = useState(() => Math.floor(Math.random() * 5));
 
   // Popup states
   const [cvPopupOpen, setCvPopupOpen] = useState(false);
