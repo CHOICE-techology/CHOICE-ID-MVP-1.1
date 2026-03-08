@@ -54,7 +54,7 @@ const BaseLogo = () => (
   </svg>
 );
 
-/* ── Wallet provider logos ── */
+/* ── Wallet provider logos (inline SVGs for broken assets) ── */
 const MetaMaskProviderLogo = () => <SmImgLogo src={metamaskLogo} alt="MetaMask" />;
 
 // Eternl – official dark blue "E" mark
