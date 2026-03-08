@@ -14,7 +14,8 @@ import {
   Zap, X, Upload, FileCheck,
   Github,
   Send, MessageSquare, Music,
-  PlusCircle, CheckCircle, AlertCircle, Shield
+  PlusCircle, CheckCircle, AlertCircle, Shield,
+  GraduationCap, Award, BadgeCheck, CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
