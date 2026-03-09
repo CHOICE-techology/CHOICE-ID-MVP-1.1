@@ -350,7 +350,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
 
           {/* ── Enhanced Recent Activity Feed ── */}
           {!isLoading && transactions.length > 0 && (
-            <div className="border-t border-white/[0.06] pt-4">
+            <div className="border-t border-border pt-4">
               {/* Activity header with filters */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
