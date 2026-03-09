@@ -282,7 +282,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                 <div key={key} className="flex items-center gap-3">
                   <Icon size={12} className={cn('flex-shrink-0', textColor)} />
                   <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider w-[4.5rem] flex-shrink-0">{label}</span>
-                  <div className="flex-1 h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                     <div
                       className={cn('h-full rounded-full transition-all duration-700 ease-out', barColor)}
                       style={{ width: `${metrics[key]}%`, transitionDelay: `${i * 100}ms` }}
