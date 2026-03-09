@@ -469,8 +469,8 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="text-slate-600 font-bold uppercase tracking-widest">Date & Time</span>
-                                  <p className="text-slate-400 font-medium mt-0.5">
+                                   <span className="text-muted-foreground font-bold uppercase tracking-widest">Date & Time</span>
+                                  <p className="text-foreground/70 font-medium mt-0.5">
                                     {formatFullDateTime(tx.created_at)}
                                   </p>
                                 </div>
