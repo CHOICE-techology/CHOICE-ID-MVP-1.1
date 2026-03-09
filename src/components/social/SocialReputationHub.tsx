@@ -457,7 +457,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                   type="text"
                   value={customPlatformName}
                   onChange={(e) => setCustomPlatformName(e.target.value)}
-                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30 font-medium text-foreground text-sm transition-all placeholder:text-muted-foreground"
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30 font-medium text-foreground text-sm transition-all placeholder:text-muted-foreground"
                   placeholder="e.g. Threads, Mastodon"
                 />
               </div>
