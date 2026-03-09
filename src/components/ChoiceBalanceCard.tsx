@@ -424,7 +424,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                                 </span>
                               )}
                             </div>
-                            <p className="text-slate-500 text-[10px] font-medium truncate mt-0.5">
+                            <p className="text-muted-foreground text-[10px] font-medium truncate mt-0.5">
                               {description}
                             </p>
                           </div>
