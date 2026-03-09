@@ -266,11 +266,10 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       {/* ── Score + Metrics dashboard ── */}
       {socialCreds.length > 0 && (
         <div
-          className="rounded-2xl overflow-hidden border border-white/10 shadow-xl"
-          style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--dark)) 100%)' }}
+          className="rounded-2xl overflow-hidden border border-border shadow-md bg-card"
         >
-          {/* Neon top stripe */}
-          <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #06b6d4 0%, #7c3aed 50%, #06b6d4 100%)' }} />
+          {/* Accent top stripe */}
+          <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--primary)))' }} />
 
           <div className="p-5 md:p-6 flex flex-col sm:flex-row items-center gap-6 border-b border-white/[0.07]">
             <div className="flex-shrink-0">
