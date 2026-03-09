@@ -264,10 +264,10 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
               </button>
               <button
                 onClick={loadFullHistory}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                className="p-2 rounded-xl bg-muted hover:bg-muted/70 border border-border transition-colors"
                 title="View full history"
               >
-                <History size={14} className="text-slate-400" />
+                <History size={14} className="text-muted-foreground" />
               </button>
             </div>
           </div>
