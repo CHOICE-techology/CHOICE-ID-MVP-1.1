@@ -246,8 +246,8 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                 <span className="text-primary text-lg font-black">◈</span>
               </div>
               <div>
-                <h3 className="text-white text-sm font-black uppercase tracking-widest">CHOICE Balance</h3>
-                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Identity Fuel · Live</p>
+                <h3 className="text-foreground text-sm font-black uppercase tracking-widest">CHOICE Balance</h3>
+                <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Identity Fuel · Live</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
