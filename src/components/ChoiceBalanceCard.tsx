@@ -436,7 +436,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                               )}>
                                 {tx.amount > 0 ? '+' : ''}{tx.amount}
                               </span>
-                              <p className="text-slate-600 text-[9px] font-medium">
+                              <p className="text-muted-foreground text-[9px] font-medium">
                                 {formatDate(tx.created_at)}
                               </p>
                             </div>
