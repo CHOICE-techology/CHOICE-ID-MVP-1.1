@@ -3,7 +3,7 @@ import { Mail, Check, Loader2 } from 'lucide-react';
 
 interface EmailSignInProps {
   connecting: string | null;
-  onConnect: (email: string) => Promise<void>;
+  onConnect: (email: string) => Promise<boolean>;
 }
 
 export const EmailSignIn: React.FC<EmailSignInProps> = ({ connecting, onConnect }) => {
@@ -12,8 +12,8 @@ export const EmailSignIn: React.FC<EmailSignInProps> = ({ connecting, onConnect 
 
   const handleSubmit = async () => {
     if (!email) return;
-    await onConnect(email);
-    setEmailSent(true);
+    const sent = await onConnect(email);
+    setEmailSent(sent);
   };
 
   return (
