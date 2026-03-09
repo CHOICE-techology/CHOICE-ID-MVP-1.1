@@ -41,7 +41,7 @@ export const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({ vc, isNe
   const score = getPlatformScore(vc);
   const metrics = getMetricScores(vc);
   const meta = getPlatformMeta(platform);
-  const neonColor = meta?.color ?? '#06b6d4';
+  const neonColor = meta?.color ?? 'hsl(var(--primary))';
 
   const behaviorScore = sub.behaviorScore as string || '';
   const isOrganic = behaviorScore.toLowerCase().includes('organic');
@@ -49,17 +49,13 @@ export const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({ vc, isNe
   return (
     <div
       className={cn(
-        'rounded-2xl overflow-hidden border shadow-lg transition-all duration-500 group',
-        'border-white/10 hover:border-white/20',
+        'rounded-2xl overflow-hidden border shadow-sm transition-all duration-500 group bg-card',
+        'border-border hover:border-primary/30 hover:shadow-md',
         isNew ? 'animate-flip-in' : 'opacity-100',
       )}
-      style={{
-        animationDelay: `${index * 80}ms`,
-        background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--dark)) 100%)',
-        boxShadow: `0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px -4px ${neonColor}22`,
-      }}
+      style={{ animationDelay: `${index * 80}ms` }}
     >
-      {/* Neon accent top bar */}
+      {/* Accent top bar */}
       <div
         className="h-[2px] w-full"
         style={{ background: `linear-gradient(90deg, transparent 0%, ${neonColor} 50%, transparent 100%)` }}
@@ -69,52 +65,49 @@ export const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({ vc, isNe
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            {/* Official logo */}
             <div
-              className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden', meta?.bgClass ?? 'bg-slate-800')}
-              style={{ boxShadow: `0 0 12px ${neonColor}44` }}
+              className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden', meta?.bgClass ?? 'bg-muted')}
             >
               {meta ? (
                 <img src={meta.logo} alt={platform} className="w-6 h-6 object-contain" />
               ) : (
-                <span className="text-white text-[10px] font-black">{platform.slice(0, 2).toUpperCase()}</span>
+                <span className="text-foreground text-[10px] font-black">{platform.slice(0, 2).toUpperCase()}</span>
               )}
             </div>
             <div>
-              <h4 className="font-black text-white text-sm tracking-tight leading-tight">{platform}</h4>
-              <span className="text-white/40 text-[10px] font-bold">@{handle}</span>
+              <h4 className="font-black text-foreground text-sm tracking-tight leading-tight">{platform}</h4>
+              <span className="text-muted-foreground text-[10px] font-bold">@{handle}</span>
             </div>
           </div>
 
           {/* Score badge */}
           <div className="text-right">
             <div
-              className="text-2xl font-black leading-none"
-              style={{ color: neonColor, textShadow: `0 0 12px ${neonColor}99` }}
+              className="text-2xl font-black leading-none text-primary"
             >
               {score}
             </div>
-            <div className="text-[9px] font-black text-white/40 uppercase tracking-widest">score</div>
+            <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">score</div>
           </div>
         </div>
 
         {/* Quick stats row */}
         <div className="grid grid-cols-3 gap-1.5 mb-3">
           {[
-            { label: 'Followers', value: Number(sub.followers || 0).toLocaleString(), color: 'text-white' },
-            { label: 'Engage',    value: sub.engagementRate || '—',                   color: 'text-cyan-400' },
+            { label: 'Followers', value: Number(sub.followers || 0).toLocaleString(), color: 'text-foreground' },
+            { label: 'Engage',    value: sub.engagementRate || '—',                   color: 'text-primary' },
             {
               label: 'Bot Risk',
               value: sub.botProbability || '—',
               color: parseFloat(sub.botProbability) < 10
-                ? 'text-emerald-400'
+                ? 'text-emerald-500'
                 : parseFloat(sub.botProbability) < 25
-                ? 'text-amber-400'
-                : 'text-red-400',
+                ? 'text-amber-500'
+                : 'text-destructive',
             },
           ].map(({ label, value, color }) => (
-            <div key={label} className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-2 text-center">
-              <span className="text-white/40 block text-[8px] font-black uppercase tracking-widest mb-0.5">{label}</span>
+            <div key={label} className="bg-muted/60 border border-border rounded-xl p-2 text-center">
+              <span className="text-muted-foreground block text-[8px] font-black uppercase tracking-widest mb-0.5">{label}</span>
               <span className={cn('font-black text-xs', color)}>{value}</span>
             </div>
           ))}
@@ -125,14 +118,14 @@ export const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({ vc, isNe
           <div className={cn(
             'text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border',
             isOrganic
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-              : 'bg-amber-500/10  text-amber-400  border-amber-500/20',
+              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+              : 'bg-amber-500/10  text-amber-600  border-amber-500/20',
           )}>
             {behaviorScore || 'Organic'}
           </div>
           <button
             onClick={() => setExpanded(e => !e)}
-            className="flex items-center gap-1 text-white/40 hover:text-white/70 transition-colors text-[10px] font-bold"
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors text-[10px] font-bold"
           >
             {expanded ? 'Less' : 'Details'}
             {expanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
@@ -143,18 +136,17 @@ export const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({ vc, isNe
       {/* Expandable panel */}
       {expanded && (
         <div
-          className="border-t border-white/[0.07] p-4 pt-3 space-y-2.5 animate-fade-in"
-          style={{ background: `linear-gradient(180deg, ${neonColor}08 0%, transparent 100%)` }}
+          className="border-t border-border p-4 pt-3 space-y-2.5 animate-fade-in bg-muted/30"
         >
           {sub.sector && (
             <div className="flex items-center gap-2 mb-3">
-              <Star size={11} style={{ color: neonColor }} className="flex-shrink-0" />
-              <span className="text-white/50 text-[9px] font-black uppercase tracking-widest">Sector</span>
-              <span className="text-white text-[10px] font-bold ml-auto">{sub.sector as string}</span>
+              <Star size={11} className="text-primary flex-shrink-0" />
+              <span className="text-muted-foreground text-[9px] font-black uppercase tracking-widest">Sector</span>
+              <span className="text-foreground text-[10px] font-bold ml-auto">{sub.sector as string}</span>
             </div>
           )}
           {sub.mission && (
-            <p className="text-white/40 text-[10px] font-medium leading-relaxed italic mb-3">"{sub.mission as string}"</p>
+            <p className="text-muted-foreground text-[10px] font-medium leading-relaxed italic mb-3">"{sub.mission as string}"</p>
           )}
           <SocialMetricBar label="Influence"    value={metrics.influence}    color="bg-primary"      icon={<TrendingUp size={10} />} delay={0}   />
           <SocialMetricBar label="Engagement"   value={metrics.engagement}   color="bg-secondary"    icon={<Activity   size={10} />} delay={80}  />

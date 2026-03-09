@@ -230,14 +230,13 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
     ? transactions
     : transactions.filter(tx => getRewardCategory(tx.type) === activeFilter);
 
-  const inlineTransactions = showAllInline ? filteredTransactions : filteredTransactions.slice(0, 5);
+  const inlineTransactions = showAllInline ? filteredTransactions.slice(0, 10) : filteredTransactions.slice(0, 3);
 
   return (
     <>
-      <div className="bg-[hsl(var(--dark))] rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-border/10">
-        {/* Glow effects */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-primary rounded-full blur-[100px] opacity-10 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-500 rounded-full blur-[80px] opacity-10 pointer-events-none" />
+      <div className="bg-card rounded-2xl p-5 md:p-7 shadow-lg relative overflow-hidden border border-border">
+        {/* Subtle glow */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-primary rounded-full blur-[100px] opacity-[0.06] pointer-events-none" />
 
         <div className="relative z-10">
           {/* Header */}
@@ -247,28 +246,28 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                 <span className="text-primary text-lg font-black">◈</span>
               </div>
               <div>
-                <h3 className="text-white text-sm font-black uppercase tracking-widest">CHOICE Balance</h3>
-                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Identity Fuel · Live</p>
+                <h3 className="text-foreground text-sm font-black uppercase tracking-widest">CHOICE Balance</h3>
+                <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Identity Fuel · Live</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => fetchData(true)}
                 className={cn(
-                  'p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors',
+                  'p-2 rounded-xl bg-muted hover:bg-muted/70 border border-border transition-colors',
                   isRefreshing && 'animate-spin'
                 )}
                 title="Refresh"
                 disabled={isRefreshing}
               >
-                <RefreshCw size={14} className="text-slate-400" />
+                <RefreshCw size={14} className="text-muted-foreground" />
               </button>
               <button
                 onClick={loadFullHistory}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                className="p-2 rounded-xl bg-muted hover:bg-muted/70 border border-border transition-colors"
                 title="View full history"
               >
-                <History size={14} className="text-slate-400" />
+                <History size={14} className="text-muted-foreground" />
               </button>
             </div>
           </div>
@@ -277,7 +276,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
           <div className="flex items-end justify-between mb-6">
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+                <span className="text-4xl md:text-5xl font-black text-foreground tracking-tighter">
                   {isLoading ? '—' : balance.toLocaleString()}
                 </span>
                 <span className="text-primary text-sm font-black uppercase tracking-wider">CHOICE</span>
@@ -291,14 +290,14 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
             </div>
             <div className="flex gap-3">
               <div className="text-right">
-                <span className="text-white text-lg font-black">{totalTransactions}</span>
-                <p className="text-slate-500 text-[8px] font-bold uppercase tracking-widest">Rewards</p>
+                <span className="text-foreground text-lg font-black">{totalTransactions}</span>
+                <p className="text-muted-foreground text-[8px] font-bold uppercase tracking-widest">Rewards</p>
               </div>
               <div className="text-right">
-                <span className="text-white text-lg font-black flex items-center justify-end gap-0.5">
+                <span className="text-foreground text-lg font-black flex items-center justify-end gap-0.5">
                   {streakDays}<Zap size={12} className="text-amber-400" />
                 </span>
-                <p className="text-slate-500 text-[8px] font-bold uppercase tracking-widest">Streak</p>
+                <p className="text-muted-foreground text-[8px] font-bold uppercase tracking-widest">Streak</p>
               </div>
             </div>
           </div>
@@ -317,22 +316,22 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
               return (
                 <div
                   key={key}
-                  className="bg-white/[0.04] rounded-xl px-3 py-3 border border-white/[0.06]"
+                  className="bg-muted/60 rounded-xl px-3 py-3 border border-border"
                 >
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <Icon size={12} className={categoryColors[key]} />
-                    <span className="text-slate-500 text-[8px] font-black uppercase tracking-widest">{label}</span>
+                    <span className="text-muted-foreground text-[8px] font-black uppercase tracking-widest">{label}</span>
                   </div>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-white text-sm font-black tracking-tighter">
+                    <span className="text-foreground text-sm font-black tracking-tighter">
                       {isLoading ? '—' : `+${val}`}
                     </span>
                     {!isLoading && pct > 0 && (
-                      <span className="text-slate-600 text-[9px] font-bold">{pct}%</span>
+                      <span className="text-muted-foreground text-[9px] font-bold">{pct}%</span>
                     )}
                   </div>
                   {!isLoading && (
-                    <div className="mt-1.5 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="mt-1.5 h-1 bg-border rounded-full overflow-hidden">
                       <div
                         className={cn('h-full rounded-full transition-all duration-500', {
                           'bg-primary': key === 'identity',
@@ -351,18 +350,18 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
 
           {/* ── Enhanced Recent Activity Feed ── */}
           {!isLoading && transactions.length > 0 && (
-            <div className="border-t border-white/[0.06] pt-4">
+            <div className="border-t border-border pt-4">
               {/* Activity header with filters */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Recent Activity</span>
+                  <span className="text-muted-foreground text-[9px] font-black uppercase tracking-widest">Recent Activity</span>
                   <div className="flex items-center gap-1 ml-1">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-emerald-400 text-[9px] font-bold">Live</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Filter size={10} className="text-slate-600" />
+                  <Filter size={10} className="text-muted-foreground" />
                   {(['all', 'identity', 'education', 'community', 'finance'] as FilterType[]).map((f) => (
                     <button
                       key={f}
@@ -371,7 +370,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                         'px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider transition-all',
                         activeFilter === f
                           ? 'bg-primary/20 text-primary border border-primary/30'
-                          : 'text-slate-600 hover:text-slate-400 hover:bg-white/5'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       )}
                     >
                       {f === 'all' ? 'All' : f.slice(0, 3)}
@@ -381,9 +380,9 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
               </div>
 
               {/* Transaction list */}
-              <div className="space-y-1.5 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+              <div className="space-y-1.5 max-h-[320px] overflow-y-auto">
                 {filteredTransactions.length === 0 ? (
-                  <div className="text-center py-4 text-slate-600 text-xs">
+                  <div className="text-center py-4 text-muted-foreground text-xs">
                     No {activeFilter} activity yet
                   </div>
                 ) : (
@@ -418,14 +417,14 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <p className="text-white text-xs font-bold truncate">{getRewardLabel(tx.type)}</p>
+                              <p className="text-foreground text-xs font-bold truncate">{getRewardLabel(tx.type)}</p>
                               {isNew && (
                                 <span className="px-1.5 py-0.5 rounded-full bg-primary/20 text-primary text-[7px] font-black uppercase tracking-widest shrink-0">
                                   New
                                 </span>
                               )}
                             </div>
-                            <p className="text-slate-500 text-[10px] font-medium truncate mt-0.5">
+                            <p className="text-muted-foreground text-[10px] font-medium truncate mt-0.5">
                               {description}
                             </p>
                           </div>
@@ -437,7 +436,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                               )}>
                                 {tx.amount > 0 ? '+' : ''}{tx.amount}
                               </span>
-                              <p className="text-slate-600 text-[9px] font-medium">
+                              <p className="text-muted-foreground text-[9px] font-medium">
                                 {formatDate(tx.created_at)}
                               </p>
                             </div>
@@ -454,29 +453,29 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                         {/* Expanded details */}
                         {isExpanded && (
                           <div className="px-3 pb-3 pt-0 animate-fade-in">
-                            <div className="border-t border-white/[0.06] pt-2.5 ml-11">
+                            <div className="border-t border-border pt-2.5 ml-11">
                               <div className="grid grid-cols-2 gap-2 text-[10px]">
                                 <div>
-                                  <span className="text-slate-600 font-bold uppercase tracking-widest">Status</span>
+                                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Status</span>
                                   <div className="flex items-center gap-1 mt-0.5">
                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                                     <span className="text-emerald-400 font-bold">Claimed</span>
                                   </div>
                                 </div>
                                 <div>
-                                  <span className="text-slate-600 font-bold uppercase tracking-widest">Category</span>
+                                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Category</span>
                                   <p className={cn('font-bold mt-0.5 capitalize', categoryColors[category])}>
                                     {category}
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="text-slate-600 font-bold uppercase tracking-widest">Date & Time</span>
-                                  <p className="text-slate-400 font-medium mt-0.5">
+                                   <span className="text-muted-foreground font-bold uppercase tracking-widest">Date & Time</span>
+                                  <p className="text-foreground/70 font-medium mt-0.5">
                                     {formatFullDateTime(tx.created_at)}
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="text-slate-600 font-bold uppercase tracking-widest">Amount</span>
+                                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Amount</span>
                                   <p className="text-primary font-black mt-0.5">◈ {tx.amount} CHOICE</p>
                                 </div>
                               </div>
@@ -500,15 +499,15 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
               </div>
 
               {/* Show more / less toggle */}
-              {filteredTransactions.length > 5 && (
+              {filteredTransactions.length > 3 && (
                 <button
                   onClick={() => setShowAllInline(!showAllInline)}
-                  className="w-full mt-2 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors flex items-center justify-center gap-1.5 text-slate-500 text-[10px] font-bold uppercase tracking-widest"
+                  className="w-full mt-2 py-2 rounded-xl bg-muted/50 border border-border hover:bg-muted transition-colors flex items-center justify-center gap-1.5 text-muted-foreground text-[10px] font-bold uppercase tracking-widest"
                 >
                   {showAllInline ? (
                     <>Show Less <ChevronUp size={12} /></>
                   ) : (
-                    <>Show All {filteredTransactions.length} Transactions <ChevronDown size={12} /></>
+                    <>View up to 10 transactions <ChevronDown size={12} /></>
                   )}
                 </button>
               )}

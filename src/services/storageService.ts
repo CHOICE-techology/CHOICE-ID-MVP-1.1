@@ -2,8 +2,18 @@ import { UserIdentity, VerifiableCredential } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 
 const STORAGE_KEY = 'choice_id_storage_v1';
+const MAX_LOCAL_CREDENTIALS = 20; // Prevent quota overflow
 
 // ─── localStorage helpers (cache / fallback) ───
+
+/** Trim credentials to prevent localStorage quota overflow */
+const trimForStorage = (identity: UserIdentity): UserIdentity => {
+  if (identity.credentials.length <= MAX_LOCAL_CREDENTIALS) return identity;
+  return {
+    ...identity,
+    credentials: identity.credentials.slice(-MAX_LOCAL_CREDENTIALS),
+  };
+};
 
 export const loadIdentity = (): UserIdentity | null => {
   try {
@@ -17,9 +27,21 @@ export const loadIdentity = (): UserIdentity | null => {
 
 export const saveIdentity = (identity: UserIdentity) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
+    const trimmed = trimForStorage(identity);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
   } catch (e) {
-    console.error("Failed to save identity", e);
+    // If still too large, clear and retry with minimal data
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        const minimal = { ...identity, credentials: identity.credentials.slice(-5) };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(minimal));
+      } catch {
+        console.warn('localStorage completely full, skipping local cache');
+      }
+    } else {
+      console.error("Failed to save identity", e);
+    }
   }
 };
 
@@ -38,10 +60,6 @@ export const addCredential = (currentIdentity: UserIdentity, vc: VerifiableCrede
 
 // ─── Database persistence ───
 
-/**
- * Load a user profile from the database by wallet address.
- * Returns null if not found.
- */
 export const loadIdentityFromDB = async (walletAddress: string): Promise<UserIdentity | null> => {
   try {
     const { data, error } = await supabase
@@ -74,10 +92,6 @@ export const loadIdentityFromDB = async (walletAddress: string): Promise<UserIde
   }
 };
 
-/**
- * Save (upsert) a user profile to the database.
- * Uses wallet_address as the conflict key.
- */
 export const saveIdentityToDB = async (identity: UserIdentity): Promise<void> => {
   try {
     const { error } = await supabase
@@ -106,30 +120,20 @@ export const saveIdentityToDB = async (identity: UserIdentity): Promise<void> =>
   }
 };
 
-/**
- * Sync identity: save to both localStorage (cache) and database (source of truth).
- */
 export const syncIdentity = async (identity: UserIdentity): Promise<void> => {
-  saveIdentity(identity); // localStorage cache
-  await saveIdentityToDB(identity); // database
+  saveIdentity(identity);
+  await saveIdentityToDB(identity);
 };
 
-/**
- * Load identity with DB as source of truth, localStorage as fallback.
- */
 export const loadIdentityWithSync = async (walletAddress: string): Promise<UserIdentity | null> => {
-  // Try DB first (source of truth)
   const dbIdentity = await loadIdentityFromDB(walletAddress);
   if (dbIdentity) {
-    // Update localStorage cache
     saveIdentity(dbIdentity);
     return dbIdentity;
   }
 
-  // Fallback to localStorage
   const localIdentity = loadIdentity();
   if (localIdentity && localIdentity.address === walletAddress) {
-    // Migrate localStorage data to DB
     await saveIdentityToDB(localIdentity);
     return localIdentity;
   }

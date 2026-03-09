@@ -266,13 +266,12 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       {/* ── Score + Metrics dashboard ── */}
       {socialCreds.length > 0 && (
         <div
-          className="rounded-2xl overflow-hidden border border-white/10 shadow-xl"
-          style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--dark)) 100%)' }}
+          className="rounded-2xl overflow-hidden border border-border shadow-md bg-card"
         >
-          {/* Neon top stripe */}
-          <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #06b6d4 0%, #7c3aed 50%, #06b6d4 100%)' }} />
+          {/* Accent top stripe */}
+          <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--primary)))' }} />
 
-          <div className="p-5 md:p-6 flex flex-col sm:flex-row items-center gap-6 border-b border-white/[0.07]">
+          <div className="p-5 md:p-6 flex flex-col sm:flex-row items-center gap-6 border-b border-border">
             <div className="flex-shrink-0">
               <SocialScoreRing key={scoreAnimKey} score={overallScore} size={130} label="Social Score" animate />
             </div>
@@ -283,7 +282,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                 <div key={key} className="flex items-center gap-3">
                   <Icon size={12} className={cn('flex-shrink-0', textColor)} />
                   <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider w-[4.5rem] flex-shrink-0">{label}</span>
-                  <div className="flex-1 h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                     <div
                       className={cn('h-full rounded-full transition-all duration-700 ease-out', barColor)}
                       style={{ width: `${metrics[key]}%`, transitionDelay: `${i * 100}ms` }}
@@ -301,7 +300,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Actionable Insights</p>
               <div className="space-y-2">
                 {insights.map((insight, i) => (
-                  <div key={i} className="flex items-start gap-2.5 bg-white/[0.03] border border-white/[0.07] rounded-xl px-3.5 py-2.5">
+                  <div key={i} className="flex items-start gap-2.5 bg-muted/50 border border-border rounded-xl px-3.5 py-2.5">
                     <Info size={13} className="text-primary flex-shrink-0 mt-0.5" />
                     <span className="text-xs font-medium text-foreground leading-relaxed">{insight}</span>
                   </div>
@@ -330,7 +329,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                   'border bg-card/60 backdrop-blur-sm',
                   isConnected
                     ? 'border-primary/30 bg-primary/5 cursor-default'
-                    : 'border-white/[0.08] hover:border-white/20 hover:shadow-lg hover:-translate-y-0.5 active:scale-95',
+                    : 'border-border hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5 active:scale-95',
                   justConnected && 'animate-scale-in',
                 )}
                 style={isConnected && meta ? { boxShadow: `0 0 14px ${meta.color}33` } : undefined}
@@ -370,8 +369,8 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       {/* ── Empty state ── */}
       {socialCreds.length === 0 && (
         <div
-          className="rounded-2xl p-8 text-center border border-dashed border-white/10"
-          style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--dark)) 100%)' }}
+          className="rounded-2xl p-8 text-center border border-dashed border-border"
+          style={{ background: 'hsl(var(--card))' }}
         >
           <div className="w-14 h-14 rounded-2xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mx-auto mb-4"
             style={{ boxShadow: '0 0 24px hsl(var(--secondary)/0.3)' }}>
@@ -398,10 +397,9 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       {/* ── Connect Modal ── */}
       {activePlatform && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div
-            className="rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-white/10 animate-scale-in"
-            style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--dark)) 100%)' }}
-          >
+            <div
+              className="rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border animate-scale-in bg-card"
+            >
             {/* Neon top bar */}
             {activeMeta && (
               <div className="h-[2px] rounded-t-2xl -mt-6 -mx-6 md:-mx-8 mb-6"
@@ -443,7 +441,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                 { icon: TrendingUp,label: 'Influence Score', color: 'text-primary' },
                 { icon: Activity,  label: 'Engagement',     color: 'text-secondary' },
               ].map(({ icon: Icon, label, color }) => (
-                <div key={label} className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-2.5 text-center">
+                <div key={label} className="bg-muted/60 border border-border rounded-xl p-2.5 text-center">
                   <Icon size={14} className={cn('mx-auto mb-1', color)} />
                   <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wide">{label}</span>
                 </div>
@@ -458,7 +456,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                   type="text"
                   value={customPlatformName}
                   onChange={(e) => setCustomPlatformName(e.target.value)}
-                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30 font-medium text-foreground text-sm transition-all placeholder:text-muted-foreground"
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30 font-medium text-foreground text-sm transition-all placeholder:text-muted-foreground"
                   placeholder="e.g. Threads, Mastodon"
                 />
               </div>
@@ -474,8 +472,8 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                 value={handleInput}
                 onChange={(e) => handleInputChange(e.target.value)}
                 className={cn(
-                  'w-full bg-white/[0.05] border rounded-xl px-4 py-3 outline-none focus:ring-2 transition-all font-medium text-foreground text-sm placeholder:text-muted-foreground',
-                  linkError ? 'border-destructive focus:ring-destructive/20' : 'border-white/10 focus:ring-primary/30',
+                  'w-full bg-muted border rounded-xl px-4 py-3 outline-none focus:ring-2 transition-all font-medium text-foreground text-sm placeholder:text-muted-foreground',
+                  linkError ? 'border-destructive focus:ring-destructive/20' : 'border-border focus:ring-primary/30',
                 )}
                 placeholder={
                   isHandlePlatform(activePlatform)

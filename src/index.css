@@ -4,52 +4,52 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 84% 5%;
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 84% 5%;
+    --card: 220 20% 98%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 5%;
+    --popover: 220 20% 98%;
+    --popover-foreground: 222 47% 11%;
 
     /* Primary: Neon Cyan */
-    --primary: 187 100% 50%;
-    --primary-foreground: 222 84% 5%;
+    --primary: 187 100% 42%;
+    --primary-foreground: 0 0% 100%;
 
     /* Secondary: Deep Blue */
     --secondary: 221 83% 53%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 93%;
+    --muted-foreground: 220 10% 46%;
 
     /* Accent: Pink/Magenta */
     --accent: 330 80% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 187 100% 50%;
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
+    --ring: 187 100% 42%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --dark: 222 84% 5%;
-    --dark-surface: 222 47% 11%;
-    --glow-primary: 0 0% 0% / 0;
+    --dark: 222 47% 11%;
+    --dark-surface: 222 30% 18%;
+    --glow-primary: 187 100% 42% / 0.15;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 187 100% 50%;
-    --sidebar-primary-foreground: 222 84% 5%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 84% 5%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 187 100% 50%;
+    --sidebar-background: 220 20% 97%;
+    --sidebar-foreground: 220 10% 46%;
+    --sidebar-primary: 187 100% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 93%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 87%;
+    --sidebar-ring: 187 100% 42%;
   }
 }
 
@@ -65,7 +65,7 @@
 
 @layer utilities {
   .shadow-glow-primary {
-    box-shadow: 0 0 20px hsl(187 100% 50% / 0.4), 0 0 60px hsl(187 100% 50% / 0.1);
+    box-shadow: 0 0 20px hsl(187 100% 42% / 0.35), 0 0 60px hsl(187 100% 42% / 0.08);
   }
 
   .text-dark {
