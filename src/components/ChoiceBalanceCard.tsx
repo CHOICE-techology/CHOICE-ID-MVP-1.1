@@ -230,7 +230,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
     ? transactions
     : transactions.filter(tx => getRewardCategory(tx.type) === activeFilter);
 
-  const inlineTransactions = showAllInline ? filteredTransactions : filteredTransactions.slice(0, 5);
+  const inlineTransactions = showAllInline ? filteredTransactions.slice(0, 10) : filteredTransactions.slice(0, 3);
 
   return (
     <>
