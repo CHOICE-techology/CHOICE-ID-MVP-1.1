@@ -12,13 +12,10 @@ import { ChoiceButton } from '@/components/ChoiceButton';
 import { WalletHistorySection, WalletEntry } from '@/components/WalletHistorySection';
 import {
   FileText, Check,
-  Linkedin, Twitter, Facebook, Instagram, Youtube, Globe,
-  Zap, X, Upload, FileCheck,
-  Github,
-  Send, MessageSquare, Music,
-  PlusCircle, CheckCircle, AlertCircle, Shield,
+  X, Upload, FileCheck,
   GraduationCap, Award, BadgeCheck, CreditCard
 } from 'lucide-react';
+import { SocialReputationHub } from '@/components/social/SocialReputationHub';
 import { cn } from '@/lib/utils';
 
 const HANDLE_PLATFORMS = new Set(['Telegram', 'Discord', 'Farcaster']);

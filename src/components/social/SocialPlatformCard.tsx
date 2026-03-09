@@ -34,20 +34,20 @@ const getMetricScores = (vc: VerifiableCredential) => {
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
-  X: 'bg-slate-900',
-  Twitter: 'bg-sky-500',
-  LinkedIn: 'bg-blue-700',
-  Linkedin: 'bg-blue-700',
-  Instagram: 'bg-pink-600',
-  GitHub: 'bg-slate-700',
-  Github: 'bg-slate-700',
-  TikTok: 'bg-slate-900',
-  YouTube: 'bg-red-600',
-  Youtube: 'bg-red-600',
-  Telegram: 'bg-sky-500',
-  Discord: 'bg-indigo-600',
-  Farcaster: 'bg-purple-600',
-  Facebook: 'bg-blue-600',
+  X: 'bg-[#0f172a]',
+  Twitter: 'bg-[#0ea5e9]',
+  LinkedIn: 'bg-[#1d4ed8]',
+  Linkedin: 'bg-[#1d4ed8]',
+  Instagram: 'bg-[#db2777]',
+  GitHub: 'bg-[#334155]',
+  Github: 'bg-[#334155]',
+  TikTok: 'bg-[#0f172a]',
+  YouTube: 'bg-[#dc2626]',
+  Youtube: 'bg-[#dc2626]',
+  Telegram: 'bg-[#0ea5e9]',
+  Discord: 'bg-[#4f46e5]',
+  Farcaster: 'bg-[#9333ea]',
+  Facebook: 'bg-[#2563eb]',
 };
 
 export const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({ vc, isNew, index = 0 }) => {
