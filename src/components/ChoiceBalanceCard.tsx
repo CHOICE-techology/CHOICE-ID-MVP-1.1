@@ -453,7 +453,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                         {/* Expanded details */}
                         {isExpanded && (
                           <div className="px-3 pb-3 pt-0 animate-fade-in">
-                            <div className="border-t border-white/[0.06] pt-2.5 ml-11">
+                            <div className="border-t border-border pt-2.5 ml-11">
                               <div className="grid grid-cols-2 gap-2 text-[10px]">
                                 <div>
                                   <span className="text-slate-600 font-bold uppercase tracking-widest">Status</span>
