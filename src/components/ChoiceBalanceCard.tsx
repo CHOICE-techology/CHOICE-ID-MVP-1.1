@@ -499,15 +499,15 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
               </div>
 
               {/* Show more / less toggle */}
-              {filteredTransactions.length > 5 && (
+              {filteredTransactions.length > 3 && (
                 <button
                   onClick={() => setShowAllInline(!showAllInline)}
-                  className="w-full mt-2 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors flex items-center justify-center gap-1.5 text-slate-500 text-[10px] font-bold uppercase tracking-widest"
+                  className="w-full mt-2 py-2 rounded-xl bg-muted/50 border border-border hover:bg-muted transition-colors flex items-center justify-center gap-1.5 text-muted-foreground text-[10px] font-bold uppercase tracking-widest"
                 >
                   {showAllInline ? (
                     <>Show Less <ChevronUp size={12} /></>
                   ) : (
-                    <>Show All {filteredTransactions.length} Transactions <ChevronDown size={12} /></>
+                    <>View up to 10 transactions <ChevronDown size={12} /></>
                   )}
                 </button>
               )}
