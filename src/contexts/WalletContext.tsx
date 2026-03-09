@@ -178,6 +178,24 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         setIsConnecting(false);
         return false;
+      } else if (method === 'phantom') {
+        // Phantom wallet: address already obtained from extension, passed in payload
+        const addr = payload?.address;
+        if (!addr) {
+          setAuthError('No Phantom address provided.');
+          setIsConnecting(false);
+          return false;
+        }
+        setAddress(addr);
+        localStorage.setItem('choice_wallet_method', 'phantom');
+        localStorage.setItem('choice_wallet_address', addr);
+        const identity = await resolveIdentity(addr);
+        setUserIdentity(identity);
+        grantWalletConnectReward(addr).then(r => {
+          if (r.success) triggerRewardAnimation(100, 'Wallet Connected');
+        });
+        setIsConnecting(false);
+        return true;
       } else if (method === 'email') {
         const email = payload?.email;
         if (!email) {

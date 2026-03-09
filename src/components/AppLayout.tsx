@@ -18,13 +18,17 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const [status, setStatus] = useState<string | null>(null);
   const [choiceBalance, setChoiceBalance] = useState(0);
 
-  // Fetch CHOICE balance when connected
+  // Fetch CHOICE balance when connected — and refresh every 30s to pick up new rewards
   useEffect(() => {
-    if (address) {
-      getChoiceBalance(address).then(b => setChoiceBalance(b));
-    } else {
+    if (!address) {
       setChoiceBalance(0);
+      return;
     }
+    getChoiceBalance(address).then(b => setChoiceBalance(b));
+    const interval = setInterval(() => {
+      getChoiceBalance(address).then(b => setChoiceBalance(b));
+    }, 30_000);
+    return () => clearInterval(interval);
   }, [address, isConnected]);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@/contexts/WalletContext';
@@ -6,7 +6,7 @@ import { addCredential } from '@/services/storageService';
 import { mockConnectSocial, mockUploadToIPFS } from '@/services/cryptoService';
 import { VerifiableCredential } from '@/types';
 import { lovable } from '@/integrations/lovable/index';
-import { walletRegistry, getDetectedWallets, WalletEntry } from '@/data/walletRegistry';
+import { walletRegistry, getDetectedWallets } from '@/data/walletRegistry';
 import { WalletSearchBar } from '@/components/wallet-modal/WalletSearchBar';
 import { DetectedWallets } from '@/components/wallet-modal/DetectedWallets';
 import { WalletGrid } from '@/components/wallet-modal/WalletGrid';
@@ -28,14 +28,20 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
   const [localError, setLocalError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [detectedIds, setDetectedIds] = useState<Set<string>>(new Set());
+  // Track whether we initiated a wallet connect in this session
+  const [waitingForWalletConnect, setWaitingForWalletConnect] = useState(false);
+  // Keep a live ref to userIdentity so callbacks always see the latest value
+  const userIdentityRef = useRef(userIdentity);
+  useEffect(() => { userIdentityRef.current = userIdentity; }, [userIdentity]);
 
-  // Close modal and navigate when connected
+  // Close modal & navigate only when we explicitly triggered a wallet connection
   useEffect(() => {
-    if (isOpen && isConnected) {
+    if (isOpen && isConnected && waitingForWalletConnect) {
+      setWaitingForWalletConnect(false);
       onClose();
       navigate('/');
     }
-  }, [isOpen, isConnected, onClose, navigate]);
+  }, [isOpen, isConnected, waitingForWalletConnect, onClose, navigate]);
 
   // Detect browser wallets on mount
   useEffect(() => {
@@ -48,7 +54,15 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
   const handleMessage = useCallback(async (event: MessageEvent) => {
     if (event.data?.type !== 'AUTH_SUCCESS') return;
     const { platform, handle, displayName } = event.data;
-    if (!platform || !userIdentity) return;
+    if (!platform) return;
+
+    // Use the ref so we always get the latest identity, even if it resolved after mount
+    const currentIdentity = userIdentityRef.current;
+    if (!currentIdentity) {
+      setLocalError(`Please connect a wallet or sign in first before linking ${platform}.`);
+      setConnecting(null);
+      return;
+    }
 
     try {
       const result = await mockConnectSocial(displayName || platform, handle || `${platform}_user`);
@@ -57,10 +71,10 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
         type: ['VerifiableCredential', 'SocialCredential'],
         issuer: `did:web:${platform.toLowerCase()}.com`,
         issuanceDate: new Date().toISOString(),
-        credentialSubject: { id: userIdentity.did, ...result },
+        credentialSubject: { id: currentIdentity.did, ...result },
       };
       await mockUploadToIPFS(socialVC);
-      const newIdentity = addCredential(userIdentity, socialVC);
+      const newIdentity = addCredential(currentIdentity, socialVC);
       updateIdentity(newIdentity);
       setSuccessSet(prev => new Set(prev).add(platform.toLowerCase()));
       setConnecting(null);
@@ -69,7 +83,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
       setLocalError(`Failed to create credential for ${platform}`);
       setConnecting(null);
     }
-  }, [userIdentity, updateIdentity]);
+  }, [updateIdentity]);
 
   useEffect(() => {
     window.addEventListener('message', handleMessage);
@@ -149,6 +163,31 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
     setConnecting(walletId);
     setLocalError(null);
 
+    // Phantom / Solana — handle before the generic EVM branch
+    if (walletId === 'phantom') {
+      const phantom = (window as any).phantom?.solana || (window as any).solana;
+      if (phantom?.isPhantom) {
+        try {
+          const resp = await phantom.connect();
+          const addr = resp.publicKey.toString();
+          // 'phantom' method is handled by the WalletContext wallet branch (stores address)
+          const walletConnected = await connect('phantom', { address: addr });
+          if (!walletConnected) throw new Error('Wallet connection failed');
+          setSuccessSet(prev => new Set(prev).add(walletId));
+          setConnecting(null);
+          setWaitingForWalletConnect(true);
+          return;
+        } catch {
+          setLocalError('Phantom connection rejected');
+          setConnecting(null);
+          return;
+        }
+      }
+      setLocalError('Phantom — install the extension or use WalletConnect.');
+      setConnecting(null);
+      return;
+    }
+
     // MetaMask / EVM extension connect
     if (walletId === 'metamask' || detectedIds.has(walletId)) {
       const ethereum = (window as any).ethereum;
@@ -158,31 +197,10 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
           if (!walletConnected) throw new Error('Wallet connection failed');
           setSuccessSet(prev => new Set(prev).add(walletId));
           setConnecting(null);
-          setTimeout(() => onClose(), 800);
+          setWaitingForWalletConnect(true);
           return;
         } catch (err: any) {
           setLocalError(err.message || 'Wallet connection failed');
-          setConnecting(null);
-          return;
-        }
-      }
-    }
-
-    // Phantom / Solana
-    if (walletId === 'phantom') {
-      const phantom = (window as any).phantom?.solana || (window as any).solana;
-      if (phantom?.isPhantom) {
-        try {
-          const resp = await phantom.connect();
-          const addr = resp.publicKey.toString();
-          const walletConnected = await connect('wallet', { address: addr } as any);
-          if (!walletConnected) throw new Error('Wallet connection failed');
-          setSuccessSet(prev => new Set(prev).add(walletId));
-          setConnecting(null);
-          setTimeout(() => onClose(), 800);
-          return;
-        } catch {
-          setLocalError('Phantom connection rejected');
           setConnecting(null);
           return;
         }
