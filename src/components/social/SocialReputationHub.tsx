@@ -300,7 +300,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Actionable Insights</p>
               <div className="space-y-2">
                 {insights.map((insight, i) => (
-                  <div key={i} className="flex items-start gap-2.5 bg-white/[0.03] border border-white/[0.07] rounded-xl px-3.5 py-2.5">
+                  <div key={i} className="flex items-start gap-2.5 bg-muted/50 border border-border rounded-xl px-3.5 py-2.5">
                     <Info size={13} className="text-primary flex-shrink-0 mt-0.5" />
                     <span className="text-xs font-medium text-foreground leading-relaxed">{insight}</span>
                   </div>
