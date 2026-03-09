@@ -397,10 +397,9 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       {/* ── Connect Modal ── */}
       {activePlatform && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div
-            className="rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border animate-scale-in bg-card"
-          >
-          >
+            <div
+              className="rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border animate-scale-in bg-card"
+            >
             {/* Neon top bar */}
             {activeMeta && (
               <div className="h-[2px] rounded-t-2xl -mt-6 -mx-6 md:-mx-8 mb-6"
