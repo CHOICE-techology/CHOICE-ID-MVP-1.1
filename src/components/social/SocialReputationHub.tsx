@@ -473,8 +473,8 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                 value={handleInput}
                 onChange={(e) => handleInputChange(e.target.value)}
                 className={cn(
-                  'w-full bg-white/[0.05] border rounded-xl px-4 py-3 outline-none focus:ring-2 transition-all font-medium text-foreground text-sm placeholder:text-muted-foreground',
-                  linkError ? 'border-destructive focus:ring-destructive/20' : 'border-white/10 focus:ring-primary/30',
+                  'w-full bg-muted border rounded-xl px-4 py-3 outline-none focus:ring-2 transition-all font-medium text-foreground text-sm placeholder:text-muted-foreground',
+                  linkError ? 'border-destructive focus:ring-destructive/20' : 'border-border focus:ring-primary/30',
                 )}
                 placeholder={
                   isHandlePlatform(activePlatform)
