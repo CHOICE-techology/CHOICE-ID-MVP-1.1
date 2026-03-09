@@ -144,7 +144,7 @@ const EducationPage: React.FC = () => {
                 <span className="text-border">•</span>
                 <span>{course.lessons.length} lessons</span>
                 <span className="text-border">•</span>
-                <span className="flex items-center gap-1 text-primary font-bold">◈ +40 CHOICE</span>
+                <span className="flex items-center gap-1 text-primary font-bold">◈ +{course.choiceReward ?? 40} CHOICE</span>
               </div>
 
               {/* Progress indicator */}

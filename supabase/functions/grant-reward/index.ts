@@ -44,32 +44,45 @@ Deno.serve(async (req) => {
       throw txError;
     }
 
-    // Increment choice_balance on user_profiles
-    // Use raw SQL via rpc for atomic increment
-    const { error: updateError } = await supabase
-      .from("user_profiles")
-      .update({ choice_balance: supabase.rpc ? undefined : 0 }) // placeholder
-      .eq("wallet_address", user_id);
-
-    // Actually do an atomic increment via raw update
+    // Atomically increment choice_balance using raw SQL to avoid race conditions
     const { error: incError } = await supabase.rpc("increment_choice_balance", {
       p_wallet_address: user_id,
       p_amount: amount,
     });
 
-    // If rpc doesn't exist yet, fallback to read-then-write
     if (incError) {
+      // RPC not available — fall back to read-then-write (safe because we already inserted the tx)
+      console.warn("increment_choice_balance RPC unavailable, using fallback:", incError.message);
+
+      // Try upsert: if profile doesn't exist yet, create it with the balance
       const { data: profile } = await supabase
         .from("user_profiles")
-        .select("choice_balance")
+        .select("choice_balance, did, wallet_address")
         .eq("wallet_address", user_id)
         .maybeSingle();
 
-      const currentBalance = profile?.choice_balance ?? 0;
-      await supabase
-        .from("user_profiles")
-        .update({ choice_balance: currentBalance + amount })
-        .eq("wallet_address", user_id);
+      if (profile) {
+        const newBalance = (profile.choice_balance ?? 0) + amount;
+        const { error: updateError } = await supabase
+          .from("user_profiles")
+          .update({ choice_balance: newBalance, updated_at: new Date().toISOString() })
+          .eq("wallet_address", user_id);
+
+        if (updateError) {
+          console.error("Balance update error:", updateError);
+          // Transaction was already logged; don't fail the request
+        }
+      } else {
+        // Profile doesn't exist yet — create a minimal one so balance is tracked
+        await supabase
+          .from("user_profiles")
+          .insert({
+            wallet_address: user_id,
+            did: `did:choice:${user_id}`,
+            choice_balance: amount,
+          })
+          .single();
+      }
     }
 
     return new Response(

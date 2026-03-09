@@ -4,6 +4,8 @@ export interface Course {
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   duration: string;
   points: number;
+  /** CHOICE coin reward granted on completion */
+  choiceReward: number;
   description: string;
   color: string;
   badgeColor: string;
@@ -20,7 +22,7 @@ export interface Lesson {
 
 export const COURSES: Course[] = [
   {
-    id: 'web3-101', title: 'Web3 & Identity Basics', level: 'Beginner', duration: '15 min', points: 3,
+    id: 'web3-101', title: 'Web3 & Identity Basics', level: 'Beginner', duration: '15 min', points: 3, choiceReward: 40,
     description: "Learn the fundamentals of Decentralized Identity (DID), Verifiable Credentials, and why privacy matters.",
     color: "bg-emerald-500", badgeColor: "from-emerald-300 via-emerald-400 to-cyan-500", icon: "🌐",
     lessons: [
@@ -30,7 +32,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'sec-201', title: 'Wallet Security Pro', level: 'Intermediate', duration: '30 min', points: 3,
+    id: 'sec-201', title: 'Wallet Security Pro', level: 'Intermediate', duration: '30 min', points: 3, choiceReward: 40,
     description: "Master the art of self-custody. Learn about seed phrases, hardware wallets, and avoiding phishing attacks.",
     color: "bg-blue-500", badgeColor: "from-cyan-400 via-blue-500 to-blue-600", icon: "🛡️",
     lessons: [
@@ -41,7 +43,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'collab-301', title: 'DAO Collaboration', level: 'Advanced', duration: '45 min', points: 4,
+    id: 'collab-301', title: 'DAO Collaboration', level: 'Advanced', duration: '45 min', points: 4, choiceReward: 40,
     description: "How to use your Reputation Score to get hired in DAOs and manage cryptographic agreements.",
     color: "bg-purple-600", badgeColor: "from-violet-400 via-purple-500 to-fuchsia-500", icon: "🏛️",
     lessons: [
@@ -51,7 +53,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'defi-101', title: 'DeFi Fundamentals', level: 'Beginner', duration: '20 min', points: 3,
+    id: 'defi-101', title: 'DeFi Fundamentals', level: 'Beginner', duration: '20 min', points: 3, choiceReward: 40,
     description: "Understand decentralized finance: lending, borrowing, yield farming, and liquidity pools.",
     color: "bg-amber-500", badgeColor: "from-yellow-300 via-amber-400 to-orange-500", icon: "💰",
     lessons: [
@@ -60,7 +62,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'nft-102', title: 'NFTs & Digital Ownership', level: 'Beginner', duration: '20 min', points: 3,
+    id: 'nft-102', title: 'NFTs & Digital Ownership', level: 'Beginner', duration: '20 min', points: 3, choiceReward: 40,
     description: "Explore non-fungible tokens: how they work, use cases, and how to evaluate NFT projects.",
     color: "bg-pink-500", badgeColor: "from-pink-400 via-rose-400 to-fuchsia-500", icon: "🎨",
     lessons: [
@@ -69,7 +71,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'gov-202', title: 'On-Chain Governance', level: 'Intermediate', duration: '25 min', points: 4,
+    id: 'gov-202', title: 'On-Chain Governance', level: 'Intermediate', duration: '25 min', points: 4, choiceReward: 40,
     description: "Learn how DAOs make decisions, voting mechanisms, and how to write effective proposals.",
     color: "bg-indigo-500", badgeColor: "from-indigo-400 via-violet-500 to-purple-600", icon: "⚖️",
     lessons: [
@@ -78,7 +80,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'privacy-203', title: 'Privacy & Zero-Knowledge', level: 'Intermediate', duration: '35 min', points: 4,
+    id: 'privacy-203', title: 'Privacy & Zero-Knowledge', level: 'Intermediate', duration: '35 min', points: 4, choiceReward: 40,
     description: "Deep dive into zero-knowledge proofs, privacy coins, and how to protect your on-chain activity.",
     color: "bg-teal-500", badgeColor: "from-teal-300 via-cyan-400 to-sky-500", icon: "🔒",
     lessons: [
@@ -87,7 +89,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'scale-302', title: 'Layer 2 & Scaling Solutions', level: 'Advanced', duration: '40 min', points: 3,
+    id: 'scale-302', title: 'Layer 2 & Scaling Solutions', level: 'Advanced', duration: '40 min', points: 3, choiceReward: 40,
     description: "Master Ethereum scaling: rollups, sidechains, state channels, and how to bridge assets safely.",
     color: "bg-orange-500", badgeColor: "from-orange-300 via-orange-400 to-red-500", icon: "⚡",
     lessons: [
@@ -96,7 +98,7 @@ export const COURSES: Course[] = [
     ]
   },
   {
-    id: 'tokenomics-303', title: 'Tokenomics & Game Theory', level: 'Advanced', duration: '40 min', points: 3,
+    id: 'tokenomics-303', title: 'Tokenomics & Game Theory', level: 'Advanced', duration: '40 min', points: 3, choiceReward: 40,
     description: "Understand token design, incentive structures, vesting schedules, and economic models behind successful protocols.",
     color: "bg-rose-500", badgeColor: "from-rose-400 via-pink-500 to-red-500", icon: "🎯",
     lessons: [
