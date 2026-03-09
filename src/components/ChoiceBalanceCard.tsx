@@ -294,7 +294,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                 <p className="text-muted-foreground text-[8px] font-bold uppercase tracking-widest">Rewards</p>
               </div>
               <div className="text-right">
-                <span className="text-white text-lg font-black flex items-center justify-end gap-0.5">
+                <span className="text-foreground text-lg font-black flex items-center justify-end gap-0.5">
                   {streakDays}<Zap size={12} className="text-amber-400" />
                 </span>
                 <p className="text-muted-foreground text-[8px] font-bold uppercase tracking-widest">Streak</p>
