@@ -12,7 +12,7 @@ interface WalletContextType {
   isConnected: boolean;
   isConnecting: boolean;
   userIdentity: UserIdentity | null;
-  connect: (method?: string, payload?: Record<string, string>) => Promise<void>;
+  connect: (method?: string, payload?: Record<string, string>) => Promise<boolean>;
   disconnect: () => void;
   updateIdentity: (identity: UserIdentity) => void;
   authError: string | null;
@@ -29,7 +29,7 @@ export const useWallet = () => {
       isConnected: false,
       isConnecting: false,
       userIdentity: null,
-      connect: async () => {},
+      connect: async () => false,
       disconnect: () => {},
       updateIdentity: () => {},
       authError: null,
@@ -149,7 +149,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, [handleSignIn]);
 
-  const connect = async (method?: string, payload?: Record<string, string>) => {
+  const connect = async (method?: string, payload?: Record<string, string>): Promise<boolean> => {
     setIsConnecting(true);
     setAuthError(null);
 
@@ -159,7 +159,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (!ethereum) {
           setAuthError('No wallet extension detected. Please install MetaMask.');
           setIsConnecting(false);
-          return;
+          return false;
         }
         const accounts: string[] = await ethereum.request({ method: 'eth_requestAccounts' });
         if (accounts.length > 0) {
@@ -173,14 +173,17 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           grantWalletConnectReward(addr).then(r => {
             if (r.success) triggerRewardAnimation(100, 'Wallet Connected');
           });
+          setIsConnecting(false);
+          return true;
         }
         setIsConnecting(false);
+        return false;
       } else if (method === 'email') {
         const email = payload?.email;
         if (!email) {
           setAuthError('Please enter an email address.');
           setIsConnecting(false);
-          return;
+          return false;
         }
         const { error } = await supabase.auth.signInWithOtp({
           email,
@@ -189,17 +192,23 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (error) {
           setAuthError(error.message);
           setIsConnecting(false);
+          return false;
         }
+        setIsConnecting(false);
+        return true;
       } else if (method === 'google' || method === 'apple') {
         setIsConnecting(false);
+        return false;
       } else {
         setAuthError('Please select a connection method.');
         setIsConnecting(false);
+        return false;
       }
     } catch (err: any) {
       console.error('Connection failed:', err);
       setAuthError(err.message || 'Connection failed. Please try again.');
       setIsConnecting(false);
+      return false;
     }
   };
 
