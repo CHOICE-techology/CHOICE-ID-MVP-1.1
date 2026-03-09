@@ -260,7 +260,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                 title="Refresh"
                 disabled={isRefreshing}
               >
-                <RefreshCw size={14} className="text-slate-400" />
+                <RefreshCw size={14} className="text-muted-foreground" />
               </button>
               <button
                 onClick={loadFullHistory}
