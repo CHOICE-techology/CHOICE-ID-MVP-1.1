@@ -398,8 +398,8 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       {activePlatform && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
           <div
-            className="rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-white/10 animate-scale-in"
-            style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--dark)) 100%)' }}
+            className="rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border animate-scale-in bg-card"
+          >
           >
             {/* Neon top bar */}
             {activeMeta && (
