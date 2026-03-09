@@ -323,7 +323,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                     <span className="text-muted-foreground text-[8px] font-black uppercase tracking-widest">{label}</span>
                   </div>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-white text-sm font-black tracking-tighter">
+                    <span className="text-foreground text-sm font-black tracking-tighter">
                       {isLoading ? '—' : `+${val}`}
                     </span>
                     {!isLoading && pct > 0 && (
