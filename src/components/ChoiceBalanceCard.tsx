@@ -276,7 +276,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
           <div className="flex items-end justify-between mb-6">
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+                <span className="text-4xl md:text-5xl font-black text-foreground tracking-tighter">
                   {isLoading ? '—' : balance.toLocaleString()}
                 </span>
                 <span className="text-primary text-sm font-black uppercase tracking-wider">CHOICE</span>
