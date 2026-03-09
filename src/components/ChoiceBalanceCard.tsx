@@ -327,7 +327,7 @@ export const ChoiceBalanceCard: React.FC<ChoiceBalanceCardProps> = ({ userId, re
                       {isLoading ? '—' : `+${val}`}
                     </span>
                     {!isLoading && pct > 0 && (
-                      <span className="text-slate-600 text-[9px] font-bold">{pct}%</span>
+                      <span className="text-muted-foreground text-[9px] font-bold">{pct}%</span>
                     )}
                   </div>
                   {!isLoading && (
