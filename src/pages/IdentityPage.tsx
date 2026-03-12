@@ -578,10 +578,10 @@ DID: ${identity.did}`;
               </div>
             ) : (
               <div className="p-6 md:p-8 text-center flex-1 flex items-center justify-center">
-                <div className="bg-muted rounded-2xl p-8 border-2 border-dashed border-border w-full">
-                  <Shield size={32} className="text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground text-sm font-medium">
-                    No on-chain verification yet. Anchor your reputation to create an immutable, publicly verifiable proof.
+                <div className="bg-primary/5 rounded-2xl p-8 border border-primary/20 w-full">
+                  <Shield size={32} className="text-primary mx-auto mb-3" />
+                  <p className="text-foreground text-sm font-semibold">
+                    No manual verification request yet. Submit proofs first, then your request is reviewed before any on-chain anchor.
                   </p>
                 </div>
               </div>

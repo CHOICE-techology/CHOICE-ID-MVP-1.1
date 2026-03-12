@@ -50,6 +50,17 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
     setStatus(null);
   }, [isConnecting, isConnected]);
 
+  useEffect(() => {
+    if (!address) return;
+
+    const handleRewardsUpdated = () => {
+      getChoiceBalance(address).then((b) => setChoiceBalance(b));
+    };
+
+    window.addEventListener('choice-rewards-updated', handleRewardsUpdated);
+    return () => window.removeEventListener('choice-rewards-updated', handleRewardsUpdated);
+  }, [address]);
+
   const navSections = [
     {
       title: 'PERSONAL',
