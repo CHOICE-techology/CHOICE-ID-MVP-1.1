@@ -343,7 +343,10 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                   <Check size={9} className="text-emerald-400" />
                 ) : (
                   <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
-                    +5 pts
+                    +{(() => {
+                      const futureCount = connectedPlatforms.size + 1;
+                      return Math.floor(40 / futureCount);
+                    })()} pts
                   </span>
                 )}
               </button>
