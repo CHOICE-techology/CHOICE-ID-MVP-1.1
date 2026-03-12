@@ -158,17 +158,25 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
     void syncSession();
   }, [ready, authenticated, rawAddress, forceDisconnected, displayNameHint, setUserIdentity, setConnectionState]);
 
-  const connect = async (): Promise<boolean> => {
+  const connect = async (_method?: string, _payload?: Record<string, string>): Promise<boolean> => {
     setForceDisconnected(false);
-    setConnectionState({ authError: null });
+    setConnectionState({
+      authError: null,
+      isConnecting: true,
+      isConnected: false,
+    });
     setPendingConnect(true);
 
     try {
-      login();
+      await Promise.resolve(login());
       return true;
     } catch (err: any) {
       setPendingConnect(false);
-      setConnectionState({ authError: err?.message || 'Connection failed.' });
+      setConnectionState({
+        authError: err?.message || 'Connection failed.',
+        isConnecting: false,
+        isConnected: false,
+      });
       return false;
     }
   };
