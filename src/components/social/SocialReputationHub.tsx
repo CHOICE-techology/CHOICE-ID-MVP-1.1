@@ -156,6 +156,8 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
   const overallScore = computeOverallSocialScore(socialCreds);
   const metrics = getAggregateMetrics(socialCreds);
   const insights = getInsights(socialCreds, metrics);
+  const trustSocialPoints = calculateReputationBreakdown(identity.credentials).categories.social;
+  const perPlatformHint = Math.round(40 / 7);
 
   useEffect(() => {
     if (overallScore !== prevScore) {
