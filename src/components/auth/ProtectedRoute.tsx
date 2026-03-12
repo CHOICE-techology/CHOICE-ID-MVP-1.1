@@ -6,23 +6,9 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const rawPrivyAppId = import.meta.env.VITE_PRIVY_APP_ID;
-const sanitizedPrivyAppId = typeof rawPrivyAppId === 'string' ? rawPrivyAppId.trim() : '';
-const hasValidPrivyAppId = Boolean(sanitizedPrivyAppId) && ![
-  'undefined',
-  'null',
-  'your-privy-app-id',
-  'changeme',
-].includes(sanitizedPrivyAppId.toLowerCase());
-
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const location = useLocation();
-
-  if (!hasValidPrivyAppId) {
-    return <>{children}</>;
-  }
-
   const { ready, authenticated } = usePrivy();
+  const location = useLocation();
 
   if (!ready) {
     return (
