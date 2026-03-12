@@ -504,7 +504,7 @@ DID: ${identity.did}`;
             onClick={() => setShowAllTxs(!showAllTxs)}
             className="w-full mt-3 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground border border-border rounded-xl hover:bg-muted transition-colors uppercase tracking-wider"
           >
-            {showAllTxs ? 'Show Less' : `View up to ${Math.min(recentTxs.length, 10)} transactions ▾`}
+            {showAllTxs ? 'Show Less' : `View up to ${Math.min(txHistory.length, 10)} transactions ▾`}
           </button>
         )}
       </div>
