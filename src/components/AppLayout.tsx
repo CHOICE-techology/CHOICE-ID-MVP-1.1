@@ -181,10 +181,10 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-1 lg:ml-64 min-h-screen pt-16 lg:pt-0 flex flex-col relative z-10">
         {status && (
           <div className="fixed top-20 lg:top-4 right-4 lg:right-8 z-[60] animate-slide-in-right">
-            <div className="glass-dark text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10 backdrop-blur-2xl">
+            <div className="bg-card text-foreground px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-border">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                status === 'Connecting...' ? "bg-amber-400 animate-pulse outline outline-4 outline-amber-400/20" : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"
+                status === 'Connecting...' ? "bg-amber-400 animate-pulse" : "bg-emerald-500"
               )} />
               <span className="text-[10px] font-black uppercase tracking-[0.2em]">{status}</span>
             </div>
