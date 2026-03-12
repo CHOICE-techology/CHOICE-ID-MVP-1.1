@@ -22,7 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const IdentityPage: React.FC = () => {
-  const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
+  const { userIdentity: identity, isLoadingIdentity, updateIdentity: onUpdateIdentity } = useWallet();
   const { toast } = useToast();
   const location = useLocation();
   const navState = location.state as { verificationSuccess?: boolean; verificationData?: any } | null;
@@ -151,6 +151,16 @@ const IdentityPage: React.FC = () => {
     } catch {}
     return null;
   }, [identity?.lastAnchorHash, identity?.lastAnchorTimestamp, score, navState]);
+
+  if (isLoadingIdentity) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+        <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+        <h2 className="text-2xl font-bold text-foreground">Loading your CHOICE ID...</h2>
+        <p className="text-muted-foreground text-sm max-w-sm">Opening your local vault securely.</p>
+      </div>
+    );
+  }
 
   if (!identity) {
     return (

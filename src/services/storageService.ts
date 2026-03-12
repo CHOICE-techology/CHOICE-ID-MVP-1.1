@@ -1,8 +1,34 @@
 import { UserIdentity, VerifiableCredential } from '../types';
 import { LocalVault } from '../lib/vault/localVault';
-import { toast } from '@/hooks/use-toast';
+import { generateDID } from './cryptoService';
 
 const STORAGE_KEY = 'choice_id_storage_v1';
+
+const parseLocalIdentity = (raw: string | null): UserIdentity | null => {
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (typeof parsed.address !== 'string' || typeof parsed.did !== 'string') return null;
+
+    return {
+      ...parsed,
+      credentials: Array.isArray(parsed.credentials) ? parsed.credentials : [],
+      reputationScore: typeof parsed.reputationScore === 'number' ? parsed.reputationScore : 0,
+    } as UserIdentity;
+  } catch {
+    return null;
+  }
+};
+
+const createGuestIdentity = (walletAddress: string): UserIdentity => ({
+  address: walletAddress,
+  did: generateDID(walletAddress),
+  displayName: `Guest ${walletAddress}`,
+  credentials: [],
+  reputationScore: 0,
+});
 
 export const loadIdentity = async (): Promise<UserIdentity | null> => {
   try {
@@ -20,37 +46,40 @@ export const loadIdentity = async (): Promise<UserIdentity | null> => {
       lastAnchorHash: row.last_anchor_hash,
       lastAnchorTimestamp: row.last_anchor_timestamp,
       credentials: [],
-      reputationScore: 0 // Will be calculated by caller or during load
+      reputationScore: 0,
     };
 
-    // Load credentials
     const credsRes = await db.query('SELECT * FROM credentials WHERE did = $1', [identity.did]);
     identity.credentials = credsRes.rows.map((r: any) => ({
       id: r.id,
       type: r.type,
       issuer: r.issuer,
       issuanceDate: r.issuance_date,
-      credentialSubject: r.subject_data
+      credentialSubject: r.subject_data,
     }));
 
     return identity;
   } catch (e) {
-    console.warn("Vault unavailable, falling back to localStorage", e);
-    // Fallback to localStorage silently — no scary error toast
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
-    }
+    console.warn('Vault unavailable, falling back to localStorage', e);
+    return parseLocalIdentity(localStorage.getItem(STORAGE_KEY));
   }
 };
 
-export const saveIdentity = async (identity: UserIdentity) => {
+export const saveIdentity = async (identity: UserIdentity | null) => {
+  if (!identity) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+
+  const safeIdentity: UserIdentity = {
+    ...identity,
+    credentials: Array.isArray(identity.credentials) ? identity.credentials : [],
+    reputationScore: typeof identity.reputationScore === 'number' ? identity.reputationScore : 0,
+  };
+
   try {
     const db = await LocalVault.getInstance();
-    
-    // UPSERT identity
+
     await db.query(`
       INSERT INTO identities (did, address, display_name, avatar, bio, last_anchor_hash, last_anchor_timestamp)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -62,31 +91,32 @@ export const saveIdentity = async (identity: UserIdentity) => {
         last_anchor_hash = EXCLUDED.last_anchor_hash,
         last_anchor_timestamp = EXCLUDED.last_anchor_timestamp
     `, [
-      identity.did, 
-      identity.address, 
-      identity.displayName, 
-      identity.avatar, 
-      identity.bio,
-      identity.lastAnchorHash,
-      identity.lastAnchorTimestamp
+      safeIdentity.did,
+      safeIdentity.address,
+      safeIdentity.displayName,
+      safeIdentity.avatar,
+      safeIdentity.bio,
+      safeIdentity.lastAnchorHash,
+      safeIdentity.lastAnchorTimestamp,
     ]);
 
-    // Update credentials - for simplicity in this MVP, we replace all
-    await db.query('DELETE FROM credentials WHERE did = $1', [identity.did]);
-    for (const vc of identity.credentials) {
+    await db.query('DELETE FROM credentials WHERE did = $1', [safeIdentity.did]);
+
+    for (const vc of safeIdentity.credentials) {
       await db.query(`
         INSERT INTO credentials (id, did, type, issuer, issuance_date, subject_data)
         VALUES ($1, $2, $3, $4, $5, $6)
-      `, [vc.id, identity.did, vc.type, vc.issuer, vc.issuanceDate, vc.credentialSubject]);
+      `, [vc.id, safeIdentity.did, vc.type, vc.issuer, vc.issuanceDate, vc.credentialSubject]);
     }
 
-    // Keep localStorage in sync for now as a backup (Phase 4 requirement)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeIdentity));
   } catch (e) {
-    console.warn("Vault save failed, using localStorage fallback", e);
+    console.warn('Vault save failed, using localStorage fallback', e);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
-    } catch {}
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeIdentity));
+    } catch {
+      // Ignore storage errors to avoid UI crashes
+    }
   }
 };
 
@@ -95,16 +125,17 @@ export const clearIdentity = async () => {
     const db = await LocalVault.getInstance();
     await db.query('DELETE FROM credentials');
     await db.query('DELETE FROM identities');
-    localStorage.removeItem(STORAGE_KEY);
   } catch (e) {
-    console.error("Failed to clear identity", e);
+    console.warn('Vault clear failed, clearing local fallback only', e);
+  } finally {
+    localStorage.removeItem(STORAGE_KEY);
   }
 };
 
 export const addCredential = async (currentIdentity: UserIdentity, vc: VerifiableCredential): Promise<UserIdentity> => {
   const updated = {
     ...currentIdentity,
-    credentials: [...currentIdentity.credentials, vc]
+    credentials: [...currentIdentity.credentials, vc],
   };
   await saveIdentity(updated);
   return updated;
@@ -115,9 +146,14 @@ export const syncIdentity = async (identity: UserIdentity): Promise<void> => {
 };
 
 export const loadIdentityWithSync = async (walletAddress: string): Promise<UserIdentity | null> => {
+  if (!walletAddress) return null;
+
   const localIdentity = await loadIdentity();
   if (localIdentity && localIdentity.address === walletAddress) {
     return localIdentity;
   }
-  return null;
+
+  const guestIdentity = createGuestIdentity(walletAddress);
+  await saveIdentity(guestIdentity);
+  return guestIdentity;
 };

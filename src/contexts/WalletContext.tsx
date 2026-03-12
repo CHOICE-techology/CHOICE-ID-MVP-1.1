@@ -10,6 +10,7 @@ interface WalletContextType {
   address: string | null;
   isConnected: boolean;
   isConnecting: boolean;
+  isLoadingIdentity: boolean;
   userIdentity: UserIdentity | null;
   connect: (method?: string, payload?: Record<string, string>) => Promise<boolean>;
   disconnect: () => void;
@@ -23,6 +24,7 @@ const noopContext: WalletContextType = {
   address: null,
   isConnected: false,
   isConnecting: false,
+  isLoadingIdentity: false,
   userIdentity: null,
   connect: async () => false,
   disconnect: () => {},
@@ -36,6 +38,14 @@ export const useWallet = () => {
   return ctx;
 };
 
+const createGuestIdentity = (addr: string): UserIdentity => ({
+  address: addr,
+  did: generateDID(addr),
+  displayName: `Guest ${addr}`,
+  credentials: [],
+  reputationScore: calculateReputationScore([]),
+});
+
 const resolveIdentity = async (
   addr: string,
   meta?: { displayName?: string; avatar?: string }
@@ -44,13 +54,10 @@ const resolveIdentity = async (
   if (existing) return existing;
 
   const identity: UserIdentity = {
-    address: addr,
-    did: generateDID(addr),
-    displayName: meta?.displayName,
+    ...createGuestIdentity(addr),
     avatar: meta?.avatar,
-    credentials: [],
-    reputationScore: calculateReputationScore([]),
   };
+
   await syncIdentity(identity);
   return identity;
 };
@@ -62,6 +69,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const {
     userIdentity,
+    isRehydrating,
     setUserIdentity,
     authError,
     rehydrate,
@@ -71,7 +79,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const wallet = wallets[0];
   const address = wallet?.address || user?.wallet?.address || null;
 
-  useEffect(() => { rehydrate(); }, [rehydrate]);
+  useEffect(() => { void rehydrate(); }, [rehydrate]);
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -90,7 +98,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('choice_wallet_address');
       }
     };
-    handleAuth();
+    void handleAuth();
   }, [ready, authenticated, address, user, setUserIdentity]);
 
   const connect = async (): Promise<boolean> => {
@@ -105,7 +113,12 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const disconnect = useCallback(async () => {
-    await logout();
+    try {
+      await logout();
+    } catch (err) {
+      console.warn('Logout failed, clearing local identity anyway', err);
+    }
+
     await clearIdentity();
     setUserIdentity(null);
     setConnectionState({ authError: null });
@@ -121,32 +134,34 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
     address,
     isConnected: authenticated && !!address,
     isConnecting: !ready,
+    isLoadingIdentity: isRehydrating || (authenticated && !!address && !userIdentity),
     userIdentity,
     connect,
     disconnect,
     updateIdentity,
     authError,
-  }), [address, authenticated, ready, userIdentity, authError, disconnect]);
+  }), [address, authenticated, ready, isRehydrating, userIdentity, authError, disconnect]);
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
 
 // Fallback provider when Privy is not configured
 const FallbackWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { userIdentity, setUserIdentity, authError, rehydrate, setConnectionState } = useChoiceStore();
+  const { userIdentity, isRehydrating, setUserIdentity, authError, rehydrate } = useChoiceStore();
 
-  useEffect(() => { rehydrate(); }, [rehydrate]);
+  useEffect(() => { void rehydrate(); }, [rehydrate]);
 
   const value = useMemo(() => ({
     address: userIdentity?.address || null,
     isConnected: !!userIdentity,
     isConnecting: false,
+    isLoadingIdentity: isRehydrating,
     userIdentity,
     connect: async () => { console.warn('Privy not configured'); return false; },
     disconnect: () => { setUserIdentity(null); },
     updateIdentity: async (i: UserIdentity) => { setUserIdentity(i); },
     authError,
-  }), [userIdentity, authError, setUserIdentity]);
+  }), [userIdentity, isRehydrating, authError, setUserIdentity]);
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };

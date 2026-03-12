@@ -14,6 +14,7 @@ interface ChoiceState {
   address: string | null;
   isConnected: boolean;
   isConnecting: boolean;
+  isRehydrating: boolean;
   authError: string | null;
   userIdentity: UserIdentity | null;
   identityScore: number;
@@ -35,6 +36,7 @@ export const useChoiceStore = create<ChoiceState>((set, get) => ({
   address: null,
   isConnected: false,
   isConnecting: false,
+  isRehydrating: true,
   authError: null,
   userIdentity: null,
   identityScore: 0,
@@ -42,15 +44,27 @@ export const useChoiceStore = create<ChoiceState>((set, get) => ({
   setConnectionState: (newState) => set((state) => ({ ...state, ...newState })),
 
   rehydrate: async () => {
-    const identity = await loadIdentity();
-    if (identity) {
-      const score = calculateIdentityScore(identity.credentials);
-      set({ 
-        userIdentity: identity, 
-        address: identity.address, 
-        identityScore: score,
-        isConnected: true // Assume connected if we have a valid identity (privy will sync later)
-      });
+    set({ isRehydrating: true });
+    try {
+      const identity = await loadIdentity();
+      if (identity) {
+        const score = calculateIdentityScore(identity.credentials);
+        set({
+          userIdentity: identity,
+          address: identity.address,
+          identityScore: score,
+          isConnected: true,
+        });
+      } else {
+        set({
+          userIdentity: null,
+          address: null,
+          identityScore: 0,
+          isConnected: false,
+        });
+      }
+    } finally {
+      set({ isRehydrating: false });
     }
   },
   
@@ -60,7 +74,7 @@ export const useChoiceStore = create<ChoiceState>((set, get) => ({
       identity.aiPersona = getPersonaForIdentity(identity);
     }
     const score = identity ? calculateIdentityScore(identity.credentials) : 0;
-    set({ userIdentity: identity, address: identity?.address || null, identityScore: score });
+    set({ userIdentity: identity, address: identity?.address || null, identityScore: score, isConnected: Boolean(identity) });
     if (identity) {
       saveIdentity(identity);
     }
