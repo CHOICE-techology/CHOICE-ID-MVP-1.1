@@ -153,6 +153,14 @@ const ALL_WALLET_PROVIDERS: WalletProvider[] = [
   { name: "Unisat", description: "Bitcoin wallet for BRC-20 tokens & inscriptions.", Logo: UnisatProviderLogo, chains: ["Bitcoin"], url: "https://unisat.io/" },
 ];
 
+/* ── Generic chain icon for chains without imported logos ── */
+const ChainIcon: React.FC<{ color: string; letter: string }> = ({ color, letter }) => (
+  <svg viewBox="0 0 40 40" className="w-7 h-7" fill="none">
+    <rect width="40" height="40" rx="10" fill={color} />
+    <text x="20" y="26" textAnchor="middle" fill="white" fontSize={letter.length > 1 ? "11" : "18"} fontWeight="bold" fontFamily="system-ui">{letter}</text>
+  </svg>
+);
+
 /* ══════════════════════════════════════════════
    Blockchain items
    ══════════════════════════════════════════════ */
