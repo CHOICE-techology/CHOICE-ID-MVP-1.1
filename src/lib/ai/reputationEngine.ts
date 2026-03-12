@@ -7,7 +7,7 @@ export const calculateSovereignScore = async () => {
   
   // 1. Extract local "DNA" for analysis
   const identityData = await db.query('SELECT * FROM identity_vault');
-  const metadata = identityData.rows.map(r => r.raw_metadata);
+  const metadata = identityData.rows.map((r: any) => r.raw_metadata);
 
   // 2. Construct the "Reputation Prompt"
   const prompt = `

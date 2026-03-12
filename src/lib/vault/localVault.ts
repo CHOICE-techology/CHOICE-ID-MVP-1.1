@@ -46,3 +46,7 @@ export class LocalVault {
 }
 
 export const vault = LocalVault;
+
+export const getVault = async () => {
+  return LocalVault.getInstance();
+};
