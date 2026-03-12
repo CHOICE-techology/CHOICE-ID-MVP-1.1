@@ -230,6 +230,21 @@ const CredentialsPage: React.FC = () => {
           {/* Stats row (visible after analysis) */}
           {walletCredential && (
             <>
+              {/* Detected Protocols */}
+              {detectedProtocols.length > 0 && (
+                <div className="mb-6">
+                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-3">Protocols Used by This Wallet</span>
+                  <div className="flex flex-wrap gap-2">
+                    {detectedProtocols.map((proto, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2">
+                        <img src={proto.logo} alt={proto.name} className="w-5 h-5 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        <span className="text-xs font-bold text-white">{proto.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
                 {[
                   { label: 'ACCOUNT AGE', value: walletSubject?.accountAge ?? walletStats?.accountAge ?? '—', icon: Clock3 },
