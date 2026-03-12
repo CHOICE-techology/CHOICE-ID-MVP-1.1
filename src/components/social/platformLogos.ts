@@ -15,23 +15,23 @@ export interface PlatformMeta {
   logo: string;
   /** neon accent color for glow & badge */
   color: string;
-  /** tailwind bg for icon pill */
+  /** tailwind bg for icon pill — SOLID color, no white */
   bgClass: string;
 }
 
 export const PLATFORM_META: Record<string, PlatformMeta> = {
   x:         { logo: xTwitterLogo,  color: '#e2e8f0', bgClass: 'bg-slate-900' },
   twitter:   { logo: xTwitterLogo,  color: '#0ea5e9', bgClass: 'bg-sky-900' },
-  linkedin:  { logo: linkedinLogo,  color: '#0ea5e9', bgClass: 'bg-blue-700' },
-  instagram: { logo: instagramLogo, color: '#ec4899', bgClass: 'bg-pink-700' },
-  github:    { logo: githubLogo,    color: '#94a3b8', bgClass: 'bg-slate-700' },
-  youtube:   { logo: youtubeLogo,   color: '#ef4444', bgClass: 'bg-red-700' },
+  linkedin:  { logo: linkedinLogo,  color: '#0ea5e9', bgClass: 'bg-blue-800' },
+  instagram: { logo: instagramLogo, color: '#ec4899', bgClass: 'bg-pink-800' },
+  github:    { logo: githubLogo,    color: '#94a3b8', bgClass: 'bg-slate-800' },
+  youtube:   { logo: youtubeLogo,   color: '#ef4444', bgClass: 'bg-red-800' },
   tiktok:    { logo: tiktokLogo,    color: '#06b6d4', bgClass: 'bg-slate-900' },
-  telegram:  { logo: telegramLogo,  color: '#0ea5e9', bgClass: 'bg-sky-600' },
-  discord:   { logo: discordLogo,   color: '#818cf8', bgClass: 'bg-indigo-700' },
-  farcaster: { logo: farcasterLogo, color: '#a855f7', bgClass: 'bg-purple-700' },
-  facebook:  { logo: facebookLogo,  color: '#3b82f6', bgClass: 'bg-blue-700' },
-  meta:      { logo: metaLogo,      color: '#3b82f6', bgClass: 'bg-blue-600' },
+  telegram:  { logo: telegramLogo,  color: '#0ea5e9', bgClass: 'bg-sky-700' },
+  discord:   { logo: discordLogo,   color: '#818cf8', bgClass: 'bg-indigo-800' },
+  farcaster: { logo: farcasterLogo, color: '#a855f7', bgClass: 'bg-purple-800' },
+  facebook:  { logo: facebookLogo,  color: '#3b82f6', bgClass: 'bg-blue-800' },
+  meta:      { logo: metaLogo,      color: '#3b82f6', bgClass: 'bg-blue-700' },
 };
 
 const PLATFORM_ALIASES: Record<string, string> = {

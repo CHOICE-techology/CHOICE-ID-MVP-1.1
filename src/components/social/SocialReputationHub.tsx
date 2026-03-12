@@ -109,7 +109,7 @@ const getInsights = (creds: VerifiableCredential[], metrics: ReturnType<typeof g
   return insights.slice(0, 3);
 };
 
-/* ─── Platform logo pill used in the Connect grid ─── */
+/* ─── Platform logo pill used in the Connect grid — full colored square, no white ─── */
 const PlatformIcon: React.FC<{ platform: PlatformDef; connected: boolean }> = ({ platform, connected }) => {
   const meta = getPlatformMeta(platform.id);
   const FallbackIcon = platform.fallbackIcon;
@@ -118,23 +118,23 @@ const PlatformIcon: React.FC<{ platform: PlatformDef; connected: boolean }> = ({
     return (
       <div
         className={cn(
-          'w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 overflow-hidden',
+          'w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 overflow-hidden',
           meta.bgClass,
           !connected && 'opacity-50 group-hover:opacity-100',
         )}
-        style={connected ? { boxShadow: `0 0 10px ${meta.color}55` } : undefined}
+        style={connected ? { boxShadow: `0 0 12px ${meta.color}55` } : undefined}
       >
-        <img src={meta.logo} alt={platform.name} className="w-5 h-5 object-contain" />
+        <img src={meta.logo} alt={platform.name} className="w-[22px] h-[22px] object-contain" />
       </div>
     );
   }
 
   return (
     <div className={cn(
-      'w-8 h-8 rounded-xl flex items-center justify-center transition-all bg-muted',
+      'w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-slate-800',
       connected ? 'opacity-100' : 'opacity-60 group-hover:opacity-100',
     )}>
-      <FallbackIcon size={15} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+      <FallbackIcon size={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
     </div>
   );
 };

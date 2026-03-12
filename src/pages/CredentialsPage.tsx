@@ -1,28 +1,42 @@
 import React, { useState } from 'react';
-
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { analyzeWalletHistory, BlockchainStats } from '@/services/blockchainService';
 import { grantWalletAnalysisReward } from '@/services/rewardService';
-
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { SocialReputationHub } from '@/components/social/SocialReputationHub';
 import {
-  FileText,
-  Upload,
-  FileCheck,
-  GraduationCap,
-  Award,
-  BadgeCheck,
-  CreditCard,
-  Wallet,
-  Activity,
-  CheckCircle2,
-  Clock3,
+  FileText, Upload, FileCheck, GraduationCap, Award, BadgeCheck,
+  CreditCard, Wallet, Activity, CheckCircle2, Clock3, ChevronDown, ChevronUp,
+  ExternalLink, Zap, Globe,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
+
+// Chain logos
+import ethereumLogo from '@/assets/logos/ethereum.svg';
+import arbitrumLogo from '@/assets/logos/arbitrum.svg';
+import baseLogo from '@/assets/logos/base.svg';
+import bitcoinLogo from '@/assets/logos/bitcoin.svg';
+import solanaLogo from '@/assets/logos/solana.svg';
+import avalancheLogo from '@/assets/logos/avalanche.svg';
+import cardanoLogo from '@/assets/logos/cardano.svg';
+import polkadotLogo from '@/assets/logos/polkadot.svg';
+import tezosLogo from '@/assets/logos/tezos.svg';
+
+const CHAINS = [
+  { id: 'ethereum', name: 'ETHEREUM', logo: ethereumLogo },
+  { id: 'arbitrum', name: 'ARBITRUM', logo: arbitrumLogo },
+  { id: 'base', name: 'BASE', logo: baseLogo },
+  { id: 'bitcoin', name: 'BITCOIN', logo: bitcoinLogo },
+  { id: 'solana', name: 'SOLANA', logo: solanaLogo },
+  { id: 'avalanche', name: 'AVALANCHE', logo: avalancheLogo },
+  { id: 'cardano', name: 'CARDANO', logo: cardanoLogo },
+  { id: 'polkadot', name: 'POLKADOT', logo: polkadotLogo },
+  { id: 'tezos', name: 'TEZOS', logo: tezosLogo },
+];
 
 const CredentialsPage: React.FC = () => {
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
@@ -33,6 +47,8 @@ const CredentialsPage: React.FC = () => {
 
   const [walletStats, setWalletStats] = useState<BlockchainStats | null>(null);
   const [isAnalyzingWallet, setIsAnalyzingWallet] = useState(false);
+  const [selectedChain, setSelectedChain] = useState<string | null>(null);
+  const [walletExpanded, setWalletExpanded] = useState(false);
 
   if (!identity)
     return (
@@ -49,7 +65,6 @@ const CredentialsPage: React.FC = () => {
   const submitPhysicalProofForManualReview = async () => {
     if (!selectedFile) return;
     setIsVerifyingDoc(true);
-
     try {
       const docVC: VerifiableCredential = {
         id: `urn:uuid:${crypto.randomUUID()}`,
@@ -64,7 +79,6 @@ const CredentialsPage: React.FC = () => {
           submittedAt: new Date().toISOString(),
         },
       };
-
       await mockUploadToIPFS(docVC);
       const newIdentity = await addCredential(identity, docVC);
       await onUpdateIdentity(newIdentity);
@@ -120,6 +134,11 @@ const CredentialsPage: React.FC = () => {
   );
 
   const walletSubject = walletCredential?.credentialSubject as Record<string, any> | undefined;
+  const activeChains = walletSubject?.activeChains as string[] || walletStats?.activeChains || [];
+  const activityData = walletSubject?.activityData || walletStats?.activityData || [
+    { name: 'Jan', tx: 0 }, { name: 'Feb', tx: 0 }, { name: 'Mar', tx: 0 },
+    { name: 'Apr', tx: 0 }, { name: 'May', tx: 0 }, { name: 'Jun', tx: 0 },
+  ];
 
   const docTypeIconComponents: Record<string, React.ElementType> = {
     Diploma: GraduationCap,
@@ -128,70 +147,207 @@ const CredentialsPage: React.FC = () => {
     ID: CreditCard,
   };
 
+  const isChainActive = (chainId: string) =>
+    activeChains.some(c => c.toLowerCase() === chainId.toLowerCase());
+
+  const totalTxns = walletSubject?.txCount ?? walletStats?.txCount ?? 0;
+
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       <header className="mb-4">
         <h1 className="text-3xl md:text-4xl font-black text-foreground mb-1 tracking-tighter">Identity Profile</h1>
         <p className="text-muted-foreground text-sm font-medium">
-          Wallet analysis → Real-world proof → Social reputation → Trust score
+          On-chain activity → Real-world proof → Social reputation → Trust score
         </p>
       </header>
 
-      <section className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
-              <Wallet size={20} className="text-primary" />
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* WALLET HISTORY — DARK MULTI-CHAIN BLOCK                   */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <section className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
+        {/* Dark header */}
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 md:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
+                <Wallet size={20} className="text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg md:text-xl font-black text-white tracking-tight leading-tight">Wallet History</h2>
+                <p className="text-slate-400 text-xs font-medium mt-0.5">Multi-chain on-chain activity profile</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Wallet History Analysis</h2>
-              <p className="text-muted-foreground text-xs font-medium mt-0.5">Run activity analysis to unlock your Finance score block</p>
-            </div>
+            <span className="bg-emerald-500/20 text-emerald-400 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> LIVE
+            </span>
           </div>
-          <span className="bg-primary/10 text-primary text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-primary/20 hidden sm:inline-flex">+10 pts</span>
-        </div>
 
-        {!walletCredential ? (
-          <div className="bg-muted/40 border border-border rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Activity size={14} className="text-primary" />
-              Restore your wallet analytics block and add finance reputation signals.
-            </div>
-            <ChoiceButton
-              onClick={analyzeWallet}
-              isLoading={isAnalyzingWallet}
-              className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest"
-            >
-              Analyze Wallet History
-            </ChoiceButton>
+          {/* Chain icons row */}
+          <div className="flex flex-wrap gap-3 md:gap-4 mb-6 justify-center md:justify-start">
+            {CHAINS.map((chain) => {
+              const active = walletCredential ? isChainActive(chain.id) : false;
+              return (
+                <button
+                  key={chain.id}
+                  onClick={() => setSelectedChain(selectedChain === chain.id ? null : chain.id)}
+                  className={cn(
+                    'flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl border transition-all min-w-[60px]',
+                    active
+                      ? 'border-primary/40 bg-primary/10'
+                      : 'border-slate-700 bg-slate-800/50 opacity-50 hover:opacity-80',
+                    selectedChain === chain.id && 'ring-2 ring-primary/50',
+                  )}
+                >
+                  <img src={chain.logo} alt={chain.name} className="w-6 h-6 object-contain" />
+                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-wider">{chain.name}</span>
+                  {active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                </button>
+              );
+            })}
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { label: 'Transactions', value: walletSubject?.txCount ?? walletStats?.txCount ?? 0 },
-                { label: 'Account Age', value: walletSubject?.accountAge ?? walletStats?.accountAge ?? '—' },
-                { label: 'Volume', value: walletSubject?.totalVolume ?? walletStats?.totalVolume ?? '—' },
-                { label: 'Assets', value: walletSubject?.assetsHeld ?? walletStats?.assetsHeld ?? '—' },
-              ].map((item) => (
-                <div key={item.label} className="bg-muted border border-border rounded-xl p-3.5">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{item.label}</p>
-                  <p className="text-sm font-bold text-foreground mt-1">{item.value}</p>
+
+          {/* Wallet address bar + ANALYZE button */}
+          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl p-2.5 mb-6">
+            <div className="bg-primary/10 p-1.5 rounded-lg">
+              <Wallet size={14} className="text-primary" />
+            </div>
+            <span className="flex-1 text-xs font-mono text-slate-300 truncate">{identity.address}</span>
+            <button
+              onClick={analyzeWallet}
+              disabled={isAnalyzingWallet}
+              className={cn(
+                'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
+                isAnalyzingWallet
+                  ? 'bg-primary/30 text-primary/60 cursor-wait'
+                  : 'bg-primary text-primary-foreground hover:brightness-110 shadow-lg shadow-primary/30',
+              )}
+            >
+              {isAnalyzingWallet ? 'Analyzing...' : 'ANALYZE'}
+            </button>
+          </div>
+
+          {/* Stats row (visible after analysis) */}
+          {walletCredential && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                {[
+                  { label: 'ACCOUNT AGE', value: walletSubject?.accountAge ?? walletStats?.accountAge ?? '—', icon: Clock3 },
+                  { label: 'TOTAL VOLUME', value: walletSubject?.totalVolume ?? walletStats?.totalVolume ?? '—', icon: Activity },
+                  { label: 'TOTAL TXNS', value: String(totalTxns), icon: Zap },
+                  { label: 'ACTIVE CHAINS', value: `${activeChains.length} / ${CHAINS.length}`, icon: Globe },
+                  { label: 'TRUST SIGNAL', value: '+7 pts', icon: CheckCircle2, highlight: true },
+                ].map(({ label, value, icon: Icon, highlight }) => (
+                  <div key={label} className="bg-slate-800/80 border border-slate-700 rounded-xl p-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Icon size={11} className="text-slate-400" />
+                      <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
+                    </div>
+                    <p className={cn('text-sm font-bold', highlight ? 'text-emerald-400' : 'text-white')}>{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Transaction Activity Chart */}
+              <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Transaction Activity</span>
+                  <span className="text-[10px] text-primary font-bold">{totalTxns} total</span>
                 </div>
-              ))}
-            </div>
+                <div className="h-[120px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={activityData}>
+                      <defs>
+                        <linearGradient id="txGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={false} axisLine={false} tickLine={false} width={0} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc', borderRadius: '8px', fontSize: '11px' }}
+                      />
+                      <Area type="monotone" dataKey="tx" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#txGradient)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-            <ChoiceButton
-              onClick={analyzeWallet}
-              isLoading={isAnalyzingWallet}
-              className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest"
-            >
-              Re-Analyze Wallet History
-            </ChoiceButton>
-          </div>
-        )}
+              {/* Behavior Insights */}
+              <div className="mb-4">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-2">Behavior Insights</span>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1.5 rounded-lg border border-primary/20">
+                    ◈ Moderate on-chain presence
+                  </span>
+                  <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                    ◈ Cross-chain activity across {activeChains.length} networks
+                  </span>
+                </div>
+              </div>
+
+              {/* Expandable wallet details card */}
+              <div className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setWalletExpanded(e => !e)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-slate-700/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-1.5 rounded-lg">
+                      <Wallet size={14} className="text-primary" />
+                    </div>
+                    <span className="text-xs font-mono text-slate-300 truncate max-w-[200px] md:max-w-[400px]">{identity.address}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-primary/20 text-primary text-[9px] font-bold px-2 py-0.5 rounded uppercase">{walletSubject?.chain || 'ETHEREUM'}</span>
+                    <span className="text-slate-400 text-[10px] font-bold">{totalTxns} txns</span>
+                    {walletExpanded ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+                  </div>
+                </button>
+
+                {walletExpanded && (
+                  <div className="border-t border-slate-700 p-4 animate-fade-in">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                      {[
+                        { label: 'TRANSACTIONS', value: String(totalTxns) },
+                        { label: 'AGE', value: walletSubject?.accountAge ?? '—' },
+                        { label: 'BALANCE', value: walletSubject?.balance ?? walletStats?.balance ?? '—' },
+                        { label: 'NET VALUE', value: walletSubject?.netValue ?? walletStats?.netValue ?? '—' },
+                      ].map(item => (
+                        <div key={item.label} className="bg-slate-900/50 rounded-lg p-3 border border-slate-700/50">
+                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">{item.label}</p>
+                          <p className="text-sm font-bold text-white">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap mb-3">
+                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Active on</span>
+                      {activeChains.map(chain => (
+                        <span key={chain} className="bg-slate-700 text-slate-300 text-[9px] font-bold px-2 py-1 rounded-lg flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary" /> {chain.toLowerCase()}
+                        </span>
+                      ))}
+                    </div>
+                    <a href={`https://etherscan.io/address/${identity.address}`} target="_blank" rel="noreferrer"
+                      className="text-[10px] text-primary font-bold flex items-center gap-1 hover:underline">
+                      <ExternalLink size={10} /> View on-chain details
+                    </a>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Add wallet button */}
+          <button className="w-full mt-4 py-3 border border-dashed border-slate-600 rounded-xl text-slate-400 text-xs font-bold hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2">
+            + Add wallet from another chain
+          </button>
+        </div>
       </section>
 
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* REAL-WORLD PROOFS                                         */}
+      {/* ══════════════════════════════════════════════════════════ */}
       <section className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -200,10 +356,10 @@ const CredentialsPage: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Real-World Proofs</h2>
-              <p className="text-muted-foreground text-xs font-medium mt-0.5">Proof submissions are reviewed manually before full verification</p>
+              <p className="text-muted-foreground text-xs font-medium mt-0.5">Upload and verify physical documents to strengthen your identity</p>
             </div>
           </div>
-          <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">Manual review</span>
+          <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">+20 PTS</span>
         </div>
 
         <div className="mb-5">
@@ -269,7 +425,7 @@ const CredentialsPage: React.FC = () => {
           disabled={!selectedFile}
           className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest"
         >
-          Submit for Manual Verification
+          VERIFY & MINT CREDENTIAL
         </ChoiceButton>
 
         {physicalCredentials.length > 0 && (
@@ -282,7 +438,6 @@ const CredentialsPage: React.FC = () => {
                 const status = (vc.credentialSubject.verificationStatus as string) || 'Pending Manual Review';
                 const IconComp = docTypeIconComponents[dtype] || FileText;
                 const pending = status.toLowerCase().includes('pending');
-
                 return (
                   <div key={vc.id} className="bg-muted border border-border rounded-xl p-3.5 flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
@@ -305,6 +460,9 @@ const CredentialsPage: React.FC = () => {
         )}
       </section>
 
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SOCIAL REPUTATION                                         */}
+      {/* ══════════════════════════════════════════════════════════ */}
       <SocialReputationHub identity={identity} onUpdateIdentity={onUpdateIdentity} />
     </div>
   );
