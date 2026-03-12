@@ -51,7 +51,7 @@ const AppContent = () => {
                 <Route path="/identity" element={protect(<IdentityPage />)} />
                 <Route path="/credentials" element={protect(<CredentialsPage />)} />
                 <Route path="/education" element={<EducationPage />} />
-                <Route path="/education/:courseId" element={<EducationPage />} />
+                <Route path="/education/:courseId" element={<LessonPage />} />
                 <Route path="/jobs" element={<JobsPage />} />
                 <Route path="/bounties" element={<BountyBoardPage />} />
                 <Route path="/about" element={<AboutPage />} />
