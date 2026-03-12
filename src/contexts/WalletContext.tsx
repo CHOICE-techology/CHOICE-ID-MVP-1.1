@@ -229,16 +229,16 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = useMemo(() => ({
     address,
-    isConnected: !!address && (authenticated || !!userIdentity),
-    isConnecting: pendingConnect,
-    isLoadingIdentity: isRehydrating && !address,
+    isConnected: ready && authenticated && !!address,
+    isConnecting: pendingConnect && !authenticated,
+    isLoadingIdentity: !ready || (pendingConnect && !address),
     userIdentity,
     connect,
     disconnect,
     createProfile,
     updateIdentity,
     authError,
-  }), [address, authenticated, userIdentity, pendingConnect, isRehydrating, authError, disconnect, createProfile]);
+  }), [address, ready, authenticated, userIdentity, pendingConnect, authError, disconnect, createProfile]);
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
