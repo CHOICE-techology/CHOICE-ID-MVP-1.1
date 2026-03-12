@@ -77,6 +77,12 @@ const LessonPage: React.FC = () => {
       await mockUploadToIPFS(badgeVC);
       const newIdentity = await addCredential(identity, badgeVC);
       await onUpdateIdentity(newIdentity);
+
+      const rewardResult = await grantEducationReward(identity.address, course.id);
+      if (!rewardResult.success && !rewardResult.duplicate) {
+        console.warn('Education reward grant failed:', rewardResult.error);
+      }
+
       setCompleted(true);
 
     } catch (e) {

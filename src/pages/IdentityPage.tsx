@@ -49,7 +49,7 @@ const IdentityPage: React.FC = () => {
   const [affiliateLink, setAffiliateLink] = useState('');
   const [invitedCount] = useState(() => Math.floor(Math.random() * 5));
   const [choiceBalance, setChoiceBalance] = useState(0);
-  const [recentTxs, setRecentTxs] = useState<ChoiceTransaction[]>([]);
+  const [txHistory, setTxHistory] = useState<ChoiceTransaction[]>([]);
   const [showAllTxs, setShowAllTxs] = useState(false);
 
   // Fetch CHOICE balance & transactions
@@ -57,7 +57,7 @@ const IdentityPage: React.FC = () => {
     if (!identity?.address) return;
     const refresh = () => {
       getChoiceBalance(identity.address).then(setChoiceBalance);
-      getTransactionHistory(identity.address).then(txs => setRecentTxs(txs.slice(0, 10)));
+      getTransactionHistory(identity.address).then((txs) => setTxHistory(txs));
     };
     refresh();
     window.addEventListener('choice-rewards-updated', refresh);
@@ -450,10 +450,10 @@ DID: ${identity.did}`;
         {/* Category Breakdown */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {(() => {
-            const idTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'identity').reduce((s, tx) => s + tx.amount, 0);
-            const eduTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'education').reduce((s, tx) => s + tx.amount, 0);
-            const comTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'community').reduce((s, tx) => s + tx.amount, 0);
-            const finTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'finance').reduce((s, tx) => s + tx.amount, 0);
+            const idTotal = txHistory.filter(tx => getRewardCategory(tx.type) === 'identity').reduce((s, tx) => s + tx.amount, 0);
+            const eduTotal = txHistory.filter(tx => getRewardCategory(tx.type) === 'education').reduce((s, tx) => s + tx.amount, 0);
+            const comTotal = txHistory.filter(tx => getRewardCategory(tx.type) === 'community').reduce((s, tx) => s + tx.amount, 0);
+            const finTotal = txHistory.filter(tx => getRewardCategory(tx.type) === 'finance').reduce((s, tx) => s + tx.amount, 0);
             const total = choiceBalance || 1;
             return [
               { label: 'Identity', amount: idTotal, pct: Math.round((idTotal / total) * 100), color: 'bg-primary' },
@@ -481,7 +481,7 @@ DID: ${identity.did}`;
           <span className="text-[10px] text-primary font-bold">● Live</span>
         </div>
         <div className="space-y-2">
-          {recentTxs.slice(0, showAllTxs ? 10 : 3).map(tx => (
+          {txHistory.slice(0, showAllTxs ? 10 : 3).map(tx => (
             <div key={tx.id} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -499,12 +499,12 @@ DID: ${identity.did}`;
             </div>
           ))}
         </div>
-        {recentTxs.length > 3 && (
+        {txHistory.length > 3 && (
           <button
             onClick={() => setShowAllTxs(!showAllTxs)}
             className="w-full mt-3 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground border border-border rounded-xl hover:bg-muted transition-colors uppercase tracking-wider"
           >
-            {showAllTxs ? 'Show Less' : `View up to ${Math.min(recentTxs.length, 10)} transactions ▾`}
+            {showAllTxs ? 'Show Less' : `View up to ${Math.min(txHistory.length, 10)} transactions ▾`}
           </button>
         )}
       </div>
