@@ -35,14 +35,14 @@ export const loadIdentity = async (): Promise<UserIdentity | null> => {
 
     return identity;
   } catch (e) {
-    toast({
-      title: "Identity Load Error",
-      description: "Failed to load identity from local vault.",
-      variant: "destructive",
-    });
-    // Fallback to localStorage for migration or if PGLite fails
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : null;
+    console.warn("Vault unavailable, falling back to localStorage", e);
+    // Fallback to localStorage silently — no scary error toast
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
   }
 };
 
