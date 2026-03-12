@@ -86,7 +86,16 @@ const LessonPage: React.FC = () => {
     }
   };
 
-
+  const renderInlineMarkdown = (text: string) => {
+    const chunks = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+    return chunks.map((chunk, index) => {
+      const isBold = chunk.startsWith('**') && chunk.endsWith('**') && chunk.length > 4;
+      if (isBold) {
+        return <strong key={`bold-${index}`} className="text-foreground font-bold">{chunk.slice(2, -2)}</strong>;
+      }
+      return <React.Fragment key={`text-${index}`}>{chunk}</React.Fragment>;
+    });
+  };
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-10">
@@ -151,21 +160,19 @@ const LessonPage: React.FC = () => {
           </div>
         </div>
         <div className="p-6 md:p-8">
-          <div className="prose prose-invert max-w-none">
+          <div className="prose max-w-none">
             {lesson.content.split('\n').map((line, i) => {
-              if (line.startsWith('###')) return <h3 key={i} className="text-xl font-bold mt-6 mb-3 text-foreground">{line.replace('###', '')}</h3>;
-              if (line.startsWith('-')) return <li key={i} className="text-muted-foreground ml-4 mb-2">{line.replace('-', '').trim()}</li>;
-              if (line.startsWith('✅') || line.startsWith('🔴')) return <div key={i} className="flex gap-2 items-start mb-4 p-3 rounded-lg bg-muted/30 border border-border/50 text-sm">{line}</div>;
-              if (line.includes('**')) {
-                const parts = line.split('**');
-                return (
-                  <p key={i} className="text-muted-foreground leading-relaxed mb-4">
-                    {parts.map((p, j) => j % 2 === 1 ? <strong key={j} className="text-foreground">{p}</strong> : p)}
-                  </p>
-                );
+              if (line.startsWith('###')) {
+                return <h3 key={i} className="text-xl font-bold mt-6 mb-3 text-foreground">{line.replace('###', '').trim()}</h3>;
+              }
+              if (line.startsWith('-')) {
+                return <li key={i} className="text-muted-foreground ml-4 mb-2">{renderInlineMarkdown(line.replace('-', '').trim())}</li>;
+              }
+              if (line.startsWith('✅') || line.startsWith('🔴')) {
+                return <div key={i} className="flex gap-2 items-start mb-4 p-3 rounded-lg bg-muted/30 border border-border/50 text-sm">{renderInlineMarkdown(line)}</div>;
               }
               if (line.trim() === '') return <div key={i} className="h-4" />;
-              return <p key={i} className="text-muted-foreground leading-relaxed mb-4">{line}</p>;
+              return <p key={i} className="text-muted-foreground leading-relaxed mb-4">{renderInlineMarkdown(line)}</p>;
             })}
           </div>
         </div>

@@ -196,10 +196,19 @@ export function calculateJobMatch(job: Job, identity: UserIdentity): JobMatchRes
     return t.includes('WalletHistoryCredential');
   });
   if (walletVC) {
-    const years = new Date().getFullYear() - new Date((walletVC.credentialSubject as any)?.firstTxDate as string).getFullYear();
-    if (years > 3) { totalPoints += 10; reasons.push(`${years} years verified on-chain activity`); }
-    else if (years > 1) { totalPoints += 6; reasons.push(`${years} years on-chain history`); }
-    else { totalPoints += 3; reasons.push('Recent on-chain activity'); }
+    const firstTxDate = ((walletVC.credentialSubject as any)?.firstTxDate as string) || '';
+    const parsedFirstTxDate = new Date(firstTxDate);
+    const hasValidFirstTxDate = firstTxDate && !Number.isNaN(parsedFirstTxDate.getTime());
+
+    if (hasValidFirstTxDate) {
+      const years = new Date().getFullYear() - parsedFirstTxDate.getFullYear();
+      if (years > 3) { totalPoints += 10; reasons.push(`${years} years verified on-chain activity`); }
+      else if (years > 1) { totalPoints += 6; reasons.push(`${years} years on-chain history`); }
+      else { totalPoints += 3; reasons.push('Recent on-chain activity'); }
+    } else {
+      totalPoints += 3;
+      reasons.push('Verified wallet history');
+    }
   } else {
     recommendations.push('Connect and verify your wallet history for a better match');
   }

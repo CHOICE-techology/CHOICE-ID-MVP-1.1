@@ -58,6 +58,12 @@ const IdentityPage: React.FC = () => {
     return isNaN(result) || !isFinite(result) ? 0 : Math.min(result, 100);
   };
 
+  const getSafeDisplayDate = (value: unknown): string | null => {
+    if (!value) return null;
+    const parsedDate = new Date(value as string | number);
+    return Number.isNaN(parsedDate.getTime()) ? null : parsedDate.toLocaleString();
+  };
+
   const chartData = [
     { subject: 'Social', value: safePercent(social, 40), fullMark: 100 },
     { subject: 'Education', value: safePercent(education, 30), fullMark: 100 },
@@ -116,7 +122,7 @@ const IdentityPage: React.FC = () => {
     if (identity?.lastAnchorHash) {
       const mockTxHash = `0x${identity.lastAnchorHash.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
       return {
-        date: identity.lastAnchorTimestamp ? new Date(identity.lastAnchorTimestamp).toLocaleString() : null,
+        date: getSafeDisplayDate(identity.lastAnchorTimestamp),
         score,
         txHash: mockTxHash,
         explorerUrl: `https://sepolia.arbiscan.io/tx/${mockTxHash}`,
@@ -124,7 +130,7 @@ const IdentityPage: React.FC = () => {
     }
     if (navState?.verificationData) {
       return {
-        date: navState.verificationData.date,
+        date: getSafeDisplayDate(navState.verificationData.date),
         score,
         txHash: navState.verificationData.txHash,
         explorerUrl: navState.verificationData.explorerUrl || `https://sepolia.arbiscan.io/tx/${navState.verificationData.txHash}`,
@@ -136,7 +142,7 @@ const IdentityPage: React.FC = () => {
       if (stored) {
         const parsed = JSON.parse(stored);
         return {
-          date: parsed.date,
+          date: getSafeDisplayDate(parsed.date),
           score,
           txHash: parsed.txHash,
           explorerUrl: parsed.explorerUrl || `https://sepolia.arbiscan.io/tx/${parsed.txHash}`,
@@ -489,7 +495,7 @@ DID: ${identity.did}`;
                         <Clock size={14} className="text-muted-foreground" />
                         <span className="text-xs font-semibold text-muted-foreground">Date</span>
                       </div>
-                      <span className="text-sm font-semibold text-foreground">{verificationData.date}</span>
+                      <span className="text-sm font-semibold text-foreground">{verificationData.date || 'Not available'}</span>
                     </div>
                     <div className="flex items-center justify-between px-5 py-3.5">
                       <div className="flex items-center gap-2">

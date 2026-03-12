@@ -23,7 +23,14 @@ import { PrivyProvider } from '@privy-io/react-auth';
 
 const queryClient = new QueryClient();
 
-const privyAppId = import.meta.env.VITE_PRIVY_APP_ID;
+const rawPrivyAppId = import.meta.env.VITE_PRIVY_APP_ID;
+const sanitizedPrivyAppId = typeof rawPrivyAppId === 'string' ? rawPrivyAppId.trim() : '';
+const hasValidPrivyAppId = Boolean(sanitizedPrivyAppId) && ![
+  'undefined',
+  'null',
+  'your-privy-app-id',
+  'changeme',
+].includes(sanitizedPrivyAppId.toLowerCase());
 
 const AppContent = () => (
   <ErrorBoundary>
@@ -55,9 +62,9 @@ const AppContent = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    {privyAppId ? (
+    {hasValidPrivyAppId ? (
       <PrivyProvider
-        appId={privyAppId}
+        appId={sanitizedPrivyAppId}
         config={{
           appearance: {
             theme: 'dark',

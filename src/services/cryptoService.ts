@@ -106,10 +106,14 @@ export const mockGenerateCV = async (identity: UserIdentity): Promise<GeneratedC
 
   const experience = [];
   if (walletVC) {
+    const firstTxDate = (walletVC.credentialSubject.firstTxDate as string) || '';
+    const parsedFirstTxDate = new Date(firstTxDate);
+    const isValidFirstTxDate = firstTxDate && !Number.isNaN(parsedFirstTxDate.getTime());
+
     experience.push({
       role: "Active DeFi Participant",
       company: "Ethereum Network",
-      duration: `${new Date(walletVC.credentialSubject.firstTxDate as string).getFullYear()} - Present`
+      duration: isValidFirstTxDate ? `${parsedFirstTxDate.getFullYear()} - Present` : 'Verified On-Chain Activity'
     });
   }
   socialVCs.forEach(vc => {
