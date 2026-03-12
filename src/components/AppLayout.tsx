@@ -35,7 +35,9 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (isConnecting) {
       setStatus('Connecting...');
-      return;
+      // Auto-clear after 10s to prevent infinite banner
+      const timeout = setTimeout(() => setStatus(null), 10_000);
+      return () => clearTimeout(timeout);
     }
 
     if (isConnected) {

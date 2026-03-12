@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
+import { useChoiceStore } from '@/store/useChoiceStore';
 import { COURSES } from '@/data/coursesData';
 
 
@@ -13,7 +14,8 @@ const LEVEL_STYLES: Record<string, { bg: string; text: string; border: string }>
 };
 
 const EducationPage: React.FC = () => {
-  const { userIdentity: identity } = useWallet();
+  const { userIdentity: identity, isConnected } = useWallet();
+  const { setWalletModalOpen } = useChoiceStore();
   const navigate = useNavigate();
 
   const hasBadge = (courseTitle: string) =>
@@ -48,6 +50,22 @@ const EducationPage: React.FC = () => {
         </div>
       </header>
 
+      {/* Connect prompt for guests */}
+      {!isConnected && (
+        <div className="bg-primary/5 border border-primary/20 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <Lock size={20} className="text-primary shrink-0" />
+            <span className="text-sm font-semibold text-foreground">Connect your CHOICE ID to start lessons and earn badges.</span>
+          </div>
+          <button
+            onClick={() => setWalletModalOpen(true)}
+            className="bg-primary text-primary-foreground font-black py-2.5 px-6 rounded-xl text-xs uppercase tracking-widest hover:brightness-110 transition-all shrink-0"
+          >
+            Connect
+          </button>
+        </div>
+      )}
+
       {/* Global progress bar */}
       <div className="bg-card border border-border rounded-2xl p-4">
         <div className="flex items-center justify-between mb-2">
@@ -59,7 +77,7 @@ const EducationPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Earned Badges Showcase — Redesigned */}
+      {/* Earned Badges Showcase */}
       {completedCourses.length > 0 && (
         <div className="bg-card border border-border rounded-2xl p-6">
           <h2 className="text-lg font-bold text-foreground mb-5 flex items-center gap-2">
@@ -71,13 +89,11 @@ const EducationPage: React.FC = () => {
                 key={course.id}
                 className="group relative flex flex-col items-center text-center p-4 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
               >
-                {/* Neon glow ring behind the badge */}
                 <div className={`relative w-16 h-16 mb-3`}>
                   <div className={`absolute -inset-3 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-20 blur-xl group-hover:opacity-60 transition-opacity duration-500`} />
                   <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${course.badgeColor} opacity-30 blur-md group-hover:opacity-50 transition-opacity`} />
                   <div className={`relative w-full h-full rounded-full bg-gradient-to-br ${course.badgeColor} flex items-center justify-center shadow-lg border-2 border-white/25 group-hover:border-white/50 transition-all`}>
                   </div>
-                  {/* Checkmark overlay */}
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-card flex items-center justify-center shadow-sm">
                     <CheckCircle size={12} className="text-white" />
                   </div>
@@ -102,9 +118,7 @@ const EducationPage: React.FC = () => {
           const isCompleted = hasBadge(course.title);
           const level = LEVEL_STYLES[course.level];
           return (
-            <div key={course.id} className={`bg-card border rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden group transition-all duration-500 hover:shadow-2xl ${isCompleted ? 'border-emerald-500/30 shadow-emerald-500/10' : 'border-border'}`}
-              style={{ boxShadow: isCompleted ? undefined : undefined }}
-            >
+            <div key={course.id} className={`bg-card border rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden group transition-all duration-500 hover:shadow-2xl ${isCompleted ? 'border-emerald-500/30 shadow-emerald-500/10' : 'border-border'}`}>
               {/* Top neon color bar with glow */}
               <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${course.badgeColor}`} />
               <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${course.badgeColor} blur-sm opacity-60`} />
@@ -159,12 +173,17 @@ const EducationPage: React.FC = () => {
               </div>
 
               <ChoiceButton
-                onClick={() => navigate(`/education/${course.id}`)}
-                disabled={!identity}
+                onClick={() => {
+                  if (!isConnected) {
+                    setWalletModalOpen(true);
+                    return;
+                  }
+                  navigate(`/education/${course.id}`);
+                }}
                 variant={isCompleted ? 'outline' : 'primary'}
                 className="w-full"
               >
-                {isCompleted ? 'Review Course' : 'Start Lesson'}
+                {!isConnected ? 'Connect to Start' : isCompleted ? 'Review Course' : 'Start Lesson'}
               </ChoiceButton>
             </div>
           );

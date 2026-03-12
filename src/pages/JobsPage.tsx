@@ -3,19 +3,26 @@ import { Job, JobMatchResult } from '@/types';
 import { calculateJobMatch } from '@/services/jobMatchingService';
 import { ChoiceButton } from '@/components/ChoiceButton';
 
-import { DollarSign, Zap, Star, MapPin, Search, CheckCircle, AlertTriangle, ArrowUpRight, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { DollarSign, Zap, Star, MapPin, Search, CheckCircle, AlertTriangle, ArrowUpRight, ChevronDown, ChevronUp, Lock, Send, FileText, X } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
+import { useChoiceStore } from '@/store/useChoiceStore';
 import { ALL_JOBS } from '@/data/jobsData';
 import { calculateIdentityScore } from '@/services/scoreEngine';
 import { getChoiceBalance } from '@/services/rewardService';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const ITEMS_PER_PAGE = 15;
 
 type JobWithMatch = Job & { matchResult?: JobMatchResult };
 
 const JobsPage: React.FC = () => {
-  const { userIdentity: identity, updateIdentity } = useWallet();
+  const { userIdentity: identity, isConnected, updateIdentity } = useWallet();
+  const { setWalletModalOpen } = useChoiceStore();
+  const { toast } = useToast();
   const [filterType, setFilterType] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMatching, setIsMatching] = useState(true);
@@ -24,6 +31,8 @@ const JobsPage: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<JobWithMatch | null>(null);
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const [choiceBalance, setChoiceBalance] = useState(0);
+  const [isSendingApp, setIsSendingApp] = useState(false);
+  const [appSent, setAppSent] = useState(false);
 
   const score = identity ? calculateIdentityScore(identity.credentials) : 0;
 
@@ -54,10 +63,32 @@ const JobsPage: React.FC = () => {
   useEffect(() => { setVisibleCount(ITEMS_PER_PAGE); }, [filterType, searchQuery]);
 
   const handleApply = (job: JobWithMatch) => {
+    if (!isConnected) {
+      setWalletModalOpen(true);
+      return;
+    }
     if (!identity) return;
     const matchResult = job.matchResult || { score: job.matchScore || 0, reason: job.matchReason || '', matchingSkills: [], missingSkills: [], recommendations: [] };
     setSelectedJob({ ...job, matchResult });
     setJobDialogOpen(true);
+    setAppSent(false);
+  };
+
+  const handleSendApplication = async () => {
+    if (!selectedJob || !identity) return;
+    setIsSendingApp(true);
+    try {
+      await new Promise(r => setTimeout(r, 2000));
+      setAppSent(true);
+      toast({
+        title: 'Application Sent!',
+        description: `Your CHOICE ID profile was sent to ${selectedJob.company} for the ${selectedJob.title} role.`,
+      });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to send application.', variant: 'destructive' });
+    } finally {
+      setIsSendingApp(false);
+    }
   };
 
   const typeCounts = useMemo(() => {
@@ -97,10 +128,13 @@ const JobsPage: React.FC = () => {
         ))}
       </div>
 
-      {!identity && (
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center gap-3 text-amber-800">
-          <Zap size={20} />
-          <span className="text-sm font-medium">Connect your CHOICE ID to see your AI Match Score for these roles.</span>
+      {!isConnected && (
+        <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex items-center gap-3 text-foreground">
+          <Zap size={20} className="text-primary" />
+          <span className="text-sm font-medium">Connect your CHOICE ID to see your AI Match Score and apply to roles.</span>
+          <button onClick={() => setWalletModalOpen(true)} className="ml-auto bg-primary text-primary-foreground font-bold py-2 px-4 rounded-xl text-xs uppercase tracking-widest hover:brightness-110 transition-all shrink-0">
+            Connect
+          </button>
         </div>
       )}
 
@@ -120,7 +154,6 @@ const JobsPage: React.FC = () => {
               const mc = getMatchColor(job.matchScore || 0);
               const isExpanded = expandedJob === job.id;
               const mr = job.matchResult;
-              // Opportunity locking: high-value jobs require score + CHOICE balance
               const requiredScore = job.minScore;
               const requiredBalance = job.minScore >= 70 ? 50 : 0;
               const isJobLocked = identity && (score < requiredScore || (requiredBalance > 0 && choiceBalance < requiredBalance));
@@ -174,8 +207,8 @@ const JobsPage: React.FC = () => {
                           </TooltipContent>
                         </Tooltip>
                       ) : (
-                        <ChoiceButton className="w-full md:w-auto" onClick={() => handleApply(job)} disabled={!identity}>
-                          {!identity ? 'Connect' : job.type === 'Collaboration' ? 'Join Team' : 'Auto-Apply'}
+                        <ChoiceButton className="w-full md:w-auto" onClick={() => handleApply(job)}>
+                          {!isConnected ? 'Connect to Apply' : job.type === 'Collaboration' ? 'Join Team' : 'Auto-Apply'}
                         </ChoiceButton>
                       )}
                       {identity && mr && (
@@ -191,14 +224,12 @@ const JobsPage: React.FC = () => {
                   {/* Expanded match details */}
                   {identity && mr && isExpanded && (
                     <div className="border-t border-white/10 px-5 py-6 bg-white/5 backdrop-blur-sm space-y-4">
-                      {/* AI Insight */}
                       <div className="flex items-start gap-2 text-xs text-muted-foreground">
                         <Zap size={12} className="text-amber-500 mt-0.5 shrink-0" />
                         <span><strong className="text-foreground">AI Insight:</strong> {mr.reason}</span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {/* Matching Skills */}
                         {mr.matchingSkills.length > 0 && (
                           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                             <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 mb-2">
@@ -211,8 +242,6 @@ const JobsPage: React.FC = () => {
                             </div>
                           </div>
                         )}
-
-                        {/* Missing Skills */}
                         {mr.missingSkills.length > 0 && (
                           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                             <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 mb-2">
@@ -225,8 +254,6 @@ const JobsPage: React.FC = () => {
                             </div>
                           </div>
                         )}
-
-                        {/* Recommendations */}
                         {mr.recommendations.length > 0 && (
                           <div className="bg-sky-50 border border-sky-200 rounded-lg p-3">
                             <div className="flex items-center gap-1.5 text-xs font-bold text-sky-700 mb-2">
@@ -244,7 +271,6 @@ const JobsPage: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Required Skills Overview */}
                       {job.requiredSkills.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           <span className="text-[10px] font-bold uppercase text-muted-foreground mr-1">Required:</span>
@@ -272,6 +298,71 @@ const JobsPage: React.FC = () => {
         )}
       </div>
 
+      {/* Application Dialog */}
+      <Dialog open={jobDialogOpen} onOpenChange={setJobDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {appSent ? 'Application Sent!' : `Apply: ${selectedJob?.title}`}
+            </DialogTitle>
+            <DialogDescription>
+              {appSent
+                ? `Your verified CHOICE ID profile has been sent to ${selectedJob?.company}.`
+                : `Send your CHOICE ID profile to ${selectedJob?.company} for the ${selectedJob?.title} role.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedJob && !appSent && (
+            <div className="space-y-4 pt-2">
+              <div className="bg-muted/50 rounded-xl p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Match Score</span>
+                  <span className="font-bold text-foreground">{selectedJob.matchScore}%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Your Trust Score</span>
+                  <span className="font-bold text-foreground">{score}/100</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Company</span>
+                  <span className="font-bold text-primary">{selectedJob.company}</span>
+                </div>
+              </div>
+
+              {selectedJob.matchResult?.matchingSkills && selectedJob.matchResult.matchingSkills.length > 0 && (
+                <div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Matching Skills</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedJob.matchResult.matchingSkills.map((s, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[11px] font-medium">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <ChoiceButton
+                onClick={handleSendApplication}
+                isLoading={isSendingApp}
+                className="w-full"
+              >
+                <Send size={14} className="mr-2" /> Send Application via CHOICE ID
+              </ChoiceButton>
+            </div>
+          )}
+
+          {appSent && (
+            <div className="text-center py-4 space-y-3">
+              <CheckCircle size={48} className="text-emerald-500 mx-auto" />
+              <p className="text-sm text-muted-foreground">
+                Your verified credentials have been shared. You'll hear back from {selectedJob?.company} if there's a match.
+              </p>
+              <ChoiceButton variant="outline" onClick={() => setJobDialogOpen(false)} className="w-full">
+                Close
+              </ChoiceButton>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

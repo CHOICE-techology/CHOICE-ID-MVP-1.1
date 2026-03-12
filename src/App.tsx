@@ -50,9 +50,9 @@ const AppContent = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/identity" element={protect(<IdentityPage />)} />
                 <Route path="/credentials" element={protect(<CredentialsPage />)} />
-                <Route path="/education" element={protect(<EducationPage />)} />
-                <Route path="/education/:courseId" element={protect(<LessonPage />)} />
-                <Route path="/jobs" element={protect(<JobsPage />)} />
+                <Route path="/education" element={<EducationPage />} />
+                <Route path="/education/:courseId" element={<EducationPage />} />
+                <Route path="/jobs" element={<JobsPage />} />
                 <Route path="/bounties" element={<BountyBoardPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/verify" element={<VerifyPage />} />

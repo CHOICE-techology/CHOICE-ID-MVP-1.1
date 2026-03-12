@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import googleLogo from '@/assets/logos/google.png';
@@ -29,7 +29,10 @@ export const SocialSignIn: React.FC<SocialSignInProps> = ({ connecting, successS
     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
       Sign in with
     </span>
-    <div className="grid grid-cols-2 gap-2 mt-2.5">
+    <p className="text-[9px] text-muted-foreground/70 mt-0.5 mb-2.5">
+      Social login requires Privy dashboard configuration. Use <strong>Wallet</strong> or <strong>Email</strong> to connect now.
+    </p>
+    <div className="grid grid-cols-2 gap-2">
       {socialProviders.map((provider) => (
         <button
           key={provider.id}

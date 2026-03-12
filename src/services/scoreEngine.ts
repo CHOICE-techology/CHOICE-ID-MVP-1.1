@@ -1,10 +1,21 @@
 import { VerifiableCredential } from '@/types';
 
+/**
+ * Score weights — Social gives equal points per platform (max 40 total).
+ * With up to 8 social platforms at 5 pts each = 40 max.
+ */
 export const SCORE_WEIGHTS = {
-  SocialCredential: 25,
-  PhysicalCredential: 50,
-  EducationCredential: 30,
-  WalletCreatedCredential: 10,
+  SocialCredential: 5,      // per unique platform, max 40
+  PhysicalCredential: 10,   // per unique doc type, max 20
+  EducationCredential: 5,   // per unique course, max 30
+  WalletCreatedCredential: 5, // per unique chain, max 10
+};
+
+export const SCORE_CAPS = {
+  social: 40,
+  physical: 20,
+  education: 30,
+  finance: 10,
 };
 
 export interface ScoreBreakdown {
@@ -49,10 +60,15 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
 
     if (!countedKeys.has(key)) {
       const points = SCORE_WEIGHTS[type];
-      if (type === 'SocialCredential') categories.social += points;
-      else if (type === 'EducationCredential') categories.education += points;
-      else if (type === 'PhysicalCredential') categories.physical += points;
-      else if (type === 'WalletCreatedCredential') categories.finance += points;
+      if (type === 'SocialCredential') {
+        categories.social = Math.min(categories.social + points, SCORE_CAPS.social);
+      } else if (type === 'EducationCredential') {
+        categories.education = Math.min(categories.education + points, SCORE_CAPS.education);
+      } else if (type === 'PhysicalCredential') {
+        categories.physical = Math.min(categories.physical + points, SCORE_CAPS.physical);
+      } else if (type === 'WalletCreatedCredential') {
+        categories.finance = Math.min(categories.finance + points, SCORE_CAPS.finance);
+      }
       
       countedKeys.add(key);
     }
@@ -61,7 +77,7 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
   const totalScore = categories.social + categories.education + categories.physical + categories.finance;
 
   return {
-    score: totalScore,
+    score: Math.min(totalScore, 100),
     categories
   };
 };
