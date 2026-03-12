@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 import { UserIdentity, GeneratedCV, Job } from '@/types';
 import { mockGenerateCV, mockGenerateBio, generateReputationHash } from '@/services/cryptoService';
