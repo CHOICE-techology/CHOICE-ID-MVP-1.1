@@ -1,4 +1,5 @@
 import { VerifiableCredential } from '@/types';
+import { COURSES } from '@/data/coursesData';
 
 /**
  * Reputation score system (0-100)
@@ -18,7 +19,7 @@ const MAX_POINTS_PER_PLATFORM = 40 / TOTAL_SOCIAL_PLATFORMS; // ~5.71 per platfo
 
 export const SCORE_WEIGHTS = {
   SocialCredential: 0,       // dynamic per-platform quality scoring
-  EducationCredential: 5,    // 5 pts per document, 4 docs = 20
+  EducationCredential: 0,    // dynamic — uses actual course points from coursesData
   PhysicalCredential: 5,     // 5 pts per unique doc type
   WalletCreatedCredential: 5,
   WalletHistoryCredential: 10,
@@ -27,7 +28,7 @@ export const SCORE_WEIGHTS = {
 export const SCORE_CAPS = {
   social: 40,
   physical: 20,
-  education: 20,   // 4 documents × 5 = 20
+  education: 30,   // sum of all course points (3+3+4+3+3+4+4+3+3 = 30)
   finance: 10,
 };
 
@@ -123,9 +124,12 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
     if (countedKeys.has(key)) return;
 
     if (type === 'EducationCredential') {
-      // Each education document = 5 points, max 20 (4 docs)
+      // Look up actual course points from coursesData
+      const courseName = String(sub.courseName || '').toLowerCase();
+      const course = COURSES.find(c => c.title.toLowerCase() === courseName);
+      const pts = course ? course.points : 3; // fallback to 3 if not found
       categories.education = Math.min(
-        categories.education + SCORE_WEIGHTS.EducationCredential,
+        categories.education + pts,
         SCORE_CAPS.education
       );
     } else if (type === 'PhysicalCredential') {
