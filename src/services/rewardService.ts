@@ -1,5 +1,3 @@
-
-
 export interface ChoiceTransaction {
   id: string;
   user_id: string;
@@ -16,27 +14,61 @@ export interface RewardResult {
   error?: string;
 }
 
-const REWARD_CONFIG = {
-  identity_reward: { amount: 100, reason: 'wallet_connect' },
-  google_connect: { amount: 100, reason: 'google_connect' },
-  social_connect: { amount: 100, reason: 'social_connect' },
-  wallet_analysis_reward: { amount: 30, reason: 'wallet_analysis' },
-  education_reward: { amount: 40, reason: 'course_complete' },
-  referral_reward: { amount: 25, reason: 'referral' },
-} as const;
+const TRANSACTIONS_STORAGE_KEY = 'choice_reward_transactions_v1';
+
+const readTransactions = (): ChoiceTransaction[] => {
+  try {
+    const raw = localStorage.getItem(TRANSACTIONS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeTransactions = (transactions: ChoiceTransaction[]) => {
+  localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(transactions));
+  window.dispatchEvent(new CustomEvent('choice-rewards-updated'));
+};
 
 /**
- * Grant a CHOICE coin reward. Prevents duplicates via unique constraint.
+ * Grant a CHOICE coin reward with duplicate protection by (user_id + type + reason)
  */
-// MOCKED reward system for Phase 2/3 (transitioning to local-first)
 export const grantReward = async (
   userId: string,
   type: string,
   reason: string,
   amount: number
 ): Promise<RewardResult> => {
-  console.log(`[Mock Reward] ${amount} CHOICE to ${userId} for ${type}:${reason}`);
-  return { success: true, amount };
+  if (!userId || !type || !reason || !Number.isFinite(amount) || amount <= 0) {
+    return { success: false, error: 'Invalid reward payload.' };
+  }
+
+  try {
+    const transactions = readTransactions();
+    const duplicate = transactions.some(
+      (tx) => tx.user_id === userId && tx.type === type && tx.reason === reason
+    );
+
+    if (duplicate) {
+      return { success: true, duplicate: true, amount: 0 };
+    }
+
+    const transaction: ChoiceTransaction = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      amount,
+      type,
+      reason,
+      created_at: new Date().toISOString(),
+    };
+
+    writeTransactions([transaction, ...transactions]);
+    return { success: true, amount };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Failed to grant reward.' };
+  }
 };
 
 /**
@@ -64,14 +96,20 @@ export const grantReferralReward = (userId: string, referredUserId: string) =>
  * Fetch user's CHOICE coin balance
  */
 export const getChoiceBalance = async (userId: string): Promise<number> => {
-  return 0; // Will be replaced by PGLite in Phase 5
+  const transactions = readTransactions();
+  return transactions
+    .filter((tx) => tx.user_id === userId)
+    .reduce((sum, tx) => sum + tx.amount, 0);
 };
 
 /**
  * Fetch user's transaction history
  */
 export const getTransactionHistory = async (userId: string): Promise<ChoiceTransaction[]> => {
-  return []; // Will be replaced by PGLite in Phase 5
+  const transactions = readTransactions();
+  return transactions
+    .filter((tx) => tx.user_id === userId)
+    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
 };
 
 /**
