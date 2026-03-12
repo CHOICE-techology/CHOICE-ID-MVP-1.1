@@ -98,6 +98,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const syncSession = async () => {
       if (!ready) {
+        clearConnectTimeout();
         setPendingConnect(false);
         setUserIdentity(null);
         setConnectionState({
@@ -110,6 +111,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!authenticated || forceDisconnected) {
+        clearConnectTimeout();
         setPendingConnect(false);
         setUserIdentity(null);
         setConnectionState({
@@ -123,6 +125,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!rawAddress) {
+        clearConnectTimeout();
         setPendingConnect(false);
         setConnectionState({
           address: null,
@@ -159,12 +162,13 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authError: 'Failed to load your profile. Please try Create Profile.',
         });
       } finally {
+        clearConnectTimeout();
         setPendingConnect(false);
       }
     };
 
     void syncSession();
-  }, [ready, authenticated, rawAddress, forceDisconnected, displayNameHint, setUserIdentity, setConnectionState]);
+  }, [ready, authenticated, rawAddress, forceDisconnected, displayNameHint, setUserIdentity, setConnectionState, clearConnectTimeout]);
 
   const connect = async (method?: string, _payload?: Record<string, string>): Promise<boolean> => {
     setForceDisconnected(false);
