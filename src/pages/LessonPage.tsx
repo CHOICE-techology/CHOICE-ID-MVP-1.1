@@ -86,86 +86,34 @@ const LessonPage: React.FC = () => {
     }
   };
 
-
+  const renderInlineMarkdown = (text: string) => {
+    const chunks = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+    return chunks.map((chunk, index) => {
+      const isBold = chunk.startsWith('**') && chunk.endsWith('**') && chunk.length > 4;
+      if (isBold) {
+        return <strong key={`bold-${index}`} className="text-foreground font-bold">{chunk.slice(2, -2)}</strong>;
+      }
+      return <React.Fragment key={`text-${index}`}>{chunk}</React.Fragment>;
+    });
+  };
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-10">
-      {/* Course header with badge color accent */}
-      <div className={`glass border-white/10 rounded-[2rem] p-5 mb-8 shadow-2xl relative overflow-hidden group transition-all hover:bg-white/5`}>
-        <div className={`absolute inset-0 bg-gradient-to-r ${course.badgeColor} opacity-20 group-hover:opacity-30 transition-opacity`} />
-        <div className="flex items-center gap-3 relative z-10">
-          <button onClick={() => navigate('/education')} className="text-white/80 hover:text-white transition-colors">
-            <ArrowLeft size={20} />
-          </button>
-          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm">{course.title}</p>
-            <p className="text-white/70 text-xs">Lesson {currentLessonIdx + 1} of {course.lessons.length} · {course.level}</p>
-          </div>
-          <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30">
-            <span className="text-white text-xs font-bold">+{course.points} pts</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress bar with lesson markers */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <Zap size={12} className="text-primary" /> Progress
-          </span>
-          <span className="text-xs font-bold text-primary">{Math.round(progress)}%</span>
-        </div>
-        <div className="relative w-full h-2.5 bg-muted rounded-full overflow-hidden">
-          <div className={`h-full bg-gradient-to-r ${course.badgeColor} transition-all duration-500 rounded-full`} style={{ width: `${progress}%` }} />
-        </div>
-        {/* Lesson dots */}
-        <div className="flex justify-between mt-3 px-1">
-          {course.lessons.map((l, i) => (
-            <div key={i} className="flex flex-col items-center gap-1.5">
-              <div className={`w-3 h-3 rounded-full transition-all border-2 ${
-                i < currentLessonIdx ? 'bg-emerald-400 border-emerald-400 shadow-sm shadow-emerald-400/30' :
-                i === currentLessonIdx ? `bg-gradient-to-r ${course.badgeColor} border-transparent ring-2 ring-primary/30 shadow-sm` :
-                'bg-transparent border-muted-foreground/20'
-              }`} />
-              <span className={`text-[9px] font-bold ${i === currentLessonIdx ? 'text-foreground' : 'text-muted-foreground/40'}`}>
-                {i + 1}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Lesson Content Card */}
-      <div className="glass-dark border-white/5 rounded-3xl overflow-hidden mb-8 shadow-2xl transition-all hover:bg-white/5 group">
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-white/5 bg-white/5">
-          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${course.badgeColor} flex items-center justify-center`}>
-            <BookOpen size={14} className="text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-foreground">{lesson.title}</h2>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1">
-              <Layers size={10} /> Lesson {currentLessonIdx + 1} of {course.lessons.length}
-            </p>
-          </div>
-        </div>
+...
         <div className="p-6 md:p-8">
-          <div className="prose prose-invert max-w-none">
+          <div className="prose max-w-none">
             {lesson.content.split('\n').map((line, i) => {
-              if (line.startsWith('###')) return <h3 key={i} className="text-xl font-bold mt-6 mb-3 text-foreground">{line.replace('###', '')}</h3>;
-              if (line.startsWith('-')) return <li key={i} className="text-muted-foreground ml-4 mb-2">{line.replace('-', '').trim()}</li>;
-              if (line.startsWith('✅') || line.startsWith('🔴')) return <div key={i} className="flex gap-2 items-start mb-4 p-3 rounded-lg bg-muted/30 border border-border/50 text-sm">{line}</div>;
-              if (line.includes('**')) {
-                const parts = line.split('**');
-                return (
-                  <p key={i} className="text-muted-foreground leading-relaxed mb-4">
-                    {parts.map((p, j) => j % 2 === 1 ? <strong key={j} className="text-foreground">{p}</strong> : p)}
-                  </p>
-                );
+              if (line.startsWith('###')) {
+                return <h3 key={i} className="text-xl font-bold mt-6 mb-3 text-foreground">{line.replace('###', '').trim()}</h3>;
+              }
+              if (line.startsWith('-')) {
+                return <li key={i} className="text-muted-foreground ml-4 mb-2">{renderInlineMarkdown(line.replace('-', '').trim())}</li>;
+              }
+              if (line.startsWith('✅') || line.startsWith('🔴')) {
+                return <div key={i} className="flex gap-2 items-start mb-4 p-3 rounded-lg bg-muted/30 border border-border/50 text-sm">{renderInlineMarkdown(line)}</div>;
               }
               if (line.trim() === '') return <div key={i} className="h-4" />;
-              return <p key={i} className="text-muted-foreground leading-relaxed mb-4">{line}</p>;
+              return <p key={i} className="text-muted-foreground leading-relaxed mb-4">{renderInlineMarkdown(line)}</p>;
             })}
           </div>
         </div>
