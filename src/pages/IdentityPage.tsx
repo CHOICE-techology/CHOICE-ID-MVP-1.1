@@ -22,7 +22,13 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const IdentityPage: React.FC = () => {
-  const { userIdentity: identity, isLoadingIdentity, updateIdentity: onUpdateIdentity } = useWallet();
+  const {
+    userIdentity: identity,
+    address,
+    isLoadingIdentity,
+    createProfile,
+    updateIdentity: onUpdateIdentity,
+  } = useWallet();
   const { toast } = useToast();
   const location = useLocation();
   const navState = location.state as { verificationSuccess?: boolean; verificationData?: any } | null;
@@ -38,6 +44,7 @@ const IdentityPage: React.FC = () => {
   const [selectedJobForCover, setSelectedJobForCover] = useState<Job | null>(null);
   const [isSendingApp, setIsSendingApp] = useState(false);
   const [appSent, setAppSent] = useState(false);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [affiliateLink, setAffiliateLink] = useState('');
   const [invitedCount] = useState(() => Math.floor(Math.random() * 5));
 
