@@ -157,6 +157,8 @@ const IdentityPage: React.FC = () => {
       }
     } catch {}
     return null;
+  }, [identity?.lastAnchorHash, identity?.lastAnchorTimestamp, score, navState]);
+
   const isVerificationPending = Boolean(
     verificationData && (!verificationData.explorerUrl || String(verificationData.txHash || '').startsWith('pending_'))
   );
