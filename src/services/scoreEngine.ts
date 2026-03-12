@@ -8,8 +8,8 @@ import { VerifiableCredential } from '@/types';
  * - Finance: wallet credentials, capped at 10
  */
 export const SCORE_WEIGHTS = {
-  SocialCredential: 5,
-  EducationCredential: 5,
+  SocialCredential: 5,       // 5 per platform, 8 platforms = 40 max
+  EducationCredential: 0,    // uses course.points from banner directly
   PhysicalCredential: 10,
   WalletCreatedCredential: 5,
   WalletHistoryCredential: 10,
@@ -70,10 +70,11 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
     if (type === 'SocialCredential') {
       categories.social = Math.min(categories.social + SCORE_WEIGHTS.SocialCredential, SCORE_CAPS.social);
     } else if (type === 'EducationCredential') {
+      // Use the course banner points directly (e.g., 3 or 4 pts per course)
       const rawCoursePoints = Number(sub.points);
-      const coursePoints = Number.isFinite(rawCoursePoints)
-        ? Math.max(1, Math.min(rawCoursePoints, 10))
-        : SCORE_WEIGHTS.EducationCredential;
+      const coursePoints = Number.isFinite(rawCoursePoints) && rawCoursePoints > 0
+        ? Math.min(rawCoursePoints, 10)
+        : 3; // sensible default if missing
       categories.education = Math.min(categories.education + coursePoints, SCORE_CAPS.education);
     } else if (type === 'PhysicalCredential') {
       categories.physical = Math.min(categories.physical + SCORE_WEIGHTS.PhysicalCredential, SCORE_CAPS.physical);
