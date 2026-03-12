@@ -18,7 +18,7 @@ const MAX_POINTS_PER_PLATFORM = 40 / TOTAL_SOCIAL_PLATFORMS; // ~5.71 per platfo
 
 export const SCORE_WEIGHTS = {
   SocialCredential: 0,       // dynamic per-platform quality scoring
-  EducationCredential: 5,    // 5 pts per document, 4 docs = 20
+  EducationCredential: 0,    // dynamic — uses actual course points from coursesData
   PhysicalCredential: 5,     // 5 pts per unique doc type
   WalletCreatedCredential: 5,
   WalletHistoryCredential: 10,
@@ -27,7 +27,7 @@ export const SCORE_WEIGHTS = {
 export const SCORE_CAPS = {
   social: 40,
   physical: 20,
-  education: 20,   // 4 documents × 5 = 20
+  education: 30,   // sum of all course points (3+3+4+3+3+4+4+3+3 = 30)
   finance: 10,
 };
 
