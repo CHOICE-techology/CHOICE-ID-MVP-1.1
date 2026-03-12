@@ -23,50 +23,59 @@ import { PrivyProvider } from '@privy-io/react-auth';
 
 const queryClient = new QueryClient();
 
+const privyAppId = import.meta.env.VITE_PRIVY_APP_ID;
+
+const AppContent = () => (
+  <ErrorBoundary>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <WalletProvider>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<IdentityPage />} />
+              <Route path="/credentials" element={<CredentialsPage />} />
+              <Route path="/education" element={<EducationPage />} />
+              <Route path="/education/:courseId" element={<LessonPage />} />
+              <Route path="/jobs" element={<JobsPage />} />
+              <Route path="/bounties" element={<BountyBoardPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/verify" element={<VerifyPage />} />
+              <Route path="/wallet/create" element={<WalletManagerPage />} />
+              <Route path="/profile/settings" element={<ProfileSettingsPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        </WalletProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </ErrorBoundary>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <PrivyProvider
-      appId={import.meta.env.VITE_PRIVY_APP_ID || ""}
-      config={{
-        appearance: {
-          theme: 'dark',
-          accentColor: '#676FFF',
-          logo: '/logo.png', // Fallback to a generic logo if available
-        },
-        embeddedWallets: {
-          ethereum: {
-            createOnLogin: 'users-without-wallets',
+    {privyAppId ? (
+      <PrivyProvider
+        appId={privyAppId}
+        config={{
+          appearance: {
+            theme: 'dark',
+            accentColor: '#676FFF',
+            logo: '/logo.png',
           },
-        },
-      }}
-    >
-      <ErrorBoundary>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-
-          <BrowserRouter>
-            <WalletProvider>
-              <AppLayout>
-                <Routes>
-                  <Route path="/" element={<IdentityPage />} />
-                  <Route path="/credentials" element={<CredentialsPage />} />
-                  <Route path="/education" element={<EducationPage />} />
-                  <Route path="/education/:courseId" element={<LessonPage />} />
-                  <Route path="/jobs" element={<JobsPage />} />
-                  <Route path="/bounties" element={<BountyBoardPage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/verify" element={<VerifyPage />} />
-                  <Route path="/wallet/create" element={<WalletManagerPage />} />
-                  <Route path="/profile/settings" element={<ProfileSettingsPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AppLayout>
-            </WalletProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ErrorBoundary>
-    </PrivyProvider>
+          embeddedWallets: {
+            ethereum: {
+              createOnLogin: 'users-without-wallets',
+            },
+          },
+        }}
+      >
+        <AppContent />
+      </PrivyProvider>
+    ) : (
+      <AppContent />
+    )}
   </QueryClientProvider>
 );
 
