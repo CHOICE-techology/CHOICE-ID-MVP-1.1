@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Target, Lock, CheckCircle, Zap, Gift, Bug, Users, Wallet, BookOpen, Shield, Globe, ArrowRight } from 'lucide-react';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { useWallet } from '@/contexts/WalletContext';
 import { calculateIdentityScore } from '@/services/scoreEngine';
-import { grantReward } from '@/services/rewardService';
+import { grantReward, getChoiceBalance } from '@/services/rewardService';
 
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -138,9 +138,18 @@ const BountyBoardPage: React.FC = () => {
   });
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [totalChoiceBalance, setTotalChoiceBalance] = useState(0);
 
   const score = identity ? calculateIdentityScore(identity.credentials) : 0;
-  const choiceBalance = 0; // We show tasks regardless; locking is visual
+
+  // Sync total CHOICE balance from rewardService (same source as sidebar)
+  useEffect(() => {
+    if (!identity?.address) { setTotalChoiceBalance(0); return; }
+    const refresh = () => getChoiceBalance(identity.address).then(setTotalChoiceBalance);
+    refresh();
+    window.addEventListener('choice-rewards-updated', refresh);
+    return () => window.removeEventListener('choice-rewards-updated', refresh);
+  }, [identity?.address]);
 
   const filteredTasks = useMemo(() => {
     if (filter === 'all') return BOUNTY_TASKS;
@@ -192,8 +201,8 @@ const BountyBoardPage: React.FC = () => {
         </div>
         <div className="flex gap-3">
           <div className="bg-card border border-border rounded-2xl px-4 py-3 text-center min-w-[80px]">
-            <span className="block text-2xl font-extrabold text-primary">◈ {earnedRewards}</span>
-            <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">/ {totalRewards} earned</span>
+            <span className="block text-2xl font-extrabold text-primary">◈ {totalChoiceBalance.toLocaleString()}</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Total CHOICE</span>
           </div>
           <div className="bg-card border border-border rounded-2xl px-4 py-3 text-center min-w-[80px]">
             <span className="block text-2xl font-extrabold text-foreground">{claimedIds.size}</span>

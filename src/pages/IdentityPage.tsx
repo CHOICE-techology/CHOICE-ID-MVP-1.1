@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 import { UserIdentity, GeneratedCV, Job } from '@/types';
 import { mockGenerateCV, mockGenerateBio, generateReputationHash } from '@/services/cryptoService';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getChoiceBalance, getTransactionHistory, getRewardLabel, getRewardCategory, ChoiceTransaction } from '@/services/rewardService';
 const IdentityPage: React.FC = () => {
   const {
     userIdentity: identity,
@@ -47,6 +48,21 @@ const IdentityPage: React.FC = () => {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [affiliateLink, setAffiliateLink] = useState('');
   const [invitedCount] = useState(() => Math.floor(Math.random() * 5));
+  const [choiceBalance, setChoiceBalance] = useState(0);
+  const [recentTxs, setRecentTxs] = useState<ChoiceTransaction[]>([]);
+  const [showAllTxs, setShowAllTxs] = useState(false);
+
+  // Fetch CHOICE balance & transactions
+  useEffect(() => {
+    if (!identity?.address) return;
+    const refresh = () => {
+      getChoiceBalance(identity.address).then(setChoiceBalance);
+      getTransactionHistory(identity.address).then(txs => setRecentTxs(txs.slice(0, 10)));
+    };
+    refresh();
+    window.addEventListener('choice-rewards-updated', refresh);
+    return () => window.removeEventListener('choice-rewards-updated', refresh);
+  }, [identity?.address]);
 
   // Popup states
   const [cvPopupOpen, setCvPopupOpen] = useState(false);
@@ -328,34 +344,34 @@ DID: ${identity.did}`;
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* HERO: TRUST SCORE — SCOREBOARD (UNCHANGED)                    */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <div className="glass border-primary/20 rounded-[2.5rem] shadow-2xl overflow-hidden relative group transition-all duration-500 hover:shadow-glow-primary/20">
-        <div className="bg-gradient-to-br from-primary/15 via-background to-secondary/10 p-6 md:p-12 relative">
-          <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
+      <div className="rounded-[2.5rem] shadow-2xl overflow-hidden relative group transition-all duration-500 border border-slate-700/50">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 md:p-12 relative">
+          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
             <CheckCircle size={400} className="text-primary" />
           </div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-[120px] opacity-[0.07] pointer-events-none"></div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="text-center md:text-left space-y-6">
-              <div className="inline-flex items-center gap-2 border border-primary/20 bg-background/70 rounded-full px-4 py-1.5 backdrop-blur-md">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-foreground">CHOICE Trust ID</span>
+              <div className="inline-flex items-center gap-2 border border-primary/30 bg-white/5 rounded-full px-4 py-1.5 backdrop-blur-md">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-300">CHOICE Trust ID</span>
               </div>
               <div>
                 <div className="flex items-baseline gap-3 justify-center md:justify-start">
-                  <h1 className="text-5xl md:text-8xl font-black text-foreground tracking-tighter drop-shadow-xl">{score}</h1>
-                  <span className="text-lg text-muted-foreground font-bold mb-2">/100</span>
+                  <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter drop-shadow-xl">{score}</h1>
+                  <span className="text-lg text-slate-400 font-bold mb-2">/100</span>
                 </div>
-                <h2 className={`text-xl md:text-3xl font-bold ${tier.color} tracking-tight`}>{tier.label}</h2>
+                <h2 className={`text-xl md:text-3xl font-bold text-primary tracking-tight`}>{tier.label}</h2>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto md:mx-0">
+              <p className="text-slate-400 text-sm leading-relaxed max-w-md mx-auto md:mx-0">
                 Your score is a cryptographic aggregate of your digital and physical footprint. It proves your humanity and reputation without revealing sensitive data.
               </p>
               <div className="flex flex-col gap-2 max-w-xs mx-auto md:mx-0">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
                   <span>Next Tier Goal</span>
                   <span>{Math.min(score + 20, 100)} pts</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-1.5">
+                <div className="w-full bg-slate-700 rounded-full h-1.5">
                   <div className="bg-gradient-to-r from-primary to-secondary h-1.5 rounded-full shadow-glow-primary" style={{ width: `${score}%` }}></div>
                 </div>
               </div>
@@ -364,8 +380,8 @@ DID: ${identity.did}`;
             <div className="h-[240px] md:h-[280px] w-full relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
-                  <PolarGrid stroke="#334155" strokeDasharray="3 3" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 'bold' }} />
+                  <PolarGrid stroke="#475569" strokeDasharray="3 3" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#CBD5E1', fontSize: 11, fontWeight: 'bold' }} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                   <Radar name="Score" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={3} fill="hsl(var(--primary))" fillOpacity={0.3} />
                   <Tooltip
@@ -375,7 +391,7 @@ DID: ${identity.did}`;
                   />
                 </RadarChart>
               </ResponsiveContainer>
-              <div className="absolute bottom-0 right-0 md:-right-4 text-[10px] text-primary font-mono bg-primary/10 border border-primary/20 px-2 py-1 rounded backdrop-blur-sm">
+              <div className="absolute bottom-0 right-0 md:-right-4 text-[10px] text-primary font-mono bg-primary/20 border border-primary/30 px-2 py-1 rounded backdrop-blur-sm">
                 Identity Vector v1.0
               </div>
             </div>
@@ -412,7 +428,86 @@ DID: ${identity.did}`;
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* CHOICE BALANCE CARD                                            */}
       {/* ═══════════════════════════════════════════════════════════════ */}
+      <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2.5 rounded-xl">
+              <Gift size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground">CHOICE BALANCE</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Identity Fuel · Live</p>
+            </div>
+          </div>
+        </div>
 
+        <div className="flex items-baseline gap-3 mb-1">
+          <span className="text-4xl md:text-5xl font-black text-foreground tracking-tighter">{choiceBalance.toLocaleString()}</span>
+          <span className="text-lg font-bold text-primary">CHOICE</span>
+        </div>
+        <p className="text-xs text-primary font-semibold mb-6">↗ +{choiceBalance} since last refresh</p>
+
+        {/* Category Breakdown */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {(() => {
+            const idTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'identity').reduce((s, tx) => s + tx.amount, 0);
+            const eduTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'education').reduce((s, tx) => s + tx.amount, 0);
+            const comTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'community').reduce((s, tx) => s + tx.amount, 0);
+            const finTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'finance').reduce((s, tx) => s + tx.amount, 0);
+            const total = choiceBalance || 1;
+            return [
+              { label: 'Identity', amount: idTotal, pct: Math.round((idTotal / total) * 100), color: 'bg-primary' },
+              { label: 'Education', amount: eduTotal, pct: Math.round((eduTotal / total) * 100), color: 'bg-purple-500' },
+              { label: 'Community', amount: comTotal, pct: Math.round((comTotal / total) * 100), color: 'bg-amber-500' },
+              { label: 'Finance', amount: finTotal, pct: Math.round((finTotal / total) * 100), color: 'bg-emerald-500' },
+            ].map(cat => (
+              <div key={cat.label} className="bg-muted rounded-xl p-3 border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">⬡ {cat.label}</span>
+                  <span className="text-[10px] text-muted-foreground">{cat.pct}%</span>
+                </div>
+                <span className="text-lg font-black text-foreground">+{cat.amount}</span>
+                <div className="w-full bg-border rounded-full h-1 mt-2">
+                  <div className={`${cat.color} h-1 rounded-full`} style={{ width: `${Math.min(cat.pct, 100)}%` }} />
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Recent Activity</span>
+          <span className="text-[10px] text-primary font-bold">● Live</span>
+        </div>
+        <div className="space-y-2">
+          {recentTxs.slice(0, showAllTxs ? 10 : 3).map(tx => (
+            <div key={tx.id} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Gift size={14} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{getRewardLabel(tx.type)}</p>
+                  <p className="text-[10px] text-muted-foreground">{tx.reason.replace(/_/g, ' ')}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-bold text-primary">+{tx.amount}</span>
+                <p className="text-[10px] text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {recentTxs.length > 3 && (
+          <button
+            onClick={() => setShowAllTxs(!showAllTxs)}
+            className="w-full mt-3 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground border border-border rounded-xl hover:bg-muted transition-colors uppercase tracking-wider"
+          >
+            {showAllTxs ? 'Show Less' : `View up to ${Math.min(recentTxs.length, 10)} transactions ▾`}
+          </button>
+        )}
+      </div>
 
       {/* ── PROFILE + ON-CHAIN VERIFICATION ROW ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
