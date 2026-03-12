@@ -34,69 +34,39 @@ const hasValidPrivyAppId = Boolean(sanitizedPrivyAppId) && ![
   'changeme',
 ].includes(sanitizedPrivyAppId.toLowerCase());
 
-const AppContent = () => (
-  <ErrorBoundary>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <WalletProvider>
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route
-                path="/identity"
-                element={
-                  <ProtectedRoute>
-                    <IdentityPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/credentials"
-                element={
-                  <ProtectedRoute>
-                    <CredentialsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/education"
-                element={
-                  <ProtectedRoute>
-                    <EducationPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/education/:courseId"
-                element={
-                  <ProtectedRoute>
-                    <LessonPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/jobs"
-                element={
-                  <ProtectedRoute>
-                    <JobsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/bounties" element={<BountyBoardPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/verify" element={<VerifyPage />} />
-              <Route path="/wallet/create" element={<WalletManagerPage />} />
-              <Route path="/profile/settings" element={<ProfileSettingsPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
-        </WalletProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </ErrorBoundary>
-);
+const AppContent = () => {
+  const protect = (element: JSX.Element) =>
+    hasValidPrivyAppId ? <ProtectedRoute>{element}</ProtectedRoute> : element;
+
+  return (
+    <ErrorBoundary>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <WalletProvider>
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/identity" element={protect(<IdentityPage />)} />
+                <Route path="/credentials" element={protect(<CredentialsPage />)} />
+                <Route path="/education" element={protect(<EducationPage />)} />
+                <Route path="/education/:courseId" element={protect(<LessonPage />)} />
+                <Route path="/jobs" element={protect(<JobsPage />)} />
+                <Route path="/bounties" element={<BountyBoardPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/verify" element={<VerifyPage />} />
+                <Route path="/wallet/create" element={<WalletManagerPage />} />
+                <Route path="/profile/settings" element={<ProfileSettingsPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppLayout>
+          </WalletProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ErrorBoundary>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
