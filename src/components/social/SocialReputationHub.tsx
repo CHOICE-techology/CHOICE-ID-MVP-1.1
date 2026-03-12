@@ -262,7 +262,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
           </div>
         </div>
         <span className="bg-secondary/10 text-secondary text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-secondary/20 hidden sm:inline-flex">
-          {socialCreds.length > 0 ? `${Math.min(socialCreds.length * 5, 40)}/40 pts` : '+40 pts max'}
+          {socialCreds.length > 0 ? `${Math.min(40, 40)}/40 pts` : '+40 pts max'}
         </span>
       </div>
 

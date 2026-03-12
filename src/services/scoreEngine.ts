@@ -43,6 +43,21 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
   const countedKeys = new Set<string>();
   const categories = { social: 0, education: 0, physical: 0, finance: 0 };
 
+  // Count unique social platforms first to distribute points equally
+  const uniqueSocialPlatforms = new Set<string>();
+  credentials.forEach((vc) => {
+    const types = Array.isArray(vc.type) ? vc.type : [vc.type];
+    if (types.includes('SocialCredential')) {
+      const sub = vc.credentialSubject as any;
+      if (sub.platform) uniqueSocialPlatforms.add(String(sub.platform).toLowerCase());
+    }
+  });
+  const socialCount = uniqueSocialPlatforms.size;
+  const pointsPerSocial = socialCount > 0 ? Math.floor(SCORE_CAPS.social / socialCount) : 0;
+  // Ensure total doesn't exceed cap: distribute remainder to first platforms
+  const socialRemainder = socialCount > 0 ? SCORE_CAPS.social - (pointsPerSocial * socialCount) : 0;
+  let socialIdx = 0;
+
   credentials.forEach((vc) => {
     const types = Array.isArray(vc.type) ? vc.type : [vc.type];
     const type = types.find((t) => t in SCORE_WEIGHTS) as keyof typeof SCORE_WEIGHTS | undefined;
@@ -68,7 +83,10 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
     if (countedKeys.has(dedupeKey)) return;
 
     if (type === 'SocialCredential') {
-      categories.social = Math.min(categories.social + SCORE_WEIGHTS.SocialCredential, SCORE_CAPS.social);
+      // Equal distribution: each platform gets floor(40/N), first ones get +1 for remainder
+      const bonus = socialIdx < socialRemainder ? 1 : 0;
+      categories.social = Math.min(categories.social + pointsPerSocial + bonus, SCORE_CAPS.social);
+      socialIdx++;
     } else if (type === 'EducationCredential') {
       // Use the course banner points directly (e.g., 3 or 4 pts per course)
       const rawCoursePoints = Number(sub.points);
