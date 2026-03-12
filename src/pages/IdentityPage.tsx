@@ -337,17 +337,17 @@ DID: ${identity.did}`;
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="text-center md:text-left space-y-6">
-              <div className="inline-flex items-center gap-2 border border-primary/20 bg-background/70 rounded-full px-4 py-1.5 backdrop-blur-md">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-foreground">CHOICE Trust ID</span>
+              <div className="inline-flex items-center gap-2 border border-primary/30 bg-white/5 rounded-full px-4 py-1.5 backdrop-blur-md">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-300">CHOICE Trust ID</span>
               </div>
               <div>
                 <div className="flex items-baseline gap-3 justify-center md:justify-start">
-                  <h1 className="text-5xl md:text-8xl font-black text-foreground tracking-tighter drop-shadow-xl">{score}</h1>
-                  <span className="text-lg text-muted-foreground font-bold mb-2">/100</span>
+                  <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter drop-shadow-xl">{score}</h1>
+                  <span className="text-lg text-slate-400 font-bold mb-2">/100</span>
                 </div>
-                <h2 className={`text-xl md:text-3xl font-bold ${tier.color} tracking-tight`}>{tier.label}</h2>
+                <h2 className={`text-xl md:text-3xl font-bold text-primary tracking-tight`}>{tier.label}</h2>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto md:mx-0">
+              <p className="text-slate-400 text-sm leading-relaxed max-w-md mx-auto md:mx-0">
                 Your score is a cryptographic aggregate of your digital and physical footprint. It proves your humanity and reputation without revealing sensitive data.
               </p>
               <div className="flex flex-col gap-2 max-w-xs mx-auto md:mx-0">
