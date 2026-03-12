@@ -58,6 +58,12 @@ const IdentityPage: React.FC = () => {
     return isNaN(result) || !isFinite(result) ? 0 : Math.min(result, 100);
   };
 
+  const getSafeDisplayDate = (value: unknown): string | null => {
+    if (!value) return null;
+    const parsedDate = new Date(value as string | number);
+    return Number.isNaN(parsedDate.getTime()) ? null : parsedDate.toLocaleString();
+  };
+
   const chartData = [
     { subject: 'Social', value: safePercent(social, 40), fullMark: 100 },
     { subject: 'Education', value: safePercent(education, 30), fullMark: 100 },
