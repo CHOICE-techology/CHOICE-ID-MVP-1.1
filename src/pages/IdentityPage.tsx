@@ -454,10 +454,10 @@ DID: ${identity.did}`;
         {/* Category Breakdown */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {(() => {
-            const idTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'identity').reduce((s, tx) => s + tx.amount, 0);
-            const eduTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'education').reduce((s, tx) => s + tx.amount, 0);
-            const comTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'community').reduce((s, tx) => s + tx.amount, 0);
-            const finTotal = recentTxs.filter(tx => getRewardCategory(tx.type) === 'finance').reduce((s, tx) => s + tx.amount, 0);
+            const idTotal = allTxs.filter(tx => getRewardCategory(tx.type) === 'identity').reduce((s, tx) => s + tx.amount, 0);
+            const eduTotal = allTxs.filter(tx => getRewardCategory(tx.type) === 'education').reduce((s, tx) => s + tx.amount, 0);
+            const comTotal = allTxs.filter(tx => getRewardCategory(tx.type) === 'community').reduce((s, tx) => s + tx.amount, 0);
+            const finTotal = allTxs.filter(tx => getRewardCategory(tx.type) === 'finance').reduce((s, tx) => s + tx.amount, 0);
             const total = choiceBalance || 1;
             return [
               { label: 'Identity', amount: idTotal, pct: Math.round((idTotal / total) * 100), color: 'bg-primary' },
