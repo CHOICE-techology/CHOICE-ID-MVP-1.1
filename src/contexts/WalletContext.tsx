@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { UserIdentity } from '../types';
 import { loadIdentityWithSync, syncIdentity, clearIdentity } from '../services/storageService';
@@ -70,6 +70,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { wallets } = useWallets();
   const [pendingConnect, setPendingConnect] = useState(false);
   const [forceDisconnected, setForceDisconnected] = useState(false);
+  const connectTimeoutRef = useRef<number | null>(null);
 
   const {
     userIdentity,
@@ -83,6 +84,13 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const address = forceDisconnected || !ready || !authenticated ? null : rawAddress;
   const displayNameHint = user?.email?.address || user?.google?.email;
 
+  const clearConnectTimeout = useCallback(() => {
+    if (connectTimeoutRef.current) {
+      window.clearTimeout(connectTimeoutRef.current);
+      connectTimeoutRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     void rehydrate();
   }, [rehydrate]);
@@ -90,6 +98,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const syncSession = async () => {
       if (!ready) {
+        clearConnectTimeout();
         setPendingConnect(false);
         setUserIdentity(null);
         setConnectionState({
@@ -102,6 +111,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!authenticated || forceDisconnected) {
+        clearConnectTimeout();
         setPendingConnect(false);
         setUserIdentity(null);
         setConnectionState({
@@ -115,6 +125,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!rawAddress) {
+        clearConnectTimeout();
         setPendingConnect(false);
         setConnectionState({
           address: null,
@@ -151,12 +162,13 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authError: 'Failed to load your profile. Please try Create Profile.',
         });
       } finally {
+        clearConnectTimeout();
         setPendingConnect(false);
       }
     };
 
     void syncSession();
-  }, [ready, authenticated, rawAddress, forceDisconnected, displayNameHint, setUserIdentity, setConnectionState]);
+  }, [ready, authenticated, rawAddress, forceDisconnected, displayNameHint, setUserIdentity, setConnectionState, clearConnectTimeout]);
 
   const connect = async (method?: string, _payload?: Record<string, string>): Promise<boolean> => {
     setForceDisconnected(false);
@@ -167,6 +179,16 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     setPendingConnect(true);
 
+    clearConnectTimeout();
+    connectTimeoutRef.current = window.setTimeout(() => {
+      setPendingConnect(false);
+      setConnectionState({
+        authError: 'Connection timed out. Please try again.',
+        isConnecting: false,
+        isConnected: false,
+      });
+    }, 15000);
+
     const normalizedMethod = (method || '').toLowerCase();
     const socialMethodMap: Record<string, string> = {
       google: 'google',
@@ -175,6 +197,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
       discord: 'discord',
       github: 'github',
       apple: 'apple',
+      telegram: 'telegram',
       email: 'email',
     };
 
@@ -188,6 +211,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return true;
     } catch (err: any) {
+      clearConnectTimeout();
       setPendingConnect(false);
       setConnectionState({
         authError: err?.message || 'Connection failed.',
@@ -199,6 +223,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const disconnect = useCallback(async () => {
+    clearConnectTimeout();
     setForceDisconnected(true);
     setPendingConnect(false);
 
@@ -221,7 +246,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('choice_last_verification');
     localStorage.removeItem('choice_job_applications_v1');
     localStorage.removeItem('choice_claimed_bounties');
-  }, [logout, setUserIdentity, setConnectionState]);
+  }, [logout, setUserIdentity, setConnectionState, clearConnectTimeout]);
 
   const createProfile = useCallback(async (): Promise<boolean> => {
     if (!address || !authenticated) {

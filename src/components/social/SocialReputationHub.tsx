@@ -221,6 +221,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       await mockUploadToIPFS(vc);
       const newIdentity = await addCredential(identity, vc);
       await onUpdateIdentity(newIdentity);
+      await grantSocialConnectReward(identity.address, platformToUse);
       setRecentlyConnected(platformToUse);
       setTimeout(() => setRecentlyConnected(null), 4000);
       setActivePlatform(null);

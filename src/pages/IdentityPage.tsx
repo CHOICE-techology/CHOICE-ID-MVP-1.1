@@ -81,8 +81,8 @@ const IdentityPage: React.FC = () => {
   const getTier = (s: number) => {
     if (s >= 80) return { label: 'Grand Master', color: 'text-primary' };
     if (s >= 60) return { label: 'Expert Verified', color: 'text-secondary' };
-    if (s >= 30) return { label: 'Verified Identity', color: 'text-muted-foreground/50' };
-    return { label: 'New Entrant', color: 'text-muted-foreground' };
+    if (s >= 30) return { label: 'Verified Identity', color: 'text-secondary' };
+    return { label: 'New Entrant', color: 'text-foreground' };
   };
 
   const tier = getTier(score);
@@ -328,34 +328,34 @@ DID: ${identity.did}`;
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* HERO: TRUST SCORE — SCOREBOARD (UNCHANGED)                    */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <div className="glass border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden relative group transition-all duration-500 hover:shadow-glow-primary/20">
-        <div className="bg-[#020617]/40 p-6 md:p-12 relative">
-          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-            <CheckCircle size={400} className="text-white" />
+      <div className="glass border-primary/20 rounded-[2.5rem] shadow-2xl overflow-hidden relative group transition-all duration-500 hover:shadow-glow-primary/20">
+        <div className="bg-gradient-to-br from-primary/15 via-background to-secondary/10 p-6 md:p-12 relative">
+          <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
+            <CheckCircle size={400} className="text-primary" />
           </div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="text-center md:text-left space-y-6">
-              <div className="inline-flex items-center gap-2 border border-white/10 bg-white/5 rounded-full px-4 py-1.5 backdrop-blur-md">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-300">CHOICE Trust ID</span>
+              <div className="inline-flex items-center gap-2 border border-primary/20 bg-background/70 rounded-full px-4 py-1.5 backdrop-blur-md">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-foreground">CHOICE Trust ID</span>
               </div>
               <div>
                 <div className="flex items-baseline gap-3 justify-center md:justify-start">
-                  <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter drop-shadow-xl">{score}</h1>
-                  <span className="text-lg text-slate-500 font-bold mb-2">/100</span>
+                  <h1 className="text-5xl md:text-8xl font-black text-foreground tracking-tighter drop-shadow-xl">{score}</h1>
+                  <span className="text-lg text-muted-foreground font-bold mb-2">/100</span>
                 </div>
                 <h2 className={`text-xl md:text-3xl font-bold ${tier.color} tracking-tight`}>{tier.label}</h2>
               </div>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-md mx-auto md:mx-0">
+              <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto md:mx-0">
                 Your score is a cryptographic aggregate of your digital and physical footprint. It proves your humanity and reputation without revealing sensitive data.
               </p>
               <div className="flex flex-col gap-2 max-w-xs mx-auto md:mx-0">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   <span>Next Tier Goal</span>
                   <span>{Math.min(score + 20, 100)} pts</span>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5">
+                <div className="w-full bg-muted rounded-full h-1.5">
                   <div className="bg-gradient-to-r from-primary to-secondary h-1.5 rounded-full shadow-glow-primary" style={{ width: `${score}%` }}></div>
                 </div>
               </div>
@@ -578,10 +578,10 @@ DID: ${identity.did}`;
               </div>
             ) : (
               <div className="p-6 md:p-8 text-center flex-1 flex items-center justify-center">
-                <div className="bg-muted rounded-2xl p-8 border-2 border-dashed border-border w-full">
-                  <Shield size={32} className="text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground text-sm font-medium">
-                    No on-chain verification yet. Anchor your reputation to create an immutable, publicly verifiable proof.
+                <div className="bg-primary/5 rounded-2xl p-8 border border-primary/20 w-full">
+                  <Shield size={32} className="text-primary mx-auto mb-3" />
+                  <p className="text-foreground text-sm font-semibold">
+                    No manual verification request yet. Submit proofs first, then your request is reviewed before any on-chain anchor.
                   </p>
                 </div>
               </div>

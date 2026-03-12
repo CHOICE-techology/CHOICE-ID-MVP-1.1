@@ -37,12 +37,12 @@ export const WalletModal: React.FC = () => {
 
   const handleConnect = async (id: string) => {
     setConnecting(id);
-    // Close our modal FIRST so it doesn't block Privy's own modal / popups
     setWalletModalOpen(false);
-    // Small delay to let our dialog unmount before Privy opens its UI
-    await new Promise((r) => setTimeout(r, 150));
     try {
-      await connect(id);
+      const ok = await connect(id);
+      if (ok) {
+        setSuccessSet((prev) => new Set(prev).add(id));
+      }
     } catch {
       // handled in context
     } finally {
@@ -53,9 +53,12 @@ export const WalletModal: React.FC = () => {
   const handleEmailConnect = async (email: string): Promise<boolean> => {
     setConnecting('email');
     setWalletModalOpen(false);
-    await new Promise((r) => setTimeout(r, 150));
     try {
-      return await connect('email', { email });
+      const ok = await connect('email', { email });
+      if (ok) {
+        setSuccessSet((prev) => new Set(prev).add('email'));
+      }
+      return ok;
     } catch {
       return false;
     } finally {

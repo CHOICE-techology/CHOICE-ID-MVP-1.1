@@ -95,8 +95,14 @@ const CredentialsPage: React.FC = () => {
       };
 
       await mockUploadToIPFS(walletVC);
-      const newIdentity = await addCredential(identity, walletVC);
-      await onUpdateIdentity(newIdentity);
+      const dedupedIdentity = {
+        ...identity,
+        credentials: [
+          ...identity.credentials.filter((vc: VerifiableCredential) => !vc.type.includes('WalletHistoryCredential')),
+          walletVC,
+        ],
+      };
+      await onUpdateIdentity(dedupedIdentity);
       await grantWalletAnalysisReward(identity.address, identity.address);
     } catch (e) {
       console.error('Wallet analysis failed', e);
@@ -160,18 +166,28 @@ const CredentialsPage: React.FC = () => {
             </ChoiceButton>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { label: 'Transactions', value: walletSubject?.txCount ?? walletStats?.txCount ?? 0 },
-              { label: 'Account Age', value: walletSubject?.accountAge ?? walletStats?.accountAge ?? '—' },
-              { label: 'Volume', value: walletSubject?.totalVolume ?? walletStats?.totalVolume ?? '—' },
-              { label: 'Assets', value: walletSubject?.assetsHeld ?? walletStats?.assetsHeld ?? '—' },
-            ].map((item) => (
-              <div key={item.label} className="bg-muted border border-border rounded-xl p-3.5">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{item.label}</p>
-                <p className="text-sm font-bold text-foreground mt-1">{item.value}</p>
-              </div>
-            ))}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { label: 'Transactions', value: walletSubject?.txCount ?? walletStats?.txCount ?? 0 },
+                { label: 'Account Age', value: walletSubject?.accountAge ?? walletStats?.accountAge ?? '—' },
+                { label: 'Volume', value: walletSubject?.totalVolume ?? walletStats?.totalVolume ?? '—' },
+                { label: 'Assets', value: walletSubject?.assetsHeld ?? walletStats?.assetsHeld ?? '—' },
+              ].map((item) => (
+                <div key={item.label} className="bg-muted border border-border rounded-xl p-3.5">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{item.label}</p>
+                  <p className="text-sm font-bold text-foreground mt-1">{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <ChoiceButton
+              onClick={analyzeWallet}
+              isLoading={isAnalyzingWallet}
+              className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest"
+            >
+              Re-Analyze Wallet History
+            </ChoiceButton>
           </div>
         )}
       </section>

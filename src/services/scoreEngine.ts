@@ -1,14 +1,18 @@
 import { VerifiableCredential } from '@/types';
 
 /**
- * Score weights — Social gives equal points per platform (max 40 total).
- * With up to 8 social platforms at 5 pts each = 40 max.
+ * Reputation score system (0-100)
+ * - Social: equal points per unique platform, capped at 40
+ * - Education: uses course banner points from credentialSubject.points, capped at 30
+ * - Physical: per unique document type, capped at 20
+ * - Finance: wallet credentials, capped at 10
  */
 export const SCORE_WEIGHTS = {
-  SocialCredential: 5,      // per unique platform, max 40
-  PhysicalCredential: 10,   // per unique doc type, max 20
-  EducationCredential: 5,   // per unique course, max 30
-  WalletCreatedCredential: 5, // per unique chain, max 10
+  SocialCredential: 5,
+  EducationCredential: 5,
+  PhysicalCredential: 10,
+  WalletCreatedCredential: 5,
+  WalletHistoryCredential: 10,
 };
 
 export const SCORE_CAPS = {
@@ -39,46 +43,55 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
   const countedKeys = new Set<string>();
   const categories = { social: 0, education: 0, physical: 0, finance: 0 };
 
-  credentials.forEach(vc => {
+  credentials.forEach((vc) => {
     const types = Array.isArray(vc.type) ? vc.type : [vc.type];
-    const type = types.find(t => SCORE_WEIGHTS[t as keyof typeof SCORE_WEIGHTS]) as keyof typeof SCORE_WEIGHTS;
-    
+    const type = types.find((t) => t in SCORE_WEIGHTS) as keyof typeof SCORE_WEIGHTS | undefined;
+
     if (!type) return;
 
-    let key = type as string;
     const sub = vc.credentialSubject as any;
+    let key = type;
 
     if (type === 'SocialCredential' && sub.platform) {
-      key = `social:${sub.platform.toLowerCase()}`;
+      key = `social:${String(sub.platform).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
     } else if (type === 'EducationCredential' && sub.courseName) {
-      key = `edu:${sub.courseName.toLowerCase()}`;
+      key = `edu:${String(sub.courseName).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
     } else if (type === 'PhysicalCredential' && sub.documentType) {
-      key = `doc:${sub.documentType.toLowerCase()}`;
+      key = `doc:${String(sub.documentType).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
     } else if (type === 'WalletCreatedCredential' && sub.chain) {
-      key = `wallet:${sub.chain.toLowerCase()}`;
+      key = `wallet:${String(sub.chain).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
+    } else if (type === 'WalletHistoryCredential') {
+      key = 'wallet-history' as keyof typeof SCORE_WEIGHTS;
     }
 
-    if (!countedKeys.has(key)) {
-      const points = SCORE_WEIGHTS[type];
-      if (type === 'SocialCredential') {
-        categories.social = Math.min(categories.social + points, SCORE_CAPS.social);
-      } else if (type === 'EducationCredential') {
-        categories.education = Math.min(categories.education + points, SCORE_CAPS.education);
-      } else if (type === 'PhysicalCredential') {
-        categories.physical = Math.min(categories.physical + points, SCORE_CAPS.physical);
-      } else if (type === 'WalletCreatedCredential') {
-        categories.finance = Math.min(categories.finance + points, SCORE_CAPS.finance);
-      }
-      
-      countedKeys.add(key);
+    const dedupeKey = String(key);
+    if (countedKeys.has(dedupeKey)) return;
+
+    if (type === 'SocialCredential') {
+      categories.social = Math.min(categories.social + SCORE_WEIGHTS.SocialCredential, SCORE_CAPS.social);
+    } else if (type === 'EducationCredential') {
+      const rawCoursePoints = Number(sub.points);
+      const coursePoints = Number.isFinite(rawCoursePoints)
+        ? Math.max(1, Math.min(rawCoursePoints, 10))
+        : SCORE_WEIGHTS.EducationCredential;
+      categories.education = Math.min(categories.education + coursePoints, SCORE_CAPS.education);
+    } else if (type === 'PhysicalCredential') {
+      categories.physical = Math.min(categories.physical + SCORE_WEIGHTS.PhysicalCredential, SCORE_CAPS.physical);
+    } else if (type === 'WalletCreatedCredential' || type === 'WalletHistoryCredential') {
+      const financePoints = type === 'WalletHistoryCredential'
+        ? SCORE_WEIGHTS.WalletHistoryCredential
+        : SCORE_WEIGHTS.WalletCreatedCredential;
+      categories.finance = Math.min(categories.finance + financePoints, SCORE_CAPS.finance);
     }
+
+    countedKeys.add(dedupeKey);
   });
 
   const totalScore = categories.social + categories.education + categories.physical + categories.finance;
 
   return {
     score: Math.min(totalScore, 100),
-    categories
+    categories,
   };
 };
 

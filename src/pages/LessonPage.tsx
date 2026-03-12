@@ -7,7 +7,7 @@ import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { useWallet } from '@/contexts/WalletContext';
-import { grantReward } from '@/services/rewardService';
+import { grantEducationReward } from '@/services/rewardService';
 
 
 const LessonPage: React.FC = () => {
