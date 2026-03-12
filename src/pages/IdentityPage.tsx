@@ -481,7 +481,7 @@ DID: ${identity.did}`;
           <span className="text-[10px] text-primary font-bold">● Live</span>
         </div>
         <div className="space-y-2">
-          {recentTxs.slice(0, showAllTxs ? 10 : 3).map(tx => (
+          {txHistory.slice(0, showAllTxs ? 10 : 3).map(tx => (
             <div key={tx.id} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
