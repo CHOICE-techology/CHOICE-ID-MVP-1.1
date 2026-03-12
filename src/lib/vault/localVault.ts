@@ -2,11 +2,28 @@ import { PGlite } from '@electric-sql/pglite';
 
 export class LocalVault {
   private static instance: PGlite | null = null;
+  private static initFailed = false;
 
   static async getInstance(): Promise<PGlite> {
+    if (this.initFailed) {
+      throw new Error('PGlite initialization previously failed');
+    }
     if (!this.instance) {
-      this.instance = new PGlite('idb://choiceid-vault');
-      await this.initializeSchema(this.instance);
+      try {
+        this.instance = new PGlite('idb://choiceid-vault');
+        await this.initializeSchema(this.instance);
+      } catch (e) {
+        console.warn('PGlite IDB init failed, trying in-memory fallback', e);
+        try {
+          this.instance = new PGlite();
+          await this.initializeSchema(this.instance);
+        } catch (e2) {
+          console.warn('PGlite in-memory init also failed', e2);
+          this.initFailed = true;
+          this.instance = null;
+          throw e2;
+        }
+      }
     }
     return this.instance;
   }
