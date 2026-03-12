@@ -50,6 +50,7 @@ const IdentityPage: React.FC = () => {
   const [invitedCount] = useState(() => Math.floor(Math.random() * 5));
   const [choiceBalance, setChoiceBalance] = useState(0);
   const [recentTxs, setRecentTxs] = useState<ChoiceTransaction[]>([]);
+  const [allTxs, setAllTxs] = useState<ChoiceTransaction[]>([]);
   const [showAllTxs, setShowAllTxs] = useState(false);
 
   // Fetch CHOICE balance & transactions
