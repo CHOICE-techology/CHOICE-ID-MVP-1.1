@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Target, Lock, CheckCircle, Zap, Gift, Bug, Users, Wallet, BookOpen, Shield, Globe, ArrowRight } from 'lucide-react';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { useWallet } from '@/contexts/WalletContext';
 import { calculateIdentityScore } from '@/services/scoreEngine';
-import { grantReward } from '@/services/rewardService';
+import { grantReward, getChoiceBalance } from '@/services/rewardService';
 
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
