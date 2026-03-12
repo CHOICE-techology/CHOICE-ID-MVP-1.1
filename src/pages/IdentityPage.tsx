@@ -375,7 +375,7 @@ DID: ${identity.did}`;
                   />
                 </RadarChart>
               </ResponsiveContainer>
-              <div className="absolute bottom-0 right-0 md:-right-4 text-[10px] text-primary font-mono bg-primary/10 border border-primary/20 px-2 py-1 rounded backdrop-blur-sm">
+              <div className="absolute bottom-0 right-0 md:-right-4 text-[10px] text-primary font-mono bg-primary/20 border border-primary/30 px-2 py-1 rounded backdrop-blur-sm">
                 Identity Vector v1.0
               </div>
             </div>
