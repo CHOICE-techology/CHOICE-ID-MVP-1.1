@@ -57,7 +57,7 @@ const IdentityPage: React.FC = () => {
     if (!identity?.address) return;
     const refresh = () => {
       getChoiceBalance(identity.address).then(setChoiceBalance);
-      getTransactionHistory(identity.address).then(txs => setRecentTxs(txs.slice(0, 10)));
+      getTransactionHistory(identity.address).then((txs) => setTxHistory(txs));
     };
     refresh();
     window.addEventListener('choice-rewards-updated', refresh);
