@@ -38,7 +38,7 @@ const ProfileSettingsPage: React.FC = () => {
       displayName: displayName || identity.displayName,
       bio: bio || identity.bio,
     });
-    navigate('/');
+    navigate('/identity');
   };
 
   const fields = [
@@ -54,7 +54,7 @@ const ProfileSettingsPage: React.FC = () => {
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in pb-10">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate('/')} className="p-2 rounded-xl bg-muted border border-border hover:bg-accent transition-colors">
+        <button onClick={() => navigate('/identity')} className="p-2 rounded-xl bg-muted border border-border hover:bg-accent transition-colors">
           <ArrowLeft size={20} className="text-foreground" />
         </button>
         <div>
@@ -130,7 +130,7 @@ const ProfileSettingsPage: React.FC = () => {
 
       {/* Save */}
       <div className="flex justify-end gap-3">
-        <ChoiceButton variant="outline" onClick={() => navigate('/')}>Cancel</ChoiceButton>
+        <ChoiceButton variant="outline" onClick={() => navigate('/identity')}>Cancel</ChoiceButton>
         <ChoiceButton onClick={handleSave}>
           <Save size={16} className="mr-2" /> Save Profile
         </ChoiceButton>

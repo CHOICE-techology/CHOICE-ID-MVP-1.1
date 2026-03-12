@@ -73,7 +73,6 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const {
     userIdentity,
-    isRehydrating,
     setUserIdentity,
     authError,
     rehydrate,
@@ -81,7 +80,8 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
   } = useChoiceStore();
 
   const rawAddress = wallets[0]?.address || user?.wallet?.address || null;
-  const address = forceDisconnected ? null : rawAddress;
+  const address = forceDisconnected || !ready || !authenticated ? null : rawAddress;
+  const displayNameHint = user?.email?.address || user?.google?.email;
 
   useEffect(() => {
     void rehydrate();
@@ -89,45 +89,94 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const syncSession = async () => {
-      if (!address || forceDisconnected) {
-        if (ready && !authenticated && !rawAddress) {
-          setUserIdentity(null);
-          localStorage.removeItem('choice_wallet_address');
-        }
+      if (!ready) {
         setPendingConnect(false);
+        setUserIdentity(null);
+        setConnectionState({
+          address: null,
+          isConnected: false,
+          isConnecting: false,
+          authError: null,
+        });
+        return;
+      }
+
+      if (!authenticated || forceDisconnected) {
+        setPendingConnect(false);
+        setUserIdentity(null);
+        setConnectionState({
+          address: null,
+          isConnected: false,
+          isConnecting: false,
+          authError: null,
+        });
+        localStorage.removeItem('choice_wallet_address');
+        return;
+      }
+
+      if (!rawAddress) {
+        setPendingConnect(false);
+        setConnectionState({
+          address: null,
+          isConnected: false,
+          isConnecting: false,
+          authError: 'No wallet address detected. Please reconnect.',
+        });
         return;
       }
 
       try {
-        const identity = await resolveIdentity(address, {
-          displayName: user?.email?.address || user?.google?.email || `Guest ${address}`,
+        const identity = await resolveIdentity(rawAddress, {
+          displayName: displayNameHint || `Guest ${rawAddress}`,
         });
         setUserIdentity(identity);
+        setConnectionState({
+          address: rawAddress,
+          isConnected: true,
+          isConnecting: false,
+          authError: null,
+        });
 
         const savedAddr = localStorage.getItem('choice_wallet_address');
-        if (savedAddr !== address) {
-          localStorage.setItem('choice_wallet_address', address);
-          await grantWalletConnectReward(address);
+        if (savedAddr !== rawAddress) {
+          localStorage.setItem('choice_wallet_address', rawAddress);
+          await grantWalletConnectReward(rawAddress);
         }
+      } catch (err) {
+        console.warn('Session sync failed', err);
+        setConnectionState({
+          address: rawAddress,
+          isConnected: false,
+          isConnecting: false,
+          authError: 'Failed to load your profile. Please try Create Profile.',
+        });
       } finally {
         setPendingConnect(false);
       }
     };
 
     void syncSession();
-  }, [address, rawAddress, forceDisconnected, ready, authenticated, user, setUserIdentity]);
+  }, [ready, authenticated, rawAddress, forceDisconnected, displayNameHint, setUserIdentity, setConnectionState]);
 
-  const connect = async (): Promise<boolean> => {
+  const connect = async (_method?: string, _payload?: Record<string, string>): Promise<boolean> => {
     setForceDisconnected(false);
-    setConnectionState({ authError: null });
+    setConnectionState({
+      authError: null,
+      isConnecting: true,
+      isConnected: false,
+    });
     setPendingConnect(true);
 
     try {
-      login();
+      await Promise.resolve(login());
       return true;
     } catch (err: any) {
       setPendingConnect(false);
-      setConnectionState({ authError: err?.message || 'Connection failed.' });
+      setConnectionState({
+        authError: err?.message || 'Connection failed.',
+        isConnecting: false,
+        isConnected: false,
+      });
       return false;
     }
   };
@@ -149,12 +198,13 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
       address: null,
       isConnected: false,
       isConnecting: false,
+      userIdentity: null,
     });
     localStorage.removeItem('choice_wallet_address');
   }, [logout, setUserIdentity, setConnectionState]);
 
   const createProfile = useCallback(async (): Promise<boolean> => {
-    if (!address) {
+    if (!address || !authenticated) {
       setConnectionState({ authError: 'No wallet detected. Please connect first.' });
       return false;
     }
@@ -164,6 +214,7 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
         displayName: user?.email?.address || user?.google?.email || `Guest ${address}`,
       });
       setUserIdentity(identity);
+      setConnectionState({ authError: null, address, isConnected: true, isConnecting: false });
       setForceDisconnected(false);
       return true;
     } catch (err) {
@@ -180,16 +231,16 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = useMemo(() => ({
     address,
-    isConnected: !!address && (authenticated || !!userIdentity),
-    isConnecting: pendingConnect,
-    isLoadingIdentity: isRehydrating && !address,
+    isConnected: ready && authenticated && !!address,
+    isConnecting: pendingConnect && !authenticated,
+    isLoadingIdentity: !ready || (pendingConnect && !address),
     userIdentity,
     connect,
     disconnect,
     createProfile,
     updateIdentity,
     authError,
-  }), [address, authenticated, userIdentity, pendingConnect, isRehydrating, authError, disconnect, createProfile]);
+  }), [address, ready, authenticated, userIdentity, pendingConnect, authError, disconnect, createProfile]);
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
@@ -234,7 +285,14 @@ const FallbackWalletProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
 
-const hasPrivy = !!import.meta.env.VITE_PRIVY_APP_ID;
+const rawPrivyAppId = import.meta.env.VITE_PRIVY_APP_ID;
+const sanitizedPrivyAppId = typeof rawPrivyAppId === 'string' ? rawPrivyAppId.trim() : '';
+const hasPrivy = Boolean(sanitizedPrivyAppId) && ![
+  'undefined',
+  'null',
+  'your-privy-app-id',
+  'changeme',
+].includes(sanitizedPrivyAppId.toLowerCase());
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (hasPrivy) return <PrivyWalletProvider>{children}</PrivyWalletProvider>;

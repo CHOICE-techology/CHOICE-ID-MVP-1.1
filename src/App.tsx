@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { AppLayout } from "@/components/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
+import Index from "./pages/Index";
 import IdentityPage from "./pages/IdentityPage";
 import CredentialsPage from "./pages/CredentialsPage";
 import EducationPage from "./pages/EducationPage";
@@ -32,33 +34,39 @@ const hasValidPrivyAppId = Boolean(sanitizedPrivyAppId) && ![
   'changeme',
 ].includes(sanitizedPrivyAppId.toLowerCase());
 
-const AppContent = () => (
-  <ErrorBoundary>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <WalletProvider>
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<IdentityPage />} />
-              <Route path="/credentials" element={<CredentialsPage />} />
-              <Route path="/education" element={<EducationPage />} />
-              <Route path="/education/:courseId" element={<LessonPage />} />
-              <Route path="/jobs" element={<JobsPage />} />
-              <Route path="/bounties" element={<BountyBoardPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/verify" element={<VerifyPage />} />
-              <Route path="/wallet/create" element={<WalletManagerPage />} />
-              <Route path="/profile/settings" element={<ProfileSettingsPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
-        </WalletProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </ErrorBoundary>
-);
+const AppContent = () => {
+  const protect = (element: JSX.Element) =>
+    hasValidPrivyAppId ? <ProtectedRoute>{element}</ProtectedRoute> : element;
+
+  return (
+    <ErrorBoundary>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <WalletProvider>
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/identity" element={protect(<IdentityPage />)} />
+                <Route path="/credentials" element={protect(<CredentialsPage />)} />
+                <Route path="/education" element={protect(<EducationPage />)} />
+                <Route path="/education/:courseId" element={protect(<LessonPage />)} />
+                <Route path="/jobs" element={protect(<JobsPage />)} />
+                <Route path="/bounties" element={<BountyBoardPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/verify" element={<VerifyPage />} />
+                <Route path="/wallet/create" element={<WalletManagerPage />} />
+                <Route path="/profile/settings" element={<ProfileSettingsPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppLayout>
+          </WalletProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ErrorBoundary>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -71,6 +79,7 @@ const App = () => (
             accentColor: '#676FFF',
             logo: '/logo.png',
           },
+          loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'apple'],
           embeddedWallets: {
             ethereum: {
               createOnLogin: 'users-without-wallets',

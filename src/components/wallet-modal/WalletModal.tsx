@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Shield } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Shield } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useChoiceStore } from '@/store/useChoiceStore';
 import { useWallet } from '@/contexts/WalletContext';
 import { walletRegistry, getDetectedWallets } from '@/data/walletRegistry';
@@ -19,41 +25,43 @@ export const WalletModal: React.FC = () => {
 
   const detectedIds = useMemo(() => getDetectedWallets(), []);
   const detectedWallets = useMemo(
-    () => walletRegistry.filter(w => detectedIds.has(w.id)),
+    () => walletRegistry.filter((w) => detectedIds.has(w.id)),
     [detectedIds]
   );
 
   const filteredWallets = useMemo(() => {
     if (!search.trim()) return walletRegistry;
     const q = search.toLowerCase();
-    return walletRegistry.filter(w => w.name.toLowerCase().includes(q));
+    return walletRegistry.filter((w) => w.name.toLowerCase().includes(q));
   }, [search]);
 
   const handleConnect = async (id: string) => {
     setConnecting(id);
+    setWalletModalOpen(false);
     try {
       const ok = await connect(id);
       if (ok) {
-        setSuccessSet(prev => new Set(prev).add(id));
-        setTimeout(() => setWalletModalOpen(false), 600);
+        setSuccessSet((prev) => new Set(prev).add(id));
       }
-    } catch { /* handled in context */ }
-    finally { setConnecting(null); }
+    } catch {
+      // handled in context
+    } finally {
+      setConnecting(null);
+    }
   };
 
   const handleEmailConnect = async (email: string): Promise<boolean> => {
     setConnecting('email');
+    setWalletModalOpen(false);
     try {
-      const ok = await connect('email', { email });
-      if (ok) {
-        setTimeout(() => setWalletModalOpen(false), 600);
-      }
-      return ok;
-    } catch { return false; }
-    finally { setConnecting(null); }
+      return await connect('email', { email });
+    } catch {
+      return false;
+    } finally {
+      setConnecting(null);
+    }
   };
 
-  // Reset state on close
   useEffect(() => {
     if (!isWalletModalOpen) {
       setConnecting(null);
@@ -64,6 +72,13 @@ export const WalletModal: React.FC = () => {
   return (
     <Dialog open={isWalletModalOpen} onOpenChange={setWalletModalOpen}>
       <DialogContent className="sm:max-w-md p-0 gap-0 border-border bg-card rounded-2xl overflow-hidden">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Connect your CHOICE ID</DialogTitle>
+          <DialogDescription>
+            Sign in with a wallet, social account, or email to continue.
+          </DialogDescription>
+        </DialogHeader>
+
         {/* Header */}
         <div className="flex items-center justify-between p-5 pb-4 border-b border-border">
           <div className="flex items-center gap-2.5">
@@ -83,16 +98,9 @@ export const WalletModal: React.FC = () => {
             onConnect={handleConnect}
           />
 
-          <SocialSignIn
-            connecting={connecting}
-            successSet={successSet}
-            onConnect={handleConnect}
-          />
+          <SocialSignIn connecting={connecting} successSet={successSet} onConnect={handleConnect} />
 
-          <EmailSignIn
-            connecting={connecting}
-            onConnect={handleEmailConnect}
-          />
+          <EmailSignIn connecting={connecting} onConnect={handleEmailConnect} />
 
           <div>
             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
