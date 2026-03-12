@@ -39,6 +39,7 @@ export const analyzeWalletHistory = async (address: string): Promise<BlockchainS
       activeChains: data.activeChains ?? [],
       balance: data.balance ?? '0 ETH',
       chainDetails: data.chainDetails,
+      protocols: data.protocols ?? [],
     };
   } catch (e) {
     console.warn('Edge function wallet analysis failed, using fallback:', e);

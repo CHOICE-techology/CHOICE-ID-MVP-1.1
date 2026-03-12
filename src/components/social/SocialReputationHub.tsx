@@ -345,7 +345,9 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                   <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
                     +{(() => {
                       const futureCount = connectedPlatforms.size + 1;
-                      return Math.floor(40 / futureCount);
+                      const currentPts = Math.round((connectedPlatforms.size / 7) * 40);
+                      const futurePts = Math.min(Math.round((futureCount / 7) * 40), 40);
+                      return futurePts - currentPts;
                     })()} pts
                   </span>
                 )}
