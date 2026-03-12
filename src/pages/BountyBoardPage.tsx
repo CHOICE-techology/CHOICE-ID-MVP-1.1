@@ -138,9 +138,18 @@ const BountyBoardPage: React.FC = () => {
   });
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [totalChoiceBalance, setTotalChoiceBalance] = useState(0);
 
   const score = identity ? calculateIdentityScore(identity.credentials) : 0;
-  const choiceBalance = 0; // We show tasks regardless; locking is visual
+
+  // Sync total CHOICE balance from rewardService (same source as sidebar)
+  useEffect(() => {
+    if (!identity?.address) { setTotalChoiceBalance(0); return; }
+    const refresh = () => getChoiceBalance(identity.address).then(setTotalChoiceBalance);
+    refresh();
+    window.addEventListener('choice-rewards-updated', refresh);
+    return () => window.removeEventListener('choice-rewards-updated', refresh);
+  }, [identity?.address]);
 
   const filteredTasks = useMemo(() => {
     if (filter === 'all') return BOUNTY_TASKS;
