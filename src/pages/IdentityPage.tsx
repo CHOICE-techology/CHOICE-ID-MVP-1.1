@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getChoiceBalance, getTransactionHistory, getRewardLabel, getRewardCategory, ChoiceTransaction } from '@/services/rewardService';
 const IdentityPage: React.FC = () => {
   const {
     userIdentity: identity,
