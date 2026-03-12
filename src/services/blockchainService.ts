@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface DetectedProtocol {
   name: string;
+  chain?: string;
   logo: string;
 }
 

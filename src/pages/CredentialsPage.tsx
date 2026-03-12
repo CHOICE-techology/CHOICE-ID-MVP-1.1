@@ -239,6 +239,7 @@ const CredentialsPage: React.FC = () => {
                       <div key={i} className="flex items-center gap-2 bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2">
                         <img src={proto.logo} alt={proto.name} className="w-5 h-5 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                         <span className="text-xs font-bold text-white">{proto.name}</span>
+                        {proto.chain && <span className="text-[9px] text-slate-400 font-medium">— {proto.chain}</span>}
                       </div>
                     ))}
                   </div>

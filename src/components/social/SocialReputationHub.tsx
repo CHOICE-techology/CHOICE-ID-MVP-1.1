@@ -201,15 +201,15 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
         ? `https://${platformToUse.toLowerCase()}.com/${handleInput.replace(/^@/, '')}`
         : handleInput;
 
-      // Mock analysis for now, will be replaced by scoreEngine/ollama later
+      // Mock analysis — realistic modest scores for unverified profiles
       const data = {
-        followers: 1000,
-        engagementRate: 5.5,
-        botProbability: 10,
+        followers: Math.floor(Math.random() * 500) + 50,
+        engagementRate: +(Math.random() * 3 + 0.5).toFixed(1),
+        botProbability: Math.floor(Math.random() * 30) + 10,
         platform: platformToUse,
-        platformScore: 85
+        posts: Math.floor(Math.random() * 200) + 10,
+        comments: Math.floor(Math.random() * 100) + 5,
       };
-
 
       const vc: VerifiableCredential = {
         id: `urn:uuid:${Math.random().toString(36).substring(2)}`,
@@ -221,7 +221,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       await mockUploadToIPFS(vc);
       const newIdentity = await addCredential(identity, vc);
       await onUpdateIdentity(newIdentity);
-      await grantSocialConnectReward(identity.address, platformToUse);
+      // No auto CHOICE reward for social connect — rewards come from bounties only
       setRecentlyConnected(platformToUse);
       setTimeout(() => setRecentlyConnected(null), 4000);
       setActivePlatform(null);
