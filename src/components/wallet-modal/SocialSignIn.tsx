@@ -6,7 +6,7 @@ import googleLogo from '@/assets/logos/google.png';
 import appleLogo from '@/assets/logos/apple.png';
 import githubLogo from '@/assets/logos/github.png';
 import telegramLogo from '@/assets/logos/telegram.png';
-import discordLogo from '@/assets/logos/discord.svg';
+import discordLogo from '@/assets/logos/discord.png';
 import xLogo from '@/assets/logos/x-twitter.png';
 
 const socialProviders = [
