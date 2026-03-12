@@ -122,7 +122,7 @@ const IdentityPage: React.FC = () => {
     if (identity?.lastAnchorHash) {
       const mockTxHash = `0x${identity.lastAnchorHash.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
       return {
-        date: identity.lastAnchorTimestamp ? new Date(identity.lastAnchorTimestamp).toLocaleString() : null,
+        date: getSafeDisplayDate(identity.lastAnchorTimestamp),
         score,
         txHash: mockTxHash,
         explorerUrl: `https://sepolia.arbiscan.io/tx/${mockTxHash}`,
@@ -130,7 +130,7 @@ const IdentityPage: React.FC = () => {
     }
     if (navState?.verificationData) {
       return {
-        date: navState.verificationData.date,
+        date: getSafeDisplayDate(navState.verificationData.date),
         score,
         txHash: navState.verificationData.txHash,
         explorerUrl: navState.verificationData.explorerUrl || `https://sepolia.arbiscan.io/tx/${navState.verificationData.txHash}`,
@@ -142,7 +142,7 @@ const IdentityPage: React.FC = () => {
       if (stored) {
         const parsed = JSON.parse(stored);
         return {
-          date: parsed.date,
+          date: getSafeDisplayDate(parsed.date),
           score,
           txHash: parsed.txHash,
           explorerUrl: parsed.explorerUrl || `https://sepolia.arbiscan.io/tx/${parsed.txHash}`,
