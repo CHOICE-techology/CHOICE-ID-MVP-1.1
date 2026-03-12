@@ -130,7 +130,7 @@ const ProfileSettingsPage: React.FC = () => {
 
       {/* Save */}
       <div className="flex justify-end gap-3">
-        <ChoiceButton variant="outline" onClick={() => navigate('/')}>Cancel</ChoiceButton>
+        <ChoiceButton variant="outline" onClick={() => navigate('/identity')}>Cancel</ChoiceButton>
         <ChoiceButton onClick={handleSave}>
           <Save size={16} className="mr-2" /> Save Profile
         </ChoiceButton>
