@@ -12,7 +12,7 @@ import { SocialPlatformCard } from './SocialPlatformCard';
 import { ChoiceButton } from '@/components/ChoiceButton';
 
 import { addCredential } from '@/services/storageService';
-import { mockUploadToIPFS } from '@/services/cryptoService';
+import { mockUploadToIPFS, mockConnectSocial } from '@/services/cryptoService';
 import { grantSocialConnectReward } from '@/services/rewardService';
 
 import { getPlatformMeta } from './platformLogos';
