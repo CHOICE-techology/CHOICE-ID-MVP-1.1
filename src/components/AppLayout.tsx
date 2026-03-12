@@ -14,6 +14,7 @@ interface LayoutProps {
 export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { address, isConnecting, isConnected, disconnect } = useWallet();
+  const { setWalletModalOpen } = useChoiceStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [choiceBalance, setChoiceBalance] = useState(0);
