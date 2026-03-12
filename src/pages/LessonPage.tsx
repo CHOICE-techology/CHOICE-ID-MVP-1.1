@@ -160,6 +160,7 @@ const LessonPage: React.FC = () => {
           </div>
         </div>
         <div className="p-6 md:p-8">
+          <div className="prose max-w-none">
             {lesson.content.split('\n').map((line, i) => {
               if (line.startsWith('###')) {
                 return <h3 key={i} className="text-xl font-bold mt-6 mb-3 text-foreground">{line.replace('###', '').trim()}</h3>;
