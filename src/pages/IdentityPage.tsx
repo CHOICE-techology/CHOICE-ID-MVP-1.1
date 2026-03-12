@@ -351,11 +351,11 @@ DID: ${identity.did}`;
                 Your score is a cryptographic aggregate of your digital and physical footprint. It proves your humanity and reputation without revealing sensitive data.
               </p>
               <div className="flex flex-col gap-2 max-w-xs mx-auto md:mx-0">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
                   <span>Next Tier Goal</span>
                   <span>{Math.min(score + 20, 100)} pts</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-1.5">
+                <div className="w-full bg-slate-700 rounded-full h-1.5">
                   <div className="bg-gradient-to-r from-primary to-secondary h-1.5 rounded-full shadow-glow-primary" style={{ width: `${score}%` }}></div>
                 </div>
               </div>
