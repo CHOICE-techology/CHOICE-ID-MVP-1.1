@@ -167,6 +167,16 @@ const ITEMS = [
   { name: "Polkadot", symbol: "DOT", risk: "Medium", description: "Multi-chain protocol connecting blockchains into one unified network.", url: "https://polkadot.com", Logo: PolkadotLogo },
   { name: "Cardano", symbol: "ADA", risk: "Low", description: "Research-driven proof-of-stake blockchain with formal verification.", url: "https://cardano.org", Logo: CardanoLogo },
   { name: "Tezos", symbol: "XTZ", risk: "Medium", description: "Self-amending blockchain with on-chain governance and liquid staking.", url: "https://tezos.com", Logo: TezosLogo },
+  { name: "Polygon", symbol: "MATIC", risk: "Low", description: "Ethereum scaling platform with low fees and fast finality.", url: "https://polygon.technology", Logo: () => <ChainIcon color="#8247E5" letter="P" /> },
+  { name: "Optimism", symbol: "OP", risk: "Medium", description: "Optimistic rollup L2 for Ethereum with the Superchain vision.", url: "https://optimism.io", Logo: () => <ChainIcon color="#FF0420" letter="OP" /> },
+  { name: "BNB Chain", symbol: "BNB", risk: "Medium", description: "High-throughput EVM chain by Binance for DeFi and dApps.", url: "https://www.bnbchain.org", Logo: () => <ChainIcon color="#F3BA2F" letter="B" /> },
+  { name: "Cosmos", symbol: "ATOM", risk: "Medium", description: "Internet of Blockchains. Sovereign interoperable chains via IBC.", url: "https://cosmos.network", Logo: () => <ChainIcon color="#2E3148" letter="⚛" /> },
+  { name: "Near", symbol: "NEAR", risk: "Medium", description: "Developer-friendly L1 with sharding and human-readable accounts.", url: "https://near.org", Logo: () => <ChainIcon color="#00C08B" letter="N" /> },
+  { name: "Tron", symbol: "TRX", risk: "High", description: "High-throughput blockchain popular for USDT transfers.", url: "https://tron.network", Logo: () => <ChainIcon color="#FF0013" letter="T" /> },
+  { name: "Starknet", symbol: "STRK", risk: "Medium", description: "ZK-rollup L2 on Ethereum with Cairo smart contracts.", url: "https://starknet.io", Logo: () => <ChainIcon color="#29296E" letter="S" /> },
+  { name: "zkSync", symbol: "ZK", risk: "Medium", description: "ZK-rollup L2 offering low-cost Ethereum security.", url: "https://zksync.io", Logo: () => <ChainIcon color="#4E529A" letter="zk" /> },
+  { name: "Sui", symbol: "SUI", risk: "Medium", description: "Move-based L1 with parallel execution and instant finality.", url: "https://sui.io", Logo: () => <ChainIcon color="#6FBCF0" letter="S" /> },
+  { name: "Aptos", symbol: "APT", risk: "Medium", description: "Move-based L1 built by former Meta engineers for Web3 scale.", url: "https://aptoslabs.com", Logo: () => <ChainIcon color="#2DD8A3" letter="A" /> },
 ];
 
 /* ══════════════════════════════════════════════
