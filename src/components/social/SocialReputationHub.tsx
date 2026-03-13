@@ -58,6 +58,9 @@ const SOCIAL_PLATFORMS: PlatformDef[] = [
   { name: 'Other',       id: 'Custom',    fallbackIcon: PlusCircle },
 ];
 
+// Total connectable platforms (excluding "Other")
+const TOTAL_PLATFORMS = SOCIAL_PLATFORMS.length - 1; // 11
+
 interface SocialReputationHubProps {
   identity: any;
   onUpdateIdentity: (identity: any) => void;
@@ -80,25 +83,44 @@ const computeOverallSocialScore = (creds: VerifiableCredential[]): number => {
 };
 
 /**
- * Calculate actual reputation points for social (weighted, max 40)
+ * Calculate actual reputation points for social (weighted by activity, max 40).
+ * 40 points are split across ALL 12 platforms (not just connected ones).
+ * Each platform gets at most 40/12 ≈ 3.33 pts, adjusted by quality.
+ * Low activity = ~1-2 pts, high activity = ~3 pts.
  */
 const computeWeightedSocialPts = (creds: VerifiableCredential[]): number => {
   if (!creds.length) return 0;
-  const totalPlatforms = creds.length;
   let total = 0;
+  const maxPerPlatform = 40 / TOTAL_PLATFORMS; // ~3.64
+
   creds.forEach(vc => {
     const sub = vc.credentialSubject as any;
     const followers = Number(sub.followers) || 0;
     const engagement = parseFloat(sub.engagementRate) || 0;
     const botPct = parseFloat(sub.botProbability) || 50;
+
+    // Quality multiplier 0-1
     const influenceRaw = Math.min(1, Math.log10(Math.max(followers, 1)) / 6);
     const engagementRaw = Math.min(1, engagement / 10);
     const authRaw = Math.max(0, (100 - botPct) / 100);
     const quality = influenceRaw * 0.4 + engagementRaw * 0.3 + authRaw * 0.3;
-    const maxPerPlatform = 40 / Math.max(totalPlatforms, 1);
+
     total += Math.round(quality * maxPerPlatform * 10) / 10;
   });
   return Math.min(Math.round(total), SCORE_CAPS.social);
+};
+
+/** Per-platform points calculation for display */
+const computePlatformPts = (sub: any): number => {
+  const maxPerPlatform = 40 / TOTAL_PLATFORMS;
+  const followers = Number(sub.followers) || 0;
+  const engagement = parseFloat(sub.engagementRate) || 0;
+  const botPct = parseFloat(sub.botProbability) || 50;
+  const influenceRaw = Math.min(1, Math.log10(Math.max(followers, 1)) / 6);
+  const engagementRaw = Math.min(1, engagement / 10);
+  const authRaw = Math.max(0, (100 - botPct) / 100);
+  const quality = influenceRaw * 0.4 + engagementRaw * 0.3 + authRaw * 0.3;
+  return Math.round(quality * maxPerPlatform * 10) / 10;
 };
 
 const getAggregateMetrics = (creds: VerifiableCredential[]) => {
@@ -131,7 +153,7 @@ const getInsights = (creds: VerifiableCredential[], metrics: ReturnType<typeof g
   return insights.slice(0, 3);
 };
 
-/* ─── Platform logo pill used in the Connect grid — full colored square, no white ─── */
+/* ─── Platform logo pill — full colored square, no white ─── */
 const PlatformIcon: React.FC<{ platform: PlatformDef; connected: boolean }> = ({ platform, connected }) => {
   const meta = getPlatformMeta(platform.id);
   const FallbackIcon = platform.fallbackIcon;
@@ -159,6 +181,34 @@ const PlatformIcon: React.FC<{ platform: PlatformDef; connected: boolean }> = ({
       <FallbackIcon size={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
     </div>
   );
+};
+
+/** Generate randomized mock data that produces realistic low/medium/high activity */
+const generateMockActivityData = () => {
+  // Random tier: low (60%), medium (30%), high (10%)
+  const r = Math.random();
+  if (r < 0.6) {
+    // Low activity — yields ~1-2 pts
+    return {
+      followers: Math.floor(Math.random() * 500) + 10,
+      engagementRate: Math.round((Math.random() * 2) * 10) / 10,
+      botProbability: Math.floor(Math.random() * 30) + 30,
+    };
+  } else if (r < 0.9) {
+    // Medium activity — yields ~2-3 pts
+    return {
+      followers: Math.floor(Math.random() * 5000) + 500,
+      engagementRate: Math.round((Math.random() * 4 + 2) * 10) / 10,
+      botProbability: Math.floor(Math.random() * 20) + 10,
+    };
+  } else {
+    // High activity — yields ~3+ pts
+    return {
+      followers: Math.floor(Math.random() * 50000) + 10000,
+      engagementRate: Math.round((Math.random() * 5 + 5) * 10) / 10,
+      botProbability: Math.floor(Math.random() * 10) + 2,
+    };
+  }
 };
 
 export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identity, onUpdateIdentity }) => {
@@ -224,13 +274,17 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
         ? `https://${platformToUse.toLowerCase()}.com/${handleInput.replace(/^@/, '')}`
         : handleInput;
 
-      // Mock analysis — real activity metrics for weighted scoring
+      // Randomized mock activity data — produces realistic low/medium/high scores
+      const activityData = generateMockActivityData();
+
       const data = {
-        followers: 1000,
-        engagementRate: 5.5,
-        botProbability: 10,
+        ...activityData,
         platform: platformToUse,
-        platformScore: 85
+        platformScore: Math.round(
+          Math.min(30, Math.log10(Math.max(activityData.followers, 1)) * 6) +
+          Math.min(40, activityData.engagementRate * 5) +
+          Math.max(0, 30 - activityData.botProbability * 0.6)
+        ),
       };
 
       const vc: VerifiableCredential = {
@@ -266,9 +320,8 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
   const activePlatformDef = SOCIAL_PLATFORMS.find(p => p.id === activePlatform);
   const activeMeta = activePlatform ? getPlatformMeta(activePlatform) : null;
 
-  // Calculate per-platform expected points for display
-  const totalConnectable = SOCIAL_PLATFORMS.length - 1; // exclude "Other"
-  const ptsPerPlatform = Math.round(40 / totalConnectable);
+  // Max pts per platform for display
+  const maxPtsPerPlatform = Math.round((40 / TOTAL_PLATFORMS) * 10) / 10;
 
   return (
     <section className="space-y-6">
@@ -281,7 +334,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
           <div>
             <h2 className="text-lg md:text-xl font-black tracking-tight text-foreground leading-tight">Social Reputation</h2>
             <p className="text-muted-foreground text-xs font-medium mt-0.5">
-              AI-powered analysis · {socialCreds.length} profile{socialCreds.length !== 1 ? 's' : ''} connected
+              AI-powered analysis · {socialCreds.length} profile{socialCreds.length !== 1 ? 's' : ''} connected · max ~{maxPtsPerPlatform} pts each
             </p>
           </div>
         </div>
@@ -316,6 +369,41 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
             </div>
           </div>
 
+          {/* Per-platform points breakdown */}
+          <div className="p-5 border-b border-border">
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Points Per Platform</p>
+            <div className="space-y-1.5">
+              {socialCreds.map((vc: VerifiableCredential) => {
+                const sub = vc.credentialSubject as any;
+                const pts = computePlatformPts(sub);
+                const platform = sub.platform;
+                const meta = getPlatformMeta(platform);
+                return (
+                  <div key={vc.id} className="flex items-center gap-2">
+                    {meta ? (
+                      <div className={cn('w-5 h-5 rounded flex items-center justify-center overflow-hidden', meta.bgClass)}>
+                        <img src={meta.logo} alt={platform} className="w-3 h-3 object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center">
+                        <span className="text-[8px] text-white font-bold">{platform?.[0]}</span>
+                      </div>
+                    )}
+                    <span className="text-xs font-bold text-foreground flex-1">{platform}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {sub.followers} followers · {sub.engagementRate}% eng · {sub.botProbability}% bot
+                    </span>
+                    <span className="text-xs font-black text-primary ml-2">+{pts} pts</span>
+                  </div>
+                );
+              })}
+              <div className="flex items-center justify-between pt-2 border-t border-border mt-2">
+                <span className="text-[10px] font-black text-muted-foreground uppercase">Total</span>
+                <span className="text-sm font-black text-secondary">{weightedPts}/40 pts</span>
+              </div>
+            </div>
+          </div>
+
           {insights.length > 0 && (
             <div className="p-5">
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Actionable Insights</p>
@@ -340,6 +428,9 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
             const isConnected = connectedPlatforms.has(social.id);
             const justConnected = recentlyConnected === social.id;
             const meta = getPlatformMeta(social.id);
+            // Show earned pts for connected platforms
+            const connectedVC = socialCreds.find((vc: VerifiableCredential) => (vc.credentialSubject as any).platform === social.id);
+            const earnedPts = connectedVC ? computePlatformPts(connectedVC.credentialSubject as any) : 0;
             return (
               <button
                 key={social.id}
@@ -358,10 +449,12 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                 <PlatformIcon platform={social} connected={isConnected} />
                 <span className="text-[10px] font-bold text-foreground leading-tight">{social.name}</span>
                 {isConnected ? (
-                  <Check size={9} className="text-emerald-400" />
+                  <span className="text-[8px] font-black text-emerald-400 flex items-center gap-0.5">
+                    <Check size={9} /> +{earnedPts} pts
+                  </span>
                 ) : (
                   <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
-                    +{ptsPerPlatform} pts
+                    up to ~{maxPtsPerPlatform}
                   </span>
                 )}
               </button>
@@ -399,14 +492,14 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
           </div>
           <h3 className="font-black text-foreground text-base tracking-tight mb-1.5">Build Your Social Reputation</h3>
           <p className="text-muted-foreground text-sm font-medium max-w-xs mx-auto leading-relaxed">
-            Connect your social profiles for AI-powered reputation analysis and earn CHOICE coins.
+            Connect your social profiles for AI-powered reputation analysis. Each platform earns up to ~{maxPtsPerPlatform} pts based on activity.
           </p>
           <div className="flex items-center justify-center gap-4 mt-5 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />+100 CHOICE per profile
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />40 pts across 11 platforms
             </div>
             <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary" />Unlock job opportunities
+              <span className="w-1.5 h-1.5 rounded-full bg-secondary" />Weighted by activity
             </div>
             <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />AI bot & fraud detection
@@ -447,7 +540,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
               </div>
               <button
                 onClick={() => { setActivePlatform(null); setHandleInput(''); setLinkError(null); }}
-                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-white/[0.06]"
+                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted"
               >
                 <X size={18} />
               </button>
@@ -512,7 +605,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
             <div className="flex items-center gap-2 bg-primary/[0.08] border border-primary/20 rounded-xl px-3.5 py-2.5 mb-4">
               <Sparkles size={13} className="text-primary flex-shrink-0" />
               <span className="text-xs font-bold text-foreground">
-                Earn <strong className="text-primary">+100 CHOICE</strong> and <strong className="text-secondary">~{ptsPerPlatform} reputation pts</strong>
+                Earn up to <strong className="text-secondary">~{maxPtsPerPlatform} reputation pts</strong> (based on activity)
               </span>
             </div>
 
