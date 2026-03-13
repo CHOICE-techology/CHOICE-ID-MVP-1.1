@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
@@ -85,6 +85,14 @@ const CredentialsPage: React.FC = () => {
   const [addWalletAddress, setAddWalletAddress] = useState('');
   const [isAnalyzingAdded, setIsAnalyzingAdded] = useState(false);
   const [addedWallets, setAddedWallets] = useState<AddedWallet[]>([]);
+
+  // Auto-analyze connected wallet on mount
+  useEffect(() => {
+    if (identity?.address && !walletStats && !walletCredential && !isAnalyzingWallet) {
+      analyzeWallet();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [identity?.address]);
 
   if (!identity)
     return (

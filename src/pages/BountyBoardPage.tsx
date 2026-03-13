@@ -4,6 +4,7 @@ import { ChoiceButton } from '@/components/ChoiceButton';
 import { useWallet } from '@/contexts/WalletContext';
 import { calculateIdentityScore } from '@/services/scoreEngine';
 import { grantReward, getChoiceBalance } from '@/services/rewardService';
+import { COURSES } from '@/data/coursesData';
 
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -15,7 +16,8 @@ interface BountyTask {
   reward: number;
   icon: React.ElementType;
   category: 'identity' | 'education' | 'community' | 'security';
-  minScore: number;
+  /** Minimum number of completed courses to unlock */
+  minCourses: number;
   minBalance: number;
   type: string;
   reason: string;
@@ -29,7 +31,7 @@ const BOUNTY_TASKS: BountyTask[] = [
     reward: 100,
     icon: Shield,
     category: 'identity',
-    minScore: 0,
+    minCourses: 0,
     minBalance: 0,
     type: 'bounty_reward',
     reason: 'bounty_verify_professional',
@@ -41,7 +43,7 @@ const BOUNTY_TASKS: BountyTask[] = [
     reward: 50,
     icon: BookOpen,
     category: 'education',
-    minScore: 10,
+    minCourses: 3,
     minBalance: 0,
     type: 'bounty_reward',
     reason: 'bounty_education_3',
@@ -53,7 +55,7 @@ const BOUNTY_TASKS: BountyTask[] = [
     reward: 30,
     icon: Wallet,
     category: 'identity',
-    minScore: 0,
+    minCourses: 0,
     minBalance: 0,
     type: 'bounty_reward',
     reason: 'bounty_multichain',
@@ -65,7 +67,7 @@ const BOUNTY_TASKS: BountyTask[] = [
     reward: 75,
     icon: Users,
     category: 'community',
-    minScore: 30,
+    minCourses: 1,
     minBalance: 25,
     type: 'bounty_reward',
     reason: 'bounty_invite_3',
@@ -77,7 +79,7 @@ const BOUNTY_TASKS: BountyTask[] = [
     reward: 100,
     icon: Bug,
     category: 'security',
-    minScore: 20,
+    minCourses: 1,
     minBalance: 0,
     type: 'bounty_reward',
     reason: 'bounty_bug_report',
@@ -89,7 +91,7 @@ const BOUNTY_TASKS: BountyTask[] = [
     reward: 150,
     icon: Zap,
     category: 'security',
-    minScore: 40,
+    minCourses: 2,
     minBalance: 50,
     type: 'bounty_reward',
     reason: 'bounty_beta_test',
@@ -97,11 +99,11 @@ const BOUNTY_TASKS: BountyTask[] = [
   {
     id: 'global-identity',
     title: 'Achieve Global Identity',
-    description: 'Reach 80+ Trust Score with credentials across all categories. The ultimate CHOICE achievement.',
+    description: 'Reach maximum credentials with courses across all categories. The ultimate CHOICE achievement.',
     reward: 200,
     icon: Globe,
     category: 'identity',
-    minScore: 60,
+    minCourses: 5,
     minBalance: 100,
     type: 'bounty_reward',
     reason: 'bounty_global_identity',
@@ -113,7 +115,7 @@ const BOUNTY_TASKS: BountyTask[] = [
     reward: 150,
     icon: Gift,
     category: 'community',
-    minScore: 30,
+    minCourses: 2,
     minBalance: 50,
     type: 'bounty_reward',
     reason: 'bounty_community_contrib',
@@ -141,6 +143,9 @@ const BountyBoardPage: React.FC = () => {
   const [totalChoiceBalance, setTotalChoiceBalance] = useState(0);
 
   const score = identity ? calculateIdentityScore(identity.credentials) : 0;
+  const completedCoursesCount = identity
+    ? COURSES.filter(c => identity.credentials.some(vc => vc.type.includes('EducationCredential') && (vc.credentialSubject as any).courseName === c.title)).length
+    : 0;
 
   // Sync total CHOICE balance from rewardService (same source as sidebar)
   useEffect(() => {
@@ -158,7 +163,7 @@ const BountyBoardPage: React.FC = () => {
 
   const getTaskStatus = (task: BountyTask): 'claimable' | 'locked' | 'completed' => {
     if (claimedIds.has(task.id)) return 'completed';
-    if (score < task.minScore) return 'locked';
+    if (completedCoursesCount < task.minCourses) return 'locked';
     return 'claimable';
   };
 
@@ -262,7 +267,7 @@ const BountyBoardPage: React.FC = () => {
                 <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
                   <div className="text-center">
                     <Lock size={24} className="text-muted-foreground mx-auto mb-2" />
-                    <p className="text-xs font-bold text-muted-foreground">Unlock at score {task.minScore}+</p>
+                    <p className="text-xs font-bold text-muted-foreground">Complete {task.minCourses} course{task.minCourses > 1 ? 's' : ''} to unlock</p>
                     {task.minBalance > 0 && (
                       <p className="text-[10px] text-muted-foreground">and ◈ {task.minBalance} CHOICE</p>
                     )}

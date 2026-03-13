@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 export interface BlockchainStats {
   txCount: number;
   accountAge: string;
@@ -10,23 +12,41 @@ export interface BlockchainStats {
   balance?: string;
 }
 
-// Wallet analysis mocked for Phase 2/3 (transitioning to local-first)
-export const analyzeWalletHistory = async (address: string): Promise<BlockchainStats> => {
-  return {
-    txCount: 42,
-    accountAge: '2 years',
-    totalVolume: '15.5 ETH',
-    assetsHeld: '12 tokens',
-    netValue: '$45,000',
-    activityData: [
-      { name: 'Mon', tx: 2 },
-      { name: 'Tue', tx: 5 },
-      { name: 'Wed', tx: 3 },
-      { name: 'Thu', tx: 8 },
-      { name: 'Fri', tx: 4 },
-    ],
-    chain: 'Ethereum',
-    activeChains: ['Ethereum', 'Polygon', 'Arbitrum'],
-    balance: '1.2 ETH',
-  };
+/**
+ * Analyze wallet history using real on-chain data via edge function.
+ * Falls back to a minimal response if the edge function is unavailable.
+ */
+export const analyzeWalletHistory = async (address: string, chain?: string): Promise<BlockchainStats> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('analyze-wallet', {
+      body: { address, chain },
+    });
+
+    if (error) throw error;
+
+    return {
+      txCount: data.txCount ?? 0,
+      accountAge: data.accountAge ?? 'Unknown',
+      totalVolume: data.totalVolume ?? 'N/A',
+      assetsHeld: data.assetsHeld ?? 'N/A',
+      netValue: data.netValue ?? 'N/A',
+      activityData: data.activityData ?? [],
+      chain: data.chain ?? chain ?? 'Unknown',
+      activeChains: data.activeChains ?? [],
+      balance: data.balance ?? '0',
+    };
+  } catch (err) {
+    console.warn('Real-time wallet analysis failed, returning empty stats:', err);
+    return {
+      txCount: 0,
+      accountAge: 'Unknown',
+      totalVolume: 'N/A',
+      assetsHeld: 'N/A',
+      netValue: 'N/A',
+      activityData: [{ name: 'N/A', tx: 0 }],
+      chain: chain ?? 'Unknown',
+      activeChains: [],
+      balance: '0',
+    };
+  }
 };
