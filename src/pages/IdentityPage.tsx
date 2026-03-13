@@ -6,6 +6,7 @@ import { calculateReputationBreakdown } from '@/services/scoreEngine';
 import { calculateJobMatch } from '@/services/jobMatchingService';
 import { ALL_JOBS } from '@/data/jobsData';
 import { ChoiceButton } from '@/components/ChoiceButton';
+import { supabase } from '@/integrations/supabase/client';
 
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -46,8 +47,7 @@ const IdentityPage: React.FC = () => {
   const [isSendingApp, setIsSendingApp] = useState(false);
   const [appSent, setAppSent] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
-  const [affiliateLink, setAffiliateLink] = useState('');
-  const [invitedCount] = useState(() => Math.floor(Math.random() * 5));
+  const [referrals, setReferrals] = useState<Array<{ id: string; referral_code: string; referred_wallet: string | null; referred_name: string | null; joined_at: string | null; created_at: string }>>([]);
   const [choiceBalance, setChoiceBalance] = useState(0);
   const [recentTxs, setRecentTxs] = useState<ChoiceTransaction[]>([]);
   const [showAllTxs, setShowAllTxs] = useState(false);
@@ -62,6 +62,20 @@ const IdentityPage: React.FC = () => {
     refresh();
     window.addEventListener('choice-rewards-updated', refresh);
     return () => window.removeEventListener('choice-rewards-updated', refresh);
+  }, [identity?.address]);
+
+  // Load referrals from database
+  useEffect(() => {
+    if (!identity?.address) return;
+    const loadReferrals = async () => {
+      const { data } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_wallet', identity.address)
+        .order('created_at', { ascending: false });
+      if (data) setReferrals(data);
+    };
+    loadReferrals();
   }, [identity?.address]);
 
   // Popup states
@@ -803,41 +817,92 @@ DID: ${identity.did}`;
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground">Invite Friends</h3>
-                <p className="text-muted-foreground text-xs">Earn <span className="text-primary font-bold">◈ +25 CHOICE</span> when they reach 50 score</p>
+                <p className="text-muted-foreground text-xs">Earn <span className="text-primary font-bold">◈ +25 CHOICE</span> per friend who joins</p>
               </div>
             </div>
 
-            <div className="bg-muted rounded-xl px-4 py-3 border border-border mb-4">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Friends Invited</span>
-              <p className="text-2xl font-black text-foreground">{invitedCount}</p>
+            {/* Generate / Show Link */}
+            {referrals.length > 0 ? (
+              <div className="bg-muted rounded-xl px-4 py-3 border border-border flex items-center gap-2 mb-4">
+                <code className="text-xs text-foreground font-mono truncate flex-1">
+                  {`https://CHOICE.love/join?ref=${referrals[0].referral_code}`}
+                </code>
+                <button onClick={() => { navigator.clipboard.writeText(`https://CHOICE.love/join?ref=${referrals[0].referral_code}`); toast({ title: 'Copied!', description: 'Affiliate link copied.' }); }} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors shrink-0">
+                  <Copy size={14} className="text-primary" />
+                </button>
+              </div>
+            ) : (
+              <ChoiceButton onClick={async () => {
+                const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+                if (identity?.address) {
+                  await supabase.from('referrals').insert({ referrer_wallet: identity.address, referral_code: code });
+                  const { data } = await supabase.from('referrals').select('*').eq('referrer_wallet', identity.address).order('created_at', { ascending: false });
+                  if (data) setReferrals(data);
+                }
+              }} className="w-full mb-4">
+                <Share2 size={16} className="mr-2" /> Generate Invite Link
+              </ChoiceButton>
+            )}
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="bg-muted/60 border border-border rounded-xl p-3 text-center">
+                <p className="text-lg font-black text-foreground">{referrals.length}</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Links</p>
+              </div>
+              <div className="bg-muted/60 border border-border rounded-xl p-3 text-center">
+                <p className="text-lg font-black text-primary">{referrals.filter(r => r.joined_at).length}</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Joined</p>
+              </div>
+              <div className="bg-muted/60 border border-border rounded-xl p-3 text-center">
+                <p className="text-lg font-black text-emerald-400">◈ {referrals.filter(r => r.joined_at).length * 25}</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Earned</p>
+              </div>
             </div>
 
-            <div className="mt-auto">
-              {score >= 50 ? (
-                affiliateLink ? (
-                  <div className="bg-muted rounded-xl px-4 py-3 border border-border flex items-center gap-2">
-                    <code className="text-xs text-foreground font-mono truncate flex-1">{affiliateLink}</code>
-                    <button onClick={() => { navigator.clipboard.writeText(affiliateLink); toast({ title: 'Copied!', description: 'Affiliate link copied.' }); }} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors shrink-0">
-                      <Copy size={14} className="text-primary" />
-                    </button>
-                  </div>
-                ) : (
-                  <ChoiceButton onClick={() => { const code = Math.random().toString(36).substring(2, 10).toUpperCase(); setAffiliateLink(`https://CHOICE.love/join?ref=${code}`); }} className="w-full">
-                    <Share2 size={16} className="mr-2" /> Create Invite Link
-                  </ChoiceButton>
-                )
-              ) : (
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold mb-2">Reach 50+ points to unlock</p>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-foreground">{score}/50</span>
-                    <div className="flex-1 bg-border rounded-full h-1.5">
-                      <div className="bg-primary h-1.5 rounded-full" style={{ width: `${Math.min((score / 50) * 100, 100)}%` }}></div>
+            {/* Invited users list */}
+            {referrals.length > 0 && (
+              <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
+                {referrals.map((ref) => {
+                  const joined = !!ref.joined_at;
+                  return (
+                    <div key={ref.id} className="flex items-center gap-2 bg-muted/40 border border-border rounded-lg p-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-mono text-foreground truncate">
+                          {ref.referred_wallet || ref.referral_code}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground">
+                          {new Date(ref.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border ${
+                        joined
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                      }`}>
+                        {joined ? 'Joined ✓' : 'Pending'}
+                      </span>
+                      {joined && <span className="text-[9px] font-bold text-primary">+25 ◈</span>}
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Generate more links button */}
+            {referrals.length > 0 && (
+              <ChoiceButton variant="outline" onClick={async () => {
+                const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+                if (identity?.address) {
+                  await supabase.from('referrals').insert({ referrer_wallet: identity.address, referral_code: code });
+                  const { data } = await supabase.from('referrals').select('*').eq('referrer_wallet', identity.address).order('created_at', { ascending: false });
+                  if (data) setReferrals(data);
+                  toast({ title: 'New Link Created!', description: `Code: ${code}` });
+                }
+              }} className="w-full mt-3">
+                <Share2 size={14} className="mr-2" /> Generate Another Link
+              </ChoiceButton>
+            )}
           </div>
         </div>
       </div>
