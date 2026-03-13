@@ -176,40 +176,57 @@ const IdentityPage: React.FC = () => {
     return alerts;
   }, [score, social, education, finance, physical]);
 
-  const verificationData = useMemo(() => {
-    // Priority: identity anchor data > navState > localStorage
-    if (identity?.lastAnchorHash) {
-      const mockTxHash = `0x${identity.lastAnchorHash.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
-      return {
-        date: getSafeDisplayDate(identity.lastAnchorTimestamp),
-        score,
-        txHash: mockTxHash,
-        explorerUrl: `https://etherscan.io/tx/${mockTxHash}`,
-      };
-    }
-    if (navState?.verificationData) {
-      return {
-        date: getSafeDisplayDate(navState.verificationData.date),
-        score,
-        txHash: navState.verificationData.txHash,
-        explorerUrl: `https://etherscan.io/tx/${navState.verificationData.txHash}`,
-      };
-    }
-    // Fallback: last persisted verification from localStorage
-    try {
-      const stored = localStorage.getItem('choice_last_verification');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return {
-          date: getSafeDisplayDate(parsed.date),
+  const [verificationData, setVerificationData] = useState<{
+    date: string | null;
+    score: number;
+    txHash: string;
+    explorerUrl: string;
+    dbId?: string;
+  } | null>(null);
+
+  // Load verification from DB
+  useEffect(() => {
+    if (!identity?.address) return;
+    const load = async () => {
+      // Check navState first
+      if (navState?.verificationData) {
+        setVerificationData({
+          date: getSafeDisplayDate(navState.verificationData.date),
           score,
-          txHash: parsed.txHash,
-          explorerUrl: `https://etherscan.io/tx/${parsed.txHash}`,
-        };
+          txHash: navState.verificationData.txHash,
+          explorerUrl: navState.verificationData.id ? `/verify/tx/${navState.verificationData.id}` : '',
+          dbId: navState.verificationData.id,
+        });
+        return;
       }
-    } catch {}
-    return null;
-  }, [identity?.lastAnchorHash, identity?.lastAnchorTimestamp, score, navState]);
+      // Load from DB
+      const { data } = await supabase
+        .from('verification_transactions')
+        .select('*')
+        .eq('wallet_address', identity.address)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (data && data.length > 0) {
+        const tx = data[0];
+        setVerificationData({
+          date: getSafeDisplayDate(tx.created_at),
+          score: tx.score,
+          txHash: tx.tx_hash,
+          explorerUrl: `/verify/tx/${tx.id}`,
+          dbId: tx.id,
+        });
+      } else if (identity?.lastAnchorHash) {
+        const mockTxHash = `0x${identity.lastAnchorHash.slice(2, 66) || 'a1b2c3d4e5f6'.repeat(5)}`;
+        setVerificationData({
+          date: getSafeDisplayDate(identity.lastAnchorTimestamp),
+          score,
+          txHash: mockTxHash,
+          explorerUrl: '',
+        });
+      }
+    };
+    load();
+  }, [identity?.address, identity?.lastAnchorHash, navState, score]);
 
   // All credentials display as "Verified" — no pending state
 

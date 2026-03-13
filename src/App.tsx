@@ -57,6 +57,7 @@ const AppContent = () => {
                 <Route path="/bounties" element={<BountyBoardPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/verify" element={<VerifyPage />} />
+                <Route path="/verify/tx/:txId" element={<TransactionViewPage />} />
                 <Route path="/wallet/create" element={<WalletManagerPage />} />
                 <Route path="/profile/settings" element={<ProfileSettingsPage />} />
                 <Route path="*" element={<NotFound />} />
