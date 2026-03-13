@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles } from 'lucide-react';
+import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles, Share2 } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
 import { useChoiceStore } from '@/store/useChoiceStore';
 import { COURSES } from '@/data/coursesData';
+import { ShareBadgeDialog } from '@/components/education/ShareBadgeDialog';
 
 
 const LEVEL_STYLES: Record<string, { bg: string; text: string; border: string }> = {
