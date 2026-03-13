@@ -115,6 +115,12 @@ const EducationPage: React.FC = () => {
                   <Star size={10} className="text-amber-400 fill-amber-400" />
                   <span className="text-[10px] font-bold text-muted-foreground">+{course.points} pts</span>
                 </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShareCourse(course); }}
+                  className="mt-2 flex items-center gap-1 text-[9px] font-bold text-primary hover:text-primary/80 transition-colors bg-primary/5 border border-primary/20 px-2 py-1 rounded-md"
+                >
+                  <Share2 size={10} /> Share
+                </button>
               </div>
             ))}
           </div>
