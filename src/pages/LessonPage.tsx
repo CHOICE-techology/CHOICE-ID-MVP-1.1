@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { COURSES } from '@/data/coursesData';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { ArrowLeft, ArrowRight, BookOpen, Zap, Layers } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Zap, Layers, Share2 } from 'lucide-react';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { useWallet } from '@/contexts/WalletContext';
+import { ShareBadgeDialog } from '@/components/education/ShareBadgeDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 
 
@@ -22,6 +24,7 @@ const LessonPage: React.FC = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (!course) {
     return (
@@ -78,6 +81,24 @@ const LessonPage: React.FC = () => {
       const newIdentity = await addCredential(identity, badgeVC);
       await onUpdateIdentity(newIdentity);
       setCompleted(true);
+
+      // Grant CHOICE reward instantly
+      const reward = course.choiceReward ?? 40;
+      try {
+        await supabase.rpc('increment_choice_balance', {
+          p_wallet_address: identity.address,
+          p_amount: reward,
+        });
+        await supabase.from('choice_transactions').insert({
+          user_id: identity.address,
+          amount: reward,
+          type: 'education_reward',
+          reason: `Completed course: ${course.title}`,
+        });
+        window.dispatchEvent(new CustomEvent('choice-rewards-updated'));
+      } catch (rewardErr) {
+        console.warn('Reward grant failed', rewardErr);
+      }
 
     } catch (e) {
       console.error(e);
@@ -236,14 +257,32 @@ const LessonPage: React.FC = () => {
               🏆
             </div>
             <h2 className="text-2xl font-bold mb-2">Course Completed!</h2>
-            <p className="text-muted-foreground mb-8">
+            <p className="text-muted-foreground mb-4">
               Congratulations! You've earned the <strong>{course.title}</strong> badge and <strong>{course.points} Reputation Points</strong>.
             </p>
-            <ChoiceButton className="w-full" onClick={() => navigate('/education')}>
-              Back to Academy
-            </ChoiceButton>
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 mb-6">
+              <p className="text-primary font-black text-sm">◈ +{course.choiceReward ?? 40} CHOICE earned!</p>
+            </div>
+            <div className="flex gap-3">
+              <ChoiceButton variant="outline" className="flex-1" onClick={() => setShareOpen(true)}>
+                <Share2 size={14} className="mr-1.5" /> Share Badge
+              </ChoiceButton>
+              <ChoiceButton className="flex-1" onClick={() => navigate('/education')}>
+                Back to Academy
+              </ChoiceButton>
+            </div>
           </div>
         </div>
+      )}
+
+      {course && (
+        <ShareBadgeDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          courseName={course.title}
+          courseLevel={course.level}
+          points={course.points}
+        />
       )}
 
       {/* Navigation */}

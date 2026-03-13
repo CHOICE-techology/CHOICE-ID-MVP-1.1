@@ -558,8 +558,8 @@ const CredentialsPage: React.FC = () => {
               <FileCheck size={20} className="text-primary" />
             </div>
             <div>
-              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Real-World Proofs</h2>
-              <p className="text-muted-foreground text-xs font-medium mt-0.5">Upload and verify physical documents to strengthen your identity</p>
+              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Proofs of Verification</h2>
+              <p className="text-muted-foreground text-xs font-medium mt-0.5">Identity signals and verified documents that strengthen your trust score</p>
             </div>
           </div>
           <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">
@@ -567,13 +567,14 @@ const CredentialsPage: React.FC = () => {
           </span>
         </div>
 
-        {/* Score breakdown from reputation */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {/* 5-column signal summary */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
           {[
-            { label: 'Physical Score', value: `${breakdown.categories.physical}/20`, icon: Shield, color: 'text-emerald-400' },
-            { label: 'Docs Verified', value: `${physicalCredentials.length}/4`, icon: FileCheck, color: 'text-primary' },
-            { label: 'Social Score', value: `${breakdown.categories.social}/40`, icon: Users, color: 'text-secondary' },
-            { label: 'Total Score', value: `${breakdown.score}/100`, icon: TrendingUp, color: 'text-amber-400' },
+            { label: 'Social Accounts', value: `${breakdown.categories.social}/40`, icon: Users, color: 'text-secondary' },
+            { label: 'Documents', value: `${physicalCredentials.length}/4`, icon: FileCheck, color: 'text-primary' },
+            { label: 'Wallets', value: `${(activeChains.length || 0) + addedWallets.length}`, icon: Wallet, color: 'text-accent' },
+            { label: 'Courses', value: `${identity.credentials.filter((vc: VerifiableCredential) => vc.type.includes('EducationCredential')).length}`, icon: GraduationCap, color: 'text-amber-400' },
+            { label: 'Trust Score', value: `${breakdown.score}/100`, icon: TrendingUp, color: 'text-emerald-400' },
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="bg-muted/60 border border-border rounded-xl p-3 text-center">
               <Icon size={16} className={cn('mx-auto mb-1.5', color)} />

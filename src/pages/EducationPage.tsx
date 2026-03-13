@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles } from 'lucide-react';
+import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles, Share2 } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
 import { useChoiceStore } from '@/store/useChoiceStore';
 import { COURSES } from '@/data/coursesData';
+import { ShareBadgeDialog } from '@/components/education/ShareBadgeDialog';
 
 
 const LEVEL_STYLES: Record<string, { bg: string; text: string; border: string }> = {
@@ -17,6 +18,7 @@ const EducationPage: React.FC = () => {
   const { userIdentity: identity, isConnected } = useWallet();
   const { setWalletModalOpen } = useChoiceStore();
   const navigate = useNavigate();
+  const [shareCourse, setShareCourse] = useState<typeof COURSES[0] | null>(null);
 
   const hasBadge = (courseTitle: string) =>
     identity?.credentials.some(vc => vc.type.includes('EducationCredential') && vc.credentialSubject.courseName === courseTitle);
@@ -106,6 +108,12 @@ const EducationPage: React.FC = () => {
                   <Star size={10} className="text-amber-400 fill-amber-400" />
                   <span className="text-[10px] font-bold text-muted-foreground">+{course.points} pts</span>
                 </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShareCourse(course); }}
+                  className="mt-2 flex items-center gap-1 text-[10px] font-bold text-primary hover:text-primary/80 transition-colors"
+                >
+                  <Share2 size={10} /> Share
+                </button>
               </div>
             ))}
           </div>
@@ -216,6 +224,16 @@ const EducationPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {shareCourse && (
+        <ShareBadgeDialog
+          open={!!shareCourse}
+          onOpenChange={(open) => { if (!open) setShareCourse(null); }}
+          courseName={shareCourse.title}
+          courseLevel={shareCourse.level}
+          points={shareCourse.points}
+        />
+      )}
     </div>
   );
 };
