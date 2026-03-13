@@ -40,6 +40,7 @@ const CHAINS = [
 ];
 
 const CredentialsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
