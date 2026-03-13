@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { COURSES } from '@/data/coursesData';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { ArrowLeft, ArrowRight, BookOpen, Zap, Layers } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Zap, Layers, Share2 } from 'lucide-react';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { useWallet } from '@/contexts/WalletContext';
+import { ShareBadgeDialog } from '@/components/education/ShareBadgeDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 
 
