@@ -161,6 +161,14 @@ const CredentialsPage: React.FC = () => {
         ],
       };
       await onUpdateIdentity(dedupedIdentity);
+
+      // Grant CHOICE reward for wallet analysis
+      try {
+        const { grantWalletAnalysisReward } = await import('@/services/rewardService');
+        await grantWalletAnalysisReward(identity.address, identity.address);
+      } catch (err) {
+        console.warn('Wallet analysis reward failed:', err);
+      }
     } catch (e) {
       console.error('Wallet analysis failed', e);
     } finally {
