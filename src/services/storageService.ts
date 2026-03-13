@@ -1,26 +1,8 @@
 import { UserIdentity, VerifiableCredential } from '../types';
-import { LocalVault } from '../lib/vault/localVault';
 import { generateDID } from './cryptoService';
+import { supabase } from '@/integrations/supabase/client';
 
 const STORAGE_KEY = 'choice_id_storage_v1';
-
-const parseLocalIdentity = (raw: string | null): UserIdentity | null => {
-  if (!raw) return null;
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return null;
-    if (typeof parsed.address !== 'string' || typeof parsed.did !== 'string') return null;
-
-    return {
-      ...parsed,
-      credentials: Array.isArray(parsed.credentials) ? parsed.credentials : [],
-      reputationScore: typeof parsed.reputationScore === 'number' ? parsed.reputationScore : 0,
-    } as UserIdentity;
-  } catch {
-    return null;
-  }
-};
 
 const createGuestIdentity = (walletAddress: string): UserIdentity => ({
   address: walletAddress,
@@ -30,41 +12,57 @@ const createGuestIdentity = (walletAddress: string): UserIdentity => ({
   reputationScore: 0,
 });
 
-export const loadIdentity = async (): Promise<UserIdentity | null> => {
+/**
+ * Load identity from Supabase user_profiles by wallet address.
+ * Falls back to localStorage if Supabase is unreachable.
+ */
+export const loadIdentity = async (walletAddress?: string): Promise<UserIdentity | null> => {
+  // Try Supabase first
   try {
-    const db = await LocalVault.getInstance();
-    const res = await db.query('SELECT * FROM identities LIMIT 1');
-    if (res.rows.length === 0) return null;
+    const addr = walletAddress || localStorage.getItem('choice_wallet_address');
+    if (!addr) {
+      // Fallback: try localStorage cache
+      return parseLocalIdentity(localStorage.getItem(STORAGE_KEY));
+    }
 
-    const row = res.rows[0] as any;
-    const identity: UserIdentity = {
-      did: row.did,
-      address: row.address,
-      displayName: row.display_name,
-      avatar: row.avatar,
-      bio: row.bio,
-      lastAnchorHash: row.last_anchor_hash,
-      lastAnchorTimestamp: row.last_anchor_timestamp,
-      credentials: [],
-      reputationScore: 0,
-    };
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('wallet_address', addr)
+      .limit(1)
+      .maybeSingle();
 
-    const credsRes = await db.query('SELECT * FROM credentials WHERE did = $1', [identity.did]);
-    identity.credentials = credsRes.rows.map((r: any) => ({
-      id: r.id,
-      type: r.type,
-      issuer: r.issuer,
-      issuanceDate: r.issuance_date,
-      credentialSubject: r.subject_data,
-    }));
+    if (error) throw error;
 
-    return identity;
+    if (data) {
+      const identity: UserIdentity = {
+        did: data.did,
+        address: data.wallet_address,
+        displayName: data.display_name || undefined,
+        avatar: data.avatar || undefined,
+        bio: data.bio || undefined,
+        lastAnchorHash: data.last_anchor_hash || undefined,
+        lastAnchorTimestamp: data.last_anchor_timestamp || undefined,
+        credentials: Array.isArray(data.credentials) ? (data.credentials as unknown as VerifiableCredential[]) : [],
+        reputationScore: data.reputation_score || 0,
+      };
+      // Cache locally
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
+      return identity;
+    }
+
+    // No profile in DB — check localStorage cache
+    return parseLocalIdentity(localStorage.getItem(STORAGE_KEY));
   } catch (e) {
-    console.warn('Vault unavailable, falling back to localStorage', e);
+    console.warn('Supabase load failed, falling back to localStorage', e);
     return parseLocalIdentity(localStorage.getItem(STORAGE_KEY));
   }
 };
 
+/**
+ * Save identity to Supabase user_profiles (upsert by wallet_address).
+ * Also caches to localStorage.
+ */
 export const saveIdentity = async (identity: UserIdentity | null) => {
   if (!identity) {
     localStorage.removeItem(STORAGE_KEY);
@@ -77,59 +75,38 @@ export const saveIdentity = async (identity: UserIdentity | null) => {
     reputationScore: typeof identity.reputationScore === 'number' ? identity.reputationScore : 0,
   };
 
+  // Cache locally first
   try {
-    const db = await LocalVault.getInstance();
-
-    await db.query(`
-      INSERT INTO identities (did, address, display_name, avatar, bio, last_anchor_hash, last_anchor_timestamp)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      ON CONFLICT (did) DO UPDATE SET
-        address = EXCLUDED.address,
-        display_name = EXCLUDED.display_name,
-        avatar = EXCLUDED.avatar,
-        bio = EXCLUDED.bio,
-        last_anchor_hash = EXCLUDED.last_anchor_hash,
-        last_anchor_timestamp = EXCLUDED.last_anchor_timestamp
-    `, [
-      safeIdentity.did,
-      safeIdentity.address,
-      safeIdentity.displayName,
-      safeIdentity.avatar,
-      safeIdentity.bio,
-      safeIdentity.lastAnchorHash,
-      safeIdentity.lastAnchorTimestamp,
-    ]);
-
-    await db.query('DELETE FROM credentials WHERE did = $1', [safeIdentity.did]);
-
-    for (const vc of safeIdentity.credentials) {
-      await db.query(`
-        INSERT INTO credentials (id, did, type, issuer, issuance_date, subject_data)
-        VALUES ($1, $2, $3, $4, $5, $6)
-      `, [vc.id, safeIdentity.did, vc.type, vc.issuer, vc.issuanceDate, vc.credentialSubject]);
-    }
-
     localStorage.setItem(STORAGE_KEY, JSON.stringify(safeIdentity));
+  } catch { /* ignore */ }
+
+  // Save to Supabase
+  try {
+    const { error } = await supabase
+      .from('user_profiles')
+      .upsert({
+        wallet_address: safeIdentity.address,
+        did: safeIdentity.did,
+        display_name: safeIdentity.displayName || null,
+        avatar: safeIdentity.avatar || null,
+        bio: safeIdentity.bio || null,
+        last_anchor_hash: safeIdentity.lastAnchorHash || null,
+        last_anchor_timestamp: safeIdentity.lastAnchorTimestamp || null,
+        credentials: safeIdentity.credentials as any,
+        reputation_score: safeIdentity.reputationScore,
+      }, { onConflict: 'wallet_address' });
+
+    if (error) throw error;
   } catch (e) {
-    console.warn('Vault save failed, using localStorage fallback', e);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeIdentity));
-    } catch {
-      // Ignore storage errors to avoid UI crashes
-    }
+    console.warn('Supabase save failed, localStorage cache preserved', e);
   }
 };
 
+/**
+ * Clear only LOCAL identity data. Remote data is preserved for re-login.
+ */
 export const clearIdentity = async () => {
-  try {
-    const db = await LocalVault.getInstance();
-    await db.query('DELETE FROM credentials');
-    await db.query('DELETE FROM identities');
-  } catch (e) {
-    console.warn('Vault clear failed, clearing local fallback only', e);
-  } finally {
-    localStorage.removeItem(STORAGE_KEY);
-  }
+  localStorage.removeItem(STORAGE_KEY);
 };
 
 export const addCredential = async (currentIdentity: UserIdentity, vc: VerifiableCredential): Promise<UserIdentity> => {
@@ -145,15 +122,39 @@ export const syncIdentity = async (identity: UserIdentity): Promise<void> => {
   await saveIdentity(identity);
 };
 
+/**
+ * Load identity from Supabase by wallet address.
+ * If found, return it. Otherwise create a guest identity and persist it.
+ */
 export const loadIdentityWithSync = async (walletAddress: string): Promise<UserIdentity | null> => {
   if (!walletAddress) return null;
 
-  const localIdentity = await loadIdentity();
-  if (localIdentity && localIdentity.address === walletAddress) {
-    return localIdentity;
+  // Try loading from Supabase
+  const remoteIdentity = await loadIdentity(walletAddress);
+  if (remoteIdentity && remoteIdentity.address === walletAddress) {
+    return remoteIdentity;
   }
 
+  // No remote profile — create guest and save
   const guestIdentity = createGuestIdentity(walletAddress);
   await saveIdentity(guestIdentity);
   return guestIdentity;
+};
+
+// ── Helpers ──
+
+const parseLocalIdentity = (raw: string | null): UserIdentity | null => {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (typeof parsed.address !== 'string' || typeof parsed.did !== 'string') return null;
+    return {
+      ...parsed,
+      credentials: Array.isArray(parsed.credentials) ? parsed.credentials : [],
+      reputationScore: typeof parsed.reputationScore === 'number' ? parsed.reputationScore : 0,
+    } as UserIdentity;
+  } catch {
+    return null;
+  }
 };
