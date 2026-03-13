@@ -121,7 +121,38 @@ export const getTransactionHistory = async (userId: string): Promise<ChoiceTrans
 /**
  * Get human-readable label for a reward type
  */
-export const getRewardLabel = (type: string): string => {
+/**
+ * Map bounty reason → display title (must match BountyBoardPage task titles)
+ */
+const BOUNTY_LABELS: Record<string, string> = {
+  bounty_verify_professional: 'Verify Professional Identity',
+  bounty_education_3: 'Complete 3 Education Modules',
+  bounty_multichain: 'Multi-Chain Wallet Verification',
+  bounty_invite_3: 'Invite 3 Friends',
+  bounty_bug_report: 'Submit a Bug Report',
+  bounty_beta_test: 'Beta Feature Testing',
+  bounty_global_identity: 'Achieve Global Identity',
+  bounty_community_contrib: 'Community Contribution',
+};
+
+/**
+ * Map bounty reason → category (must match BountyBoardPage task categories)
+ */
+const BOUNTY_CATEGORIES: Record<string, 'identity' | 'education' | 'community' | 'finance'> = {
+  bounty_verify_professional: 'identity',
+  bounty_education_3: 'education',
+  bounty_multichain: 'identity',
+  bounty_invite_3: 'community',
+  bounty_bug_report: 'community',
+  bounty_beta_test: 'community',
+  bounty_global_identity: 'identity',
+  bounty_community_contrib: 'community',
+};
+
+export const getRewardLabel = (type: string, reason?: string): string => {
+  if (type === 'bounty_reward' && reason && BOUNTY_LABELS[reason]) {
+    return BOUNTY_LABELS[reason];
+  }
   const labels: Record<string, string> = {
     identity_reward: 'Identity Connection',
     social_connect_reward: 'Social Profile',
