@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 export interface ChoiceTransaction {
   id: string;
   user_id: string;
@@ -14,26 +16,9 @@ export interface RewardResult {
   error?: string;
 }
 
-const TRANSACTIONS_STORAGE_KEY = 'choice_reward_transactions_v1';
-
-const readTransactions = (): ChoiceTransaction[] => {
-  try {
-    const raw = localStorage.getItem(TRANSACTIONS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const writeTransactions = (transactions: ChoiceTransaction[]) => {
-  localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(transactions));
-  window.dispatchEvent(new CustomEvent('choice-rewards-updated'));
-};
-
 /**
- * Grant a CHOICE coin reward with duplicate protection by (user_id + type + reason)
+ * Grant a CHOICE coin reward with duplicate protection by (user_id + type + reason).
+ * Writes to Supabase choice_transactions table and increments user_profiles balance.
  */
 export const grantReward = async (
   userId: string,
@@ -46,25 +31,39 @@ export const grantReward = async (
   }
 
   try {
-    const transactions = readTransactions();
-    const duplicate = transactions.some(
-      (tx) => tx.user_id === userId && tx.type === type && tx.reason === reason
-    );
+    // Check for duplicates in Supabase
+    const { data: existing } = await supabase
+      .from('choice_transactions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('type', type)
+      .eq('reason', reason)
+      .limit(1);
 
-    if (duplicate) {
+    if (existing && existing.length > 0) {
       return { success: true, duplicate: true, amount: 0 };
     }
 
-    const transaction: ChoiceTransaction = {
-      id: crypto.randomUUID(),
-      user_id: userId,
-      amount,
-      type,
-      reason,
-      created_at: new Date().toISOString(),
-    };
+    // Insert transaction
+    const { error: insertError } = await supabase
+      .from('choice_transactions')
+      .insert({ user_id: userId, type, reason, amount });
 
-    writeTransactions([transaction, ...transactions]);
+    if (insertError) {
+      return { success: false, error: insertError.message };
+    }
+
+    // Increment balance on user_profiles
+    try {
+      await supabase.rpc('increment_choice_balance', {
+        p_wallet_address: userId,
+        p_amount: amount,
+      });
+    } catch (e) {
+      console.warn('Balance increment RPC failed:', e);
+    }
+
+    window.dispatchEvent(new CustomEvent('choice-rewards-updated'));
     return { success: true, amount };
   } catch (error: any) {
     return { success: false, error: error?.message || 'Failed to grant reward.' };
@@ -93,23 +92,30 @@ export const grantReferralReward = (userId: string, referredUserId: string) =>
   grantReward(userId, 'referral_reward', `referral_${referredUserId}`, 25);
 
 /**
- * Fetch user's CHOICE coin balance
+ * Fetch user's CHOICE coin balance from Supabase
  */
 export const getChoiceBalance = async (userId: string): Promise<number> => {
-  const transactions = readTransactions();
-  return transactions
-    .filter((tx) => tx.user_id === userId)
-    .reduce((sum, tx) => sum + tx.amount, 0);
+  const { data, error } = await supabase
+    .from('choice_transactions')
+    .select('amount')
+    .eq('user_id', userId);
+
+  if (error || !data) return 0;
+  return data.reduce((sum, tx) => sum + tx.amount, 0);
 };
 
 /**
- * Fetch user's transaction history
+ * Fetch user's transaction history from Supabase
  */
 export const getTransactionHistory = async (userId: string): Promise<ChoiceTransaction[]> => {
-  const transactions = readTransactions();
-  return transactions
-    .filter((tx) => tx.user_id === userId)
-    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+  const { data, error } = await supabase
+    .from('choice_transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return [];
+  return data as ChoiceTransaction[];
 };
 
 /**
