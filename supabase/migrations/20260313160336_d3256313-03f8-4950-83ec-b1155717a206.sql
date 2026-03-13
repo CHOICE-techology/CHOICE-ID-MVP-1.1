@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS user_profiles_wallet_address_key ON public.user_profiles (wallet_address);
