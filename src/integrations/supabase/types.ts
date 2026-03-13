@@ -119,6 +119,42 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_transactions: {
+        Row: {
+          chain: string
+          created_at: string
+          explorer_url: string | null
+          id: string
+          reputation_hash: string
+          score: number
+          status: string
+          tx_hash: string
+          wallet_address: string
+        }
+        Insert: {
+          chain?: string
+          created_at?: string
+          explorer_url?: string | null
+          id?: string
+          reputation_hash: string
+          score?: number
+          status?: string
+          tx_hash: string
+          wallet_address: string
+        }
+        Update: {
+          chain?: string
+          created_at?: string
+          explorer_url?: string | null
+          id?: string
+          reputation_hash?: string
+          score?: number
+          status?: string
+          tx_hash?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
