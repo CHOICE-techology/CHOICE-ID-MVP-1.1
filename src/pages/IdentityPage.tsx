@@ -22,6 +22,19 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getChoiceBalance, getTransactionHistory, getRewardLabel, getRewardCategory, ChoiceTransaction } from '@/services/rewardService';
+import { supabase } from '@/integrations/supabase/client';
+import { Users } from 'lucide-react';
+
+interface Referral {
+  id: string;
+  referral_code: string;
+  referrer_wallet: string;
+  referred_wallet: string | null;
+  referred_name: string | null;
+  joined_at: string | null;
+  created_at: string;
+}
+
 const IdentityPage: React.FC = () => {
   const {
     userIdentity: identity,
