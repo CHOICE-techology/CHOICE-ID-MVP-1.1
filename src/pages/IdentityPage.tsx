@@ -64,6 +64,20 @@ const IdentityPage: React.FC = () => {
     return () => window.removeEventListener('choice-rewards-updated', refresh);
   }, [identity?.address]);
 
+  // Load referrals from database
+  useEffect(() => {
+    if (!identity?.address) return;
+    const loadReferrals = async () => {
+      const { data } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_wallet', identity.address)
+        .order('created_at', { ascending: false });
+      if (data) setReferrals(data);
+    };
+    loadReferrals();
+  }, [identity?.address]);
+
   // Popup states
   const [cvPopupOpen, setCvPopupOpen] = useState(false);
   const [jobPopupOpen, setJobPopupOpen] = useState(false);
