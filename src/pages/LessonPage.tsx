@@ -244,7 +244,7 @@ const LessonPage: React.FC = () => {
           {answered && (
             <div className={`mt-6 p-4 rounded-xl border ${selectedAnswer === lesson.quiz.correctIndex ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-600' : 'bg-destructive/5 border-destructive/20 text-destructive'} animate-in fade-in slide-in-from-top-2`}>
               <p className="text-sm font-bold">
-                {selectedAnswer === lesson.quiz.correctIndex ? '✨ Correct! Well done.' : 'Oops! That\'s not quite right.'}
+                {selectedAnswer === lesson.quiz.correctIndex ? '✨ Correct! Well done.' : 'Try Again'}
               </p>
             </div>
           )}
