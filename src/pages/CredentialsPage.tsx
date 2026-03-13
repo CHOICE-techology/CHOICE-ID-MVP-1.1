@@ -567,6 +567,30 @@ const CredentialsPage: React.FC = () => {
           </span>
         </div>
 
+        {/* Scoreboard summary */}
+        <div className="bg-muted/40 border border-border rounded-xl p-4 mb-5 space-y-2">
+          {[
+            { label: 'Trust Score', value: `${breakdown.score} / 100` },
+            { label: 'Social Score', value: `${breakdown.categories.social} / 40` },
+            { label: 'Wallet Activity', value: `${breakdown.categories.finance} / 10` },
+            { label: 'Courses Completed', value: `${identity.credentials.filter((vc: VerifiableCredential) => vc.type.includes('EducationCredential')).length}` },
+            { label: 'Credentials Verified', value: `${physicalCredentials.length} / 4` },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex items-center justify-between">
+              <span className="text-xs font-bold text-muted-foreground">{label}</span>
+              <span className="text-xs font-black text-foreground">{value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Short bio */}
+        <div className="bg-muted/30 border border-border rounded-xl p-4 mb-5">
+          <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Short Bio</p>
+          <p className="text-sm text-foreground font-medium italic">
+            {identity.bio || 'Web3 builder focused on identity, reputation and decentralized credentials.'}
+          </p>
+        </div>
+
         {/* 5-column signal summary */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
           {[
