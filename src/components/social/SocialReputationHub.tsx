@@ -13,7 +13,7 @@ import { ChoiceButton } from '@/components/ChoiceButton';
 
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
-import { grantSocialConnectReward } from '@/services/rewardService';
+
 import { SCORE_CAPS } from '@/services/scoreEngine';
 
 import { getPlatformMeta } from './platformLogos';
