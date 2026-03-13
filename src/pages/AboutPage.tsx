@@ -1,25 +1,71 @@
-import React, { useState } from 'react';
-import { Heart, Globe, CheckCircle, Users, Shield, TrendingUp, Clock, Gift, Copy, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, Globe, CheckCircle, Users, Shield, TrendingUp, Clock, Gift, Copy, Share2, UserPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { useToast } from '@/hooks/use-toast';
+import { useWallet } from '@/contexts/WalletContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Referral {
+  id: string;
+  referral_code: string;
+  referred_wallet: string | null;
+  referred_name: string | null;
+  joined_at: string | null;
+  created_at: string;
+}
 
 const AboutPage: React.FC = () => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [affiliateLink, setAffiliateLink] = useState('');
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [linksGenerated, setLinksGenerated] = useState(0);
   const { toast } = useToast();
+  const { userIdentity: identity, isConnected } = useWallet();
 
-  const generateAffiliateLink = () => {
+  // Load referrals for this user
+  useEffect(() => {
+    if (!identity?.address) return;
+    const loadReferrals = async () => {
+      const { data } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_wallet', identity.address)
+        .order('created_at', { ascending: false });
+      if (data) {
+        setReferrals(data);
+        setLinksGenerated(data.length);
+        // Set latest link
+        if (data.length > 0) {
+          setAffiliateLink(`https://CHOICE.love/join?ref=${data[0].referral_code}`);
+        }
+      }
+    };
+    loadReferrals();
+  }, [identity?.address]);
+
+  const generateAffiliateLink = async () => {
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
     const link = `https://CHOICE.love/join?ref=${code}`;
     setAffiliateLink(link);
     setInviteOpen(true);
+
+    if (identity?.address) {
+      await supabase.from('referrals').insert({
+        referrer_wallet: identity.address,
+        referral_code: code,
+      });
+      setLinksGenerated(prev => prev + 1);
+    }
   };
 
   const copyLink = () => {
     navigator.clipboard.writeText(affiliateLink);
     toast({ title: 'Link Copied!', description: 'Your affiliate link has been copied to clipboard.' });
   };
+
+  const joinedCount = referrals.filter(r => r.joined_at).length;
+  const choiceEarned = joinedCount * 25;
 
   return (
     <div className="space-y-10 animate-fade-in pb-10">
@@ -114,22 +160,85 @@ const AboutPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Invite a Friend */}
-      <div className="bg-card border border-border rounded-3xl p-8 md:p-10 shadow-xl">
+      {/* Invite Friends — Enhanced */}
+      <div className="bg-card border border-border rounded-3xl p-8 md:p-10 shadow-xl space-y-6">
         <div className="flex flex-col md:flex-row items-center gap-6">
           <div className="bg-primary/10 p-4 rounded-2xl shrink-0">
             <Gift size={40} className="text-primary" />
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Invite a Friend to CHOICE.love</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Invite Friends to CHOICE.love</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Share CHOICE ID with your network and help build a more trusted decentralized world. Generate your personal affiliate link and start inviting friends today.
+              Share CHOICE ID with your network. Each friend who joins earns you <strong className="text-primary">+25 CHOICE</strong>.
             </p>
           </div>
           <ChoiceButton onClick={generateAffiliateLink} className="shrink-0">
             <Share2 size={16} className="mr-2" /> Generate Invite Link
           </ChoiceButton>
         </div>
+
+        {/* Always-visible referral link */}
+        {affiliateLink && (
+          <div className="bg-muted rounded-xl p-4 border border-border flex items-center gap-3">
+            <code className="text-sm text-foreground font-mono flex-1 break-all">{affiliateLink}</code>
+            <button onClick={copyLink} className="shrink-0 p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors">
+              <Copy size={16} className="text-primary" />
+            </button>
+          </div>
+        )}
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-muted/60 border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-black text-foreground">{linksGenerated}</p>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Links Generated</p>
+          </div>
+          <div className="bg-muted/60 border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-black text-primary">{joinedCount}</p>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Friends Joined</p>
+          </div>
+          <div className="bg-muted/60 border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-black text-emerald-400">◈ {choiceEarned}</p>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">CHOICE Earned</p>
+          </div>
+        </div>
+
+        {/* Invited users list */}
+        {referrals.length > 0 && (
+          <div>
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-3">Invited Users</p>
+            <div className="space-y-2 max-h-[240px] overflow-y-auto">
+              {referrals.map((ref) => {
+                const joined = !!ref.joined_at;
+                return (
+                  <div key={ref.id} className="flex items-center gap-3 bg-muted/40 border border-border rounded-xl p-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${joined ? 'bg-emerald-500/10' : 'bg-muted'}`}>
+                      <UserPlus size={14} className={joined ? 'text-emerald-400' : 'text-muted-foreground'} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-mono text-foreground truncate">
+                        {ref.referred_wallet || ref.referral_code}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {ref.created_at ? new Date(ref.created_at).toLocaleDateString() : '—'}
+                      </p>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border ${
+                      joined
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                    }`}>
+                      {joined ? 'Joined ✓' : 'Pending'}
+                    </span>
+                    {joined && (
+                      <span className="text-[10px] font-bold text-primary">+25 ◈</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* CTA */}
