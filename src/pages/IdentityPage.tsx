@@ -6,6 +6,7 @@ import { calculateReputationBreakdown } from '@/services/scoreEngine';
 import { calculateJobMatch } from '@/services/jobMatchingService';
 import { ALL_JOBS } from '@/data/jobsData';
 import { ChoiceButton } from '@/components/ChoiceButton';
+import { supabase } from '@/integrations/supabase/client';
 
 import { Link, useLocation } from 'react-router-dom';
 import {
