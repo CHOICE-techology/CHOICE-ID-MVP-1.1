@@ -17,6 +17,7 @@ import JobsPage from "./pages/JobsPage";
 import BountyBoardPage from "./pages/BountyBoardPage";
 import AboutPage from "./pages/AboutPage";
 import VerifyPage from "./pages/VerifyPage";
+import TransactionViewPage from "./pages/TransactionViewPage";
 import WalletManagerPage from "./pages/WalletManagerPage";
 import ProfileSettingsPage from "./pages/ProfileSettingsPage";
 import NotFound from "./pages/NotFound";
