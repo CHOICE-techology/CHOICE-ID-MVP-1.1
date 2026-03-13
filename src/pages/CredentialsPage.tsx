@@ -5,7 +5,7 @@ import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { analyzeWalletHistory, BlockchainStats } from '@/services/blockchainService';
-import { grantWalletAnalysisReward } from '@/services/rewardService';
+
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { SocialReputationHub } from '@/components/social/SocialReputationHub';
 import {
@@ -37,6 +37,16 @@ const CHAINS = [
   { id: 'cardano', name: 'CARDANO', logo: cardanoLogo },
   { id: 'polkadot', name: 'POLKADOT', logo: polkadotLogo },
   { id: 'tezos', name: 'TEZOS', logo: tezosLogo },
+  { id: 'polygon', name: 'POLYGON', logo: null, color: '#8247E5', letter: 'P' },
+  { id: 'optimism', name: 'OPTIMISM', logo: null, color: '#FF0420', letter: 'O' },
+  { id: 'bnb chain', name: 'BNB', logo: null, color: '#F3BA2F', letter: 'B' },
+  { id: 'cosmos', name: 'COSMOS', logo: null, color: '#2E3148', letter: 'C' },
+  { id: 'near', name: 'NEAR', logo: null, color: '#000000', letter: 'N' },
+  { id: 'tron', name: 'TRON', logo: null, color: '#FF0013', letter: 'T' },
+  { id: 'starknet', name: 'STARKNET', logo: null, color: '#0C0C4F', letter: 'S' },
+  { id: 'zksync', name: 'ZKSYNC', logo: null, color: '#1E69FF', letter: 'Z' },
+  { id: 'sui', name: 'SUI', logo: null, color: '#4DA2FF', letter: 'S' },
+  { id: 'aptos', name: 'APTOS', logo: null, color: '#2DD8A3', letter: 'A' },
 ];
 
 const CredentialsPage: React.FC = () => {
@@ -119,7 +129,7 @@ const CredentialsPage: React.FC = () => {
         ],
       };
       await onUpdateIdentity(dedupedIdentity);
-      await grantWalletAnalysisReward(identity.address, identity.address);
+      
     } catch (e) {
       console.error('Wallet analysis failed', e);
     } finally {
@@ -200,7 +210,13 @@ const CredentialsPage: React.FC = () => {
                     selectedChain === chain.id && 'ring-2 ring-primary/50',
                   )}
                 >
-                  <img src={chain.logo} alt={chain.name} className="w-6 h-6 object-contain" />
+                  {chain.logo ? (
+                    <img src={chain.logo} alt={chain.name} className="w-6 h-6 object-contain" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-black" style={{ backgroundColor: chain.color }}>
+                      {chain.letter}
+                    </div>
+                  )}
                   <span className="text-[8px] font-black text-slate-300 uppercase tracking-wider">{chain.name}</span>
                   {active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
                 </button>
@@ -342,7 +358,7 @@ const CredentialsPage: React.FC = () => {
 
           {/* Add wallet button */}
           <button
-            onClick={() => navigate('/wallet-manager')}
+            onClick={() => navigate('/wallet/create')}
             className="w-full mt-4 py-3 border border-dashed border-slate-600 rounded-xl text-slate-400 text-xs font-bold hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
           >
             + Add wallet from another chain

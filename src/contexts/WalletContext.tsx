@@ -3,7 +3,7 @@ import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { UserIdentity } from '../types';
 import { loadIdentityWithSync, syncIdentity, clearIdentity } from '../services/storageService';
 import { generateDID, calculateReputationScore } from '../services/cryptoService';
-import { grantWalletConnectReward } from '@/services/rewardService';
+
 import { useChoiceStore } from '../store/useChoiceStore';
 
 interface WalletContextType {
@@ -151,7 +151,6 @@ const PrivyWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const savedAddr = localStorage.getItem('choice_wallet_address');
         if (savedAddr !== rawAddress) {
           localStorage.setItem('choice_wallet_address', rawAddress);
-          await grantWalletConnectReward(rawAddress);
         }
       } catch (err) {
         console.warn('Session sync failed', err);

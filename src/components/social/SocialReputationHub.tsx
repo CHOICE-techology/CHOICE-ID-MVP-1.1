@@ -13,7 +13,7 @@ import { ChoiceButton } from '@/components/ChoiceButton';
 
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
-import { grantSocialConnectReward } from '@/services/rewardService';
+
 import { SCORE_CAPS } from '@/services/scoreEngine';
 
 import { getPlatformMeta } from './platformLogos';
@@ -67,7 +67,6 @@ const computeOverallSocialScore = (creds: VerifiableCredential[]): number => {
   if (!creds.length) return 0;
   const scores = creds.map(vc => {
     const sub = vc.credentialSubject as any;
-    if (typeof sub.platformScore === 'number') return sub.platformScore;
     const engagement = parseFloat(sub.engagementRate) || 0;
     const botPct = parseFloat(sub.botProbability) || 50;
     const followers = Number(sub.followers) || 0;
@@ -244,7 +243,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       await mockUploadToIPFS(vc);
       const newIdentity = await addCredential(identity, vc);
       await onUpdateIdentity(newIdentity);
-      await grantSocialConnectReward(identity.address, platformToUse);
+      
       setRecentlyConnected(platformToUse);
       setTimeout(() => setRecentlyConnected(null), 4000);
       setActivePlatform(null);
