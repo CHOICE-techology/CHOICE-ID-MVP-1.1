@@ -654,194 +654,73 @@ DID: ${identity.did}`;
         )}
       </div>
 
-      {/* ── PROFILE + ON-CHAIN VERIFICATION ROW ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* ── PROFILE CARD ── */}
+      <div className="glass border-white/10 rounded-3xl p-8 md:p-10 shadow-xl flex flex-col items-center text-center relative overflow-hidden group transition-all hover:bg-white/5">
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary/10 to-transparent"></div>
 
-        {/* PROFILE CARD — larger, central */}
-        <div className="lg:col-span-5">
-          <div className="glass border-white/10 rounded-3xl p-8 md:p-10 shadow-xl flex flex-col items-center text-center relative overflow-hidden h-full group transition-all hover:bg-white/5">
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary/10 to-transparent"></div>
+        {/* Settings button */}
+        <Link
+          to="/profile/settings"
+          className="absolute top-5 right-5 z-20 p-2 rounded-xl bg-muted/80 border border-border hover:bg-accent transition-colors backdrop-blur-sm"
+          title="Edit Profile"
+        >
+          <Settings size={16} className="text-muted-foreground" />
+        </Link>
 
-            {/* Settings button */}
-            <Link
-              to="/profile/settings"
-              className="absolute top-5 right-5 z-20 p-2 rounded-xl bg-muted/80 border border-border hover:bg-accent transition-colors backdrop-blur-sm"
-              title="Edit Profile"
-            >
-              <Settings size={16} className="text-muted-foreground" />
-            </Link>
-
-            <div className="relative group mb-6 z-10">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-[6px] border-background shadow-2xl bg-muted flex items-center justify-center relative">
-                {identity.avatar ? (
-                  <img src={identity.avatar} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-5xl font-bold text-muted-foreground/30">{identity.displayName?.charAt(0) || '?'}</span>
-                )}
-                <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[2px] rounded-full">
-                  <Camera size={28} />
-                  <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                </label>
-              </div>
-            </div>
-
-            <div className="w-full mb-5 relative z-10">
-              {isEditing ? (
-                <div className="flex gap-2 justify-center mb-2 items-center">
-                  <input type="text" className="border-2 border-primary/20 focus:border-primary rounded-lg px-3 py-1 text-lg font-bold text-foreground w-full text-center outline-none bg-muted" defaultValue={identity.displayName} onChange={(e) => setNewName(e.target.value)} placeholder="Display Name" autoFocus />
-                  <ChoiceButton size="sm" onClick={handleSaveProfile} className="shrink-0"><CheckCircle size={16} /></ChoiceButton>
-                </div>
-              ) : (
-                <h2 className="text-2xl font-bold text-foreground mb-1 flex items-center justify-center gap-2 group cursor-pointer" onClick={() => setIsEditing(true)}>
-                  {identity.displayName || "Anonymous User"}
-                  <Edit2 size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                </h2>
-              )}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border mt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <p className="text-muted-foreground font-mono text-[10px] truncate max-w-[180px]">{identity.did}</p>
-              </div>
-            </div>
-
-            {/* Tier badge */}
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-5 ${
-              score >= 80 ? 'bg-primary/10 border-primary/20 text-primary' :
-              score >= 60 ? 'bg-secondary/10 border-secondary/20 text-secondary' :
-              'bg-muted border-border text-muted-foreground'
-            }`}>
-              <Award size={14} />
-              <span className="text-xs font-bold">{tier.label}</span>
-              <span className="text-xs font-mono">{score}/100</span>
-            </div>
-
-            {/* Bio */}
-            <div className="bg-white/5 p-5 rounded-2xl text-muted-foreground text-sm border border-white/10 w-full relative">
-              <span className="absolute -top-2 left-5 bg-background/80 backdrop-blur-sm px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider rounded">Bio</span>
-              {identity.bio ? <p className="leading-relaxed text-sm">{identity.bio}</p> : <p className="italic text-muted-foreground/50 text-sm">No bio yet. Generate a CV to create one.</p>}
-            </div>
-
-            <Link to="/profile/settings" className="mt-5 text-xs font-bold text-primary hover:underline flex items-center gap-1">
-              <Settings size={12} /> Edit Profile & Personal Details
-            </Link>
-          </div>
-        </div>
-
-        {/* PROOFS OF VERIFICATION */}
-        <div className="lg:col-span-7">
-          <div className="glass border-white/10 rounded-3xl shadow-xl overflow-hidden h-full flex flex-col transition-all hover:bg-white/5">
-            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-5 md:p-6 border-b border-white/10">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-2.5 rounded-xl">
-                    <Shield size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground">Proofs of Verification</h3>
-                    <p className="text-muted-foreground text-xs">Your verified identity signals and reputation summary.</p>
-                  </div>
-                </div>
-                <Link to="/verify" className="shrink-0">
-                  <ChoiceButton size="sm" className="shadow-lg hover:shadow-xl transition-all">
-                    VERIFY <CheckCircle className="ml-1.5" size={14} />
-                  </ChoiceButton>
-                </Link>
-              </div>
-            </div>
-
-            {/* Scoreboard Summary + Bio */}
-            <div className="p-5 md:p-6 space-y-4 border-b border-border">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {[
-                  { label: 'Trust Score', value: `${score}/100` },
-                  { label: 'Social Score', value: `${social}/40` },
-                  { label: 'Wallet Activity', value: `${finance}/10` },
-                  { label: 'Courses Done', value: `${identity.credentials.filter(c => Array.isArray(c.type) ? c.type.includes('EducationCredential') : c.type === 'EducationCredential').length}` },
-                  { label: 'Credentials', value: `${identity.credentials.length}` },
-                ].map(item => (
-                  <div key={item.label} className="bg-muted rounded-xl p-3 border border-border text-center">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">{item.label}</span>
-                    <span className="text-lg font-black text-foreground">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-muted rounded-xl p-4 border border-border">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Short Bio</span>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {identity.bio || 'No bio added yet.'}
-                </p>
-              </div>
-            </div>
-
-            {verificationData ? (
-              <div className="p-5 md:p-6 flex-1 flex flex-col justify-center space-y-4">
-                {navState?.verificationSuccess && (
-                  <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3.5">
-                    <div className="bg-emerald-100 p-1.5 rounded-full">
-                      <CheckCircle size={18} className="text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-emerald-800">Verification Successful</p>
-                      <p className="text-xs text-emerald-600">Your reputation proof has been verified on-chain.</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-muted rounded-2xl border border-border overflow-hidden">
-                  <div className="border-b px-5 py-3 flex items-center gap-2 bg-emerald-500/10 border-emerald-500/20">
-                    <CheckCircle size={14} className="text-emerald-600" />
-                    <span className="text-xs font-bold text-emerald-700">Verified</span>
-                    <span className="ml-auto text-[10px] font-mono text-emerald-600">Arbitrum Sepolia</span>
-                  </div>
-                  <div className="divide-y divide-border">
-                    <div className="flex items-center justify-between px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <Clock size={14} className="text-muted-foreground" />
-                        <span className="text-xs font-semibold text-muted-foreground">Date</span>
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">{verificationData.date || 'Not available'}</span>
-                    </div>
-                    <div className="flex items-center justify-between px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <Award size={14} className="text-muted-foreground" />
-                        <span className="text-xs font-semibold text-muted-foreground">Anchored Score</span>
-                      </div>
-                      <span className="text-sm font-bold text-foreground">{verificationData.score}<span className="text-muted-foreground font-normal">/100</span></span>
-                    </div>
-                    <div className="flex items-center justify-between px-5 py-3.5 gap-3">
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Hash size={14} className="text-muted-foreground" />
-                        <span className="text-xs font-semibold text-muted-foreground">TX Hash</span>
-                      </div>
-                      <span className="text-xs font-mono text-primary truncate">{verificationData.txHash}</span>
-                    </div>
-                  </div>
-                  {verificationData.explorerUrl && (
-                    <div className="px-5 py-3.5 border-t border-border bg-muted/50">
-                      <a
-                        href={verificationData.explorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 text-sm font-bold text-secondary hover:text-primary transition-colors bg-secondary/10 hover:bg-secondary/15 px-4 py-2.5 rounded-xl w-full"
-                      >
-                        View Transaction <ExternalLink size={14} />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
+        <div className="relative group mb-6 z-10">
+          <div className="w-40 h-40 rounded-full overflow-hidden border-[6px] border-background shadow-2xl bg-muted flex items-center justify-center relative">
+            {identity.avatar ? (
+              <img src={identity.avatar} alt="Profile" className="w-full h-full object-cover" />
             ) : (
-              <div className="p-6 md:p-8 text-center flex-1 flex items-center justify-center">
-                <div className="bg-primary/5 rounded-2xl p-8 border border-primary/20 w-full">
-                  <Shield size={32} className="text-primary mx-auto mb-3" />
-                  <p className="text-foreground text-sm font-semibold">
-                    No verification yet. Submit your proofs to anchor your identity on-chain.
-                  </p>
-                </div>
-              </div>
+              <span className="text-5xl font-bold text-muted-foreground/30">{identity.displayName?.charAt(0) || '?'}</span>
             )}
+            <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[2px] rounded-full">
+              <Camera size={28} />
+              <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+            </label>
           </div>
         </div>
+
+        <div className="w-full mb-5 relative z-10">
+          {isEditing ? (
+            <div className="flex gap-2 justify-center mb-2 items-center">
+              <input type="text" className="border-2 border-primary/20 focus:border-primary rounded-lg px-3 py-1 text-lg font-bold text-foreground w-full text-center outline-none bg-muted" defaultValue={identity.displayName} onChange={(e) => setNewName(e.target.value)} placeholder="Display Name" autoFocus />
+              <ChoiceButton size="sm" onClick={handleSaveProfile} className="shrink-0"><CheckCircle size={16} /></ChoiceButton>
+            </div>
+          ) : (
+            <h2 className="text-2xl font-bold text-foreground mb-1 flex items-center justify-center gap-2 group cursor-pointer" onClick={() => setIsEditing(true)}>
+              {identity.displayName || "Anonymous User"}
+              <Edit2 size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+            </h2>
+          )}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border mt-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <p className="text-muted-foreground font-mono text-[10px] truncate max-w-[180px]">{identity.did}</p>
+          </div>
+        </div>
+
+        {/* Tier badge */}
+        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-5 ${
+          score >= 80 ? 'bg-primary/10 border-primary/20 text-primary' :
+          score >= 60 ? 'bg-secondary/10 border-secondary/20 text-secondary' :
+          'bg-muted border-border text-muted-foreground'
+        }`}>
+          <Award size={14} />
+          <span className="text-xs font-bold">{tier.label}</span>
+          <span className="text-xs font-mono">{score}/100</span>
+        </div>
+
+        {/* Bio */}
+        <div className="bg-white/5 p-5 rounded-2xl text-muted-foreground text-sm border border-white/10 w-full relative">
+          <span className="absolute -top-2 left-5 bg-background/80 backdrop-blur-sm px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider rounded">Bio</span>
+          {identity.bio ? <p className="leading-relaxed text-sm">{identity.bio}</p> : <p className="italic text-muted-foreground/50 text-sm">No bio yet. Generate a CV to create one.</p>}
+        </div>
+
+        <Link to="/profile/settings" className="mt-5 text-xs font-bold text-primary hover:underline flex items-center gap-1">
+          <Settings size={12} /> Edit Profile & Personal Details
+        </Link>
       </div>
+
 
       {/* ── MAIN GRID: Recommendations | CV + Invite ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
