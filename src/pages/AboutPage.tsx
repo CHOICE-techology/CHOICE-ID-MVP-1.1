@@ -188,13 +188,35 @@ const AboutPage: React.FC = () => {
           <div className="flex-1 text-center md:text-left">
             <h2 className="text-2xl font-bold text-foreground mb-2">Invite Friends to CHOICE.love</h2>
             <p className="text-muted-foreground leading-relaxed text-sm">
-              Share CHOICE ID with your network. Generate your personal affiliate link and track everyone who joins.
+              Share your personal invite link. Track who joins and earn CHOICE rewards for every friend.
             </p>
           </div>
           <ChoiceButton onClick={generateAffiliateLink} className="shrink-0">
             <Share2 size={16} className="mr-2" /> Generate Invite Link
           </ChoiceButton>
         </div>
+
+        {/* Affiliate link display (always visible if user has a code) */}
+        {referrals.length > 0 && (
+          <div className="bg-muted rounded-xl p-4 border border-border">
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2">Your Invite Link</p>
+            <div className="flex items-center gap-2">
+              <code className="text-sm text-foreground font-mono flex-1 break-all truncate">
+                {`${window.location.origin}/join?ref=${referrals[0]?.referral_code || ''}`}
+              </code>
+              <button
+                onClick={() => {
+                  const link = `${window.location.origin}/join?ref=${referrals[0]?.referral_code || ''}`;
+                  navigator.clipboard.writeText(link);
+                  toast({ title: 'Link Copied!', description: 'Your affiliate link has been copied to clipboard.' });
+                }}
+                className="shrink-0 p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+              >
+                <Copy size={16} className="text-primary" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3">
@@ -212,34 +234,53 @@ const AboutPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Invited friends list */}
-        {joinedReferrals.length > 0 && (
+        {/* Invited friends list — show ALL referrals with status */}
+        {referrals.length > 0 && (
           <div>
-            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-3">Friends Who Joined</p>
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-3">
+              Invited Friends: {referrals.length}
+            </p>
             <div className="space-y-2">
-              {joinedReferrals.map((r) => (
-                <div key={r.id} className="bg-muted/30 border border-border rounded-xl p-3 flex items-center gap-3">
-                  <div className="bg-emerald-500/10 p-2 rounded-lg">
-                    <UserPlus size={14} className="text-emerald-500" />
+              {referrals.map((r) => {
+                const hasJoined = !!r.referred_wallet;
+                return (
+                  <div key={r.id} className="bg-muted/30 border border-border rounded-xl p-3 flex items-center gap-3">
+                    <div className={cn('p-2 rounded-lg', hasJoined ? 'bg-emerald-500/10' : 'bg-muted')}>
+                      <UserPlus size={14} className={hasJoined ? 'text-emerald-500' : 'text-muted-foreground'} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate">
+                        {hasJoined
+                          ? (r.referred_name || `${r.referred_wallet?.slice(0, 6)}...${r.referred_wallet?.slice(-4)}`)
+                          : `Invite #${r.referral_code}`
+                        }
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {hasJoined
+                          ? `Joined ${r.joined_at ? new Date(r.joined_at).toLocaleDateString() : '—'}`
+                          : `Created ${new Date(r.created_at).toLocaleDateString()}`
+                        }
+                      </p>
+                    </div>
+                    {hasJoined ? (
+                      <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">
+                        <CheckCircle size={12} /> +25 ◈
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase">
+                        Pending
+                      </span>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-foreground truncate">
-                      {r.referred_name || `${r.referred_wallet?.slice(0, 6)}...${r.referred_wallet?.slice(-4)}`}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      Joined {r.joined_at ? new Date(r.joined_at).toLocaleDateString() : '—'}
-                    </p>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-500">+25 ◈</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
-        {joinedReferrals.length === 0 && referrals.length > 0 && (
+        {referrals.length === 0 && (
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">No friends have joined yet. Share your link to get started!</p>
+            <p className="text-sm text-muted-foreground">Generate your first invite link to start referring friends!</p>
           </div>
         )}
       </div>
