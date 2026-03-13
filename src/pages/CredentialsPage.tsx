@@ -558,8 +558,8 @@ const CredentialsPage: React.FC = () => {
               <FileCheck size={20} className="text-primary" />
             </div>
             <div>
-              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Real-World Proofs</h2>
-              <p className="text-muted-foreground text-xs font-medium mt-0.5">Upload and verify physical documents to strengthen your identity</p>
+              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Proofs of Verification</h2>
+              <p className="text-muted-foreground text-xs font-medium mt-0.5">Identity signals and verified documents that strengthen your trust score</p>
             </div>
           </div>
           <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">
