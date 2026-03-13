@@ -654,7 +654,11 @@ DID: ${identity.did}`;
                         <Hash size={14} className="text-muted-foreground" />
                         <span className="text-xs font-semibold text-muted-foreground">{isVerificationPending ? 'Request ID' : 'TX Hash'}</span>
                       </div>
-                      <span className="text-xs font-mono text-primary truncate">{verificationData.txHash}</span>
+                      <span className="text-xs font-mono text-primary truncate">
+                        {verificationData.txHash.length > 10
+                          ? `${verificationData.txHash.slice(0, 6)}...${verificationData.txHash.slice(-4)}`
+                          : verificationData.txHash}
+                      </span>
                     </div>
                   </div>
                   {!isVerificationPending && verificationData.explorerUrl && (
