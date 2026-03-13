@@ -67,6 +67,27 @@ const IdentityPage: React.FC = () => {
   const [recentTxs, setRecentTxs] = useState<ChoiceTransaction[]>([]);
   const [showAllTxs, setShowAllTxs] = useState(false);
 
+  // Load referrals from database
+  useEffect(() => {
+    if (!identity?.address) return;
+    setIsLoadingReferrals(true);
+    const loadReferrals = async () => {
+      // Check if user already has a referral code
+      const { data: existing } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_wallet', identity.address);
+      if (existing && existing.length > 0) {
+        setReferrals(existing as Referral[]);
+        const code = existing[0].referral_code;
+        setReferralCode(code);
+        setAffiliateLink(`https://CHOICE.love/join?ref=${code}`);
+      }
+      setIsLoadingReferrals(false);
+    };
+    loadReferrals();
+  }, [identity?.address]);
+
   // Fetch CHOICE balance & transactions
   useEffect(() => {
     if (!identity?.address) return;
