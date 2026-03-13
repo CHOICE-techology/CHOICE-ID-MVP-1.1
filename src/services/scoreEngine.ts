@@ -2,11 +2,15 @@ import { VerifiableCredential } from '@/types';
 
 /**
  * Reputation score system (0-100)
- * - Social: weighted by activity quality, max 40 total across all platforms
+ * - Social: 40 pts split across 12 platforms (11 named + Other), weighted by activity quality
+ *   Each platform gets at most 40/11 ≈ 3.64 pts. Low activity = ~1-2, high = ~3.5
  * - Education: uses course banner points from credentialSubject.points, capped at 30
  * - Physical: 5 pts per unique document type, max 20 (4 docs × 5 = 20)
  * - Finance: wallet credentials, capped at 10
  */
+
+const TOTAL_SOCIAL_PLATFORMS = 11; // 11 named platforms (excl. "Other/Custom")
+
 export const SCORE_WEIGHTS = {
   SocialCredential: 0,        // calculated dynamically via weighted quality
   EducationCredential: 0,     // uses course.points from banner directly
@@ -35,9 +39,9 @@ export interface ScoreBreakdown {
 /**
  * Calculate weighted social points for a single platform credential.
  * Uses followers, engagement, bot probability to derive a quality multiplier (0-1),
- * then scales by (40 / totalPlatforms) so all platforms together sum to ≤40.
+ * then scales by (40 / TOTAL_SOCIAL_PLATFORMS) so all platforms together sum to ≤40.
  */
-const calculateSocialPlatformScore = (sub: any, totalPlatforms: number): number => {
+const calculateSocialPlatformScore = (sub: any): number => {
   const followers = Number(sub.followers) || 0;
   const engagement = parseFloat(sub.engagementRate) || 0;
   const botPct = parseFloat(sub.botProbability) || 50;
@@ -51,8 +55,8 @@ const calculateSocialPlatformScore = (sub: any, totalPlatforms: number): number 
 
   const quality = influenceRaw * 0.4 + engagementRaw * 0.3 + authRaw * 0.3;
 
-  // Each platform gets at most (40 / totalPlatforms) points
-  const maxPerPlatform = 40 / Math.max(totalPlatforms, 1);
+  // Each platform gets at most (40 / TOTAL_SOCIAL_PLATFORMS) points
+  const maxPerPlatform = 40 / TOTAL_SOCIAL_PLATFORMS;
   return Math.round(quality * maxPerPlatform * 10) / 10;
 };
 
@@ -67,7 +71,7 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
   const countedKeys = new Set<string>();
   const categories = { social: 0, education: 0, physical: 0, finance: 0 };
 
-  // First pass: count unique social platforms for weighting
+  // First pass: collect unique social platforms
   const socialCreds: { sub: any; key: string }[] = [];
   credentials.forEach((vc) => {
     const types = Array.isArray(vc.type) ? vc.type : [vc.type];
@@ -80,13 +84,11 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
     }
   });
 
-  const totalSocialPlatforms = socialCreds.length;
-
-  // Calculate social scores with weighting
+  // Calculate social scores — always divided by TOTAL_SOCIAL_PLATFORMS (not connected count)
   socialCreds.forEach(({ sub, key }) => {
     if (countedKeys.has(key)) return;
     countedKeys.add(key);
-    const pts = calculateSocialPlatformScore(sub, totalSocialPlatforms);
+    const pts = calculateSocialPlatformScore(sub);
     categories.social = Math.min(categories.social + pts, SCORE_CAPS.social);
   });
 

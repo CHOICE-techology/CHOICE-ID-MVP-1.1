@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { analyzeWalletHistory, BlockchainStats } from '@/services/blockchainService';
+import { calculateReputationBreakdown } from '@/services/scoreEngine';
 
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { SocialReputationHub } from '@/components/social/SocialReputationHub';
 import {
   FileText, Upload, FileCheck, GraduationCap, Award, BadgeCheck,
   CreditCard, Wallet, Activity, CheckCircle2, Clock3, ChevronDown, ChevronUp,
-  ExternalLink, Zap, Globe,
+  ExternalLink, Zap, Globe, X, Shield, TrendingUp, Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
@@ -28,15 +28,15 @@ import polkadotLogo from '@/assets/logos/polkadot.svg';
 import tezosLogo from '@/assets/logos/tezos.svg';
 
 const CHAINS = [
-  { id: 'ethereum', name: 'ETHEREUM', logo: ethereumLogo },
-  { id: 'arbitrum', name: 'ARBITRUM', logo: arbitrumLogo },
-  { id: 'base', name: 'BASE', logo: baseLogo },
-  { id: 'bitcoin', name: 'BITCOIN', logo: bitcoinLogo },
-  { id: 'solana', name: 'SOLANA', logo: solanaLogo },
-  { id: 'avalanche', name: 'AVALANCHE', logo: avalancheLogo },
-  { id: 'cardano', name: 'CARDANO', logo: cardanoLogo },
-  { id: 'polkadot', name: 'POLKADOT', logo: polkadotLogo },
-  { id: 'tezos', name: 'TEZOS', logo: tezosLogo },
+  { id: 'ethereum', name: 'ETHEREUM', logo: ethereumLogo, color: '#627EEA', letter: 'E' },
+  { id: 'arbitrum', name: 'ARBITRUM', logo: arbitrumLogo, color: '#28A0F0', letter: 'A' },
+  { id: 'base', name: 'BASE', logo: baseLogo, color: '#0052FF', letter: 'B' },
+  { id: 'bitcoin', name: 'BITCOIN', logo: bitcoinLogo, color: '#F7931A', letter: 'B' },
+  { id: 'solana', name: 'SOLANA', logo: solanaLogo, color: '#9945FF', letter: 'S' },
+  { id: 'avalanche', name: 'AVALANCHE', logo: avalancheLogo, color: '#E84142', letter: 'A' },
+  { id: 'cardano', name: 'CARDANO', logo: cardanoLogo, color: '#0033AD', letter: 'C' },
+  { id: 'polkadot', name: 'POLKADOT', logo: polkadotLogo, color: '#E6007A', letter: 'P' },
+  { id: 'tezos', name: 'TEZOS', logo: tezosLogo, color: '#2C7DF7', letter: 'T' },
   { id: 'polygon', name: 'POLYGON', logo: null, color: '#8247E5', letter: 'P' },
   { id: 'optimism', name: 'OPTIMISM', logo: null, color: '#FF0420', letter: 'O' },
   { id: 'bnb chain', name: 'BNB', logo: null, color: '#F3BA2F', letter: 'B' },
@@ -47,10 +47,27 @@ const CHAINS = [
   { id: 'zksync', name: 'ZKSYNC', logo: null, color: '#1E69FF', letter: 'Z' },
   { id: 'sui', name: 'SUI', logo: null, color: '#4DA2FF', letter: 'S' },
   { id: 'aptos', name: 'APTOS', logo: null, color: '#2DD8A3', letter: 'A' },
+  { id: 'fantom', name: 'FANTOM', logo: null, color: '#1969FF', letter: 'F' },
+  { id: 'celo', name: 'CELO', logo: null, color: '#FCFF52', letter: 'C' },
+  { id: 'harmony', name: 'HARMONY', logo: null, color: '#00AEE9', letter: 'H' },
+  { id: 'moonbeam', name: 'MOONBEAM', logo: null, color: '#53CBC9', letter: 'M' },
+  { id: 'cronos', name: 'CRONOS', logo: null, color: '#002D74', letter: 'C' },
+  { id: 'gnosis', name: 'GNOSIS', logo: null, color: '#04795B', letter: 'G' },
+  { id: 'hedera', name: 'HEDERA', logo: null, color: '#000000', letter: 'H' },
+  { id: 'filecoin', name: 'FILECOIN', logo: null, color: '#0090FF', letter: 'F' },
+  { id: 'icp', name: 'ICP', logo: null, color: '#29ABE2', letter: 'I' },
+  { id: 'algorand', name: 'ALGORAND', logo: null, color: '#000000', letter: 'A' },
+  { id: 'flow', name: 'FLOW', logo: null, color: '#00EF8B', letter: 'F' },
+  { id: 'klaytn', name: 'KLAYTN', logo: null, color: '#FE3300', letter: 'K' },
 ];
 
+interface AddedWallet {
+  chain: string;
+  address: string;
+  stats: BlockchainStats;
+}
+
 const CredentialsPage: React.FC = () => {
-  const navigate = useNavigate();
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -61,6 +78,13 @@ const CredentialsPage: React.FC = () => {
   const [isAnalyzingWallet, setIsAnalyzingWallet] = useState(false);
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
   const [walletExpanded, setWalletExpanded] = useState(false);
+
+  // Add wallet dialog state
+  const [showAddWallet, setShowAddWallet] = useState(false);
+  const [addWalletChain, setAddWalletChain] = useState<string | null>(null);
+  const [addWalletAddress, setAddWalletAddress] = useState('');
+  const [isAnalyzingAdded, setIsAnalyzingAdded] = useState(false);
+  const [addedWallets, setAddedWallets] = useState<AddedWallet[]>([]);
 
   if (!identity)
     return (
@@ -129,11 +153,47 @@ const CredentialsPage: React.FC = () => {
         ],
       };
       await onUpdateIdentity(dedupedIdentity);
-      
     } catch (e) {
       console.error('Wallet analysis failed', e);
     } finally {
       setIsAnalyzingWallet(false);
+    }
+  };
+
+  const analyzeAddedWallet = async () => {
+    if (!addWalletChain || !addWalletAddress.trim()) return;
+    setIsAnalyzingAdded(true);
+    try {
+      const stats = await analyzeWalletHistory(addWalletAddress.trim());
+      const chainName = CHAINS.find(c => c.id === addWalletChain)?.name || addWalletChain;
+      const enrichedStats = { ...stats, chain: chainName };
+
+      setAddedWallets(prev => [...prev.filter(w => !(w.chain === addWalletChain && w.address === addWalletAddress.trim())), { chain: addWalletChain, address: addWalletAddress.trim(), stats: enrichedStats }]);
+
+      // Create credential for this wallet
+      const walletVC: VerifiableCredential = {
+        id: `urn:uuid:${crypto.randomUUID()}`,
+        type: ['VerifiableCredential', 'WalletCreatedCredential'],
+        issuer: 'did:web:choice.love/wallet-analyzer',
+        issuanceDate: new Date().toISOString(),
+        credentialSubject: {
+          id: identity.did,
+          chain: chainName,
+          address: addWalletAddress.trim(),
+          ...enrichedStats,
+        },
+      };
+      await mockUploadToIPFS(walletVC);
+      const newIdentity = await addCredential(identity, walletVC);
+      await onUpdateIdentity(newIdentity);
+
+      setShowAddWallet(false);
+      setAddWalletAddress('');
+      setAddWalletChain(null);
+    } catch (e) {
+      console.error('Added wallet analysis failed', e);
+    } finally {
+      setIsAnalyzingAdded(false);
     }
   };
 
@@ -164,6 +224,9 @@ const CredentialsPage: React.FC = () => {
 
   const totalTxns = walletSubject?.txCount ?? walletStats?.txCount ?? 0;
 
+  // Score breakdown for display
+  const breakdown = calculateReputationBreakdown(identity.credentials);
+
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       <header className="mb-4">
@@ -177,7 +240,6 @@ const CredentialsPage: React.FC = () => {
       {/* WALLET HISTORY — DARK MULTI-CHAIN BLOCK                   */}
       {/* ══════════════════════════════════════════════════════════ */}
       <section className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
-        {/* Dark header */}
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 md:p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -195,7 +257,7 @@ const CredentialsPage: React.FC = () => {
           </div>
 
           {/* Chain icons row */}
-          <div className="flex flex-wrap gap-3 md:gap-4 mb-6 justify-center md:justify-start">
+          <div className="flex flex-wrap gap-2 md:gap-3 mb-6 justify-center md:justify-start">
             {CHAINS.map((chain) => {
               const active = walletCredential ? isChainActive(chain.id) : false;
               return (
@@ -203,7 +265,7 @@ const CredentialsPage: React.FC = () => {
                   key={chain.id}
                   onClick={() => setSelectedChain(selectedChain === chain.id ? null : chain.id)}
                   className={cn(
-                    'flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl border transition-all min-w-[60px]',
+                    'flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-lg border transition-all min-w-[48px]',
                     active
                       ? 'border-primary/40 bg-primary/10'
                       : 'border-slate-700 bg-slate-800/50 opacity-50 hover:opacity-80',
@@ -211,13 +273,13 @@ const CredentialsPage: React.FC = () => {
                   )}
                 >
                   {chain.logo ? (
-                    <img src={chain.logo} alt={chain.name} className="w-6 h-6 object-contain" />
+                    <img src={chain.logo} alt={chain.name} className="w-5 h-5 object-contain" />
                   ) : (
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-black" style={{ backgroundColor: chain.color }}>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-black" style={{ backgroundColor: chain.color }}>
                       {chain.letter}
                     </div>
                   )}
-                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-wider">{chain.name}</span>
+                  <span className="text-[7px] font-black text-slate-300 uppercase tracking-wider">{chain.name}</span>
                   {active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
                 </button>
               );
@@ -253,7 +315,7 @@ const CredentialsPage: React.FC = () => {
                   { label: 'TOTAL VOLUME', value: walletSubject?.totalVolume ?? walletStats?.totalVolume ?? '—', icon: Activity },
                   { label: 'TOTAL TXNS', value: String(totalTxns), icon: Zap },
                   { label: 'ACTIVE CHAINS', value: `${activeChains.length} / ${CHAINS.length}`, icon: Globe },
-                  { label: 'TRUST SIGNAL', value: '+7 pts', icon: CheckCircle2, highlight: true },
+                  { label: 'TRUST SIGNAL', value: `+${breakdown.categories.finance} pts`, icon: CheckCircle2, highlight: true },
                 ].map(({ label, value, icon: Icon, highlight }) => (
                   <div key={label} className="bg-slate-800/80 border border-slate-700 rounded-xl p-3">
                     <div className="flex items-center gap-1.5 mb-1">
@@ -356,15 +418,135 @@ const CredentialsPage: React.FC = () => {
             </>
           )}
 
+          {/* Added wallets display */}
+          {addedWallets.length > 0 && (
+            <div className="mt-4 space-y-3">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Added Wallets</span>
+              {addedWallets.map((w, i) => {
+                const chainDef = CHAINS.find(c => c.id === w.chain);
+                return (
+                  <div key={i} className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      {chainDef?.logo ? (
+                        <img src={chainDef.logo} alt={chainDef.name} className="w-5 h-5" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-black" style={{ backgroundColor: chainDef?.color || '#666' }}>
+                          {chainDef?.letter || '?'}
+                        </div>
+                      )}
+                      <span className="text-xs font-bold text-white">{chainDef?.name || w.chain}</span>
+                      <span className="text-xs font-mono text-slate-400 truncate flex-1">{w.address}</span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="bg-slate-900/50 rounded-lg p-2 border border-slate-700/50">
+                        <p className="text-[7px] font-black text-slate-500 uppercase">Txns</p>
+                        <p className="text-xs font-bold text-white">{w.stats.txCount}</p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-lg p-2 border border-slate-700/50">
+                        <p className="text-[7px] font-black text-slate-500 uppercase">Volume</p>
+                        <p className="text-xs font-bold text-white">{w.stats.totalVolume}</p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-lg p-2 border border-slate-700/50">
+                        <p className="text-[7px] font-black text-slate-500 uppercase">Age</p>
+                        <p className="text-xs font-bold text-white">{w.stats.accountAge}</p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-lg p-2 border border-slate-700/50">
+                        <p className="text-[7px] font-black text-slate-500 uppercase">Balance</p>
+                        <p className="text-xs font-bold text-white">{w.stats.balance}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Add wallet button */}
           <button
-            onClick={() => navigate('/wallet/create')}
+            onClick={() => setShowAddWallet(true)}
             className="w-full mt-4 py-3 border border-dashed border-slate-600 rounded-xl text-slate-400 text-xs font-bold hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
           >
             + Add wallet from another chain
           </button>
         </div>
       </section>
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* ADD WALLET MODAL                                          */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      {showAddWallet && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="rounded-2xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-border animate-scale-in bg-card max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-5">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
+                  <Wallet size={20} className="text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-foreground tracking-tight">Add Wallet</h3>
+                  <p className="text-muted-foreground text-xs font-medium">Select chain & paste address</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setShowAddWallet(false); setAddWalletChain(null); setAddWalletAddress(''); }}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Chain selection grid */}
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-3">Select Chain</p>
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-5 max-h-[200px] overflow-y-auto pr-1">
+              {CHAINS.map((chain) => (
+                <button
+                  key={chain.id}
+                  onClick={() => setAddWalletChain(chain.id)}
+                  className={cn(
+                    'flex flex-col items-center gap-1 p-2 rounded-xl border transition-all',
+                    addWalletChain === chain.id
+                      ? 'border-primary bg-primary/10 shadow-md'
+                      : 'border-border bg-muted/50 hover:border-primary/30',
+                  )}
+                >
+                  {chain.logo ? (
+                    <img src={chain.logo} alt={chain.name} className="w-5 h-5 object-contain" />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-black" style={{ backgroundColor: chain.color }}>
+                      {chain.letter}
+                    </div>
+                  )}
+                  <span className="text-[7px] font-black text-muted-foreground uppercase">{chain.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Address input */}
+            {addWalletChain && (
+              <>
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2">Wallet Address</p>
+                <input
+                  type="text"
+                  value={addWalletAddress}
+                  onChange={(e) => setAddWalletAddress(e.target.value)}
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30 font-mono text-foreground text-sm transition-all placeholder:text-muted-foreground mb-4"
+                  placeholder={`Paste your ${CHAINS.find(c => c.id === addWalletChain)?.name || ''} address`}
+                  autoFocus
+                />
+
+                <ChoiceButton
+                  onClick={analyzeAddedWallet}
+                  isLoading={isAnalyzingAdded}
+                  disabled={!addWalletAddress.trim()}
+                  className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest"
+                >
+                  ANALYZE WALLET
+                </ChoiceButton>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════ */}
       {/* REAL-WORLD PROOFS                                         */}
@@ -380,7 +562,25 @@ const CredentialsPage: React.FC = () => {
               <p className="text-muted-foreground text-xs font-medium mt-0.5">Upload and verify physical documents to strengthen your identity</p>
             </div>
           </div>
-          <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">+20 PTS</span>
+          <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">
+            {breakdown.categories.physical}/20 PTS
+          </span>
+        </div>
+
+        {/* Score breakdown from reputation */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {[
+            { label: 'Physical Score', value: `${breakdown.categories.physical}/20`, icon: Shield, color: 'text-emerald-400' },
+            { label: 'Docs Verified', value: `${physicalCredentials.length}/4`, icon: FileCheck, color: 'text-primary' },
+            { label: 'Social Score', value: `${breakdown.categories.social}/40`, icon: Users, color: 'text-secondary' },
+            { label: 'Total Score', value: `${breakdown.score}/100`, icon: TrendingUp, color: 'text-amber-400' },
+          ].map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className="bg-muted/60 border border-border rounded-xl p-3 text-center">
+              <Icon size={16} className={cn('mx-auto mb-1.5', color)} />
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">{label}</p>
+              <p className="text-sm font-black text-foreground">{value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="mb-5">
