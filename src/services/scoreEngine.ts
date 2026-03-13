@@ -2,15 +2,15 @@ import { VerifiableCredential } from '@/types';
 
 /**
  * Reputation score system (0-100)
- * - Social: equal points per unique platform, capped at 40
+ * - Social: weighted by activity quality, max 40 total across all platforms
  * - Education: uses course banner points from credentialSubject.points, capped at 30
- * - Physical: per unique document type, capped at 20
+ * - Physical: 5 pts per unique document type, max 20 (4 docs × 5 = 20)
  * - Finance: wallet credentials, capped at 10
  */
 export const SCORE_WEIGHTS = {
-  SocialCredential: 5,       // 5 per platform, 8 platforms = 40 max
-  EducationCredential: 0,    // uses course.points from banner directly
-  PhysicalCredential: 10,
+  SocialCredential: 0,        // calculated dynamically via weighted quality
+  EducationCredential: 0,     // uses course.points from banner directly
+  PhysicalCredential: 5,      // 5 per document type, 4 types = 20 max
   WalletCreatedCredential: 5,
   WalletHistoryCredential: 10,
 };
@@ -32,6 +32,30 @@ export interface ScoreBreakdown {
   };
 }
 
+/**
+ * Calculate weighted social points for a single platform credential.
+ * Uses followers, engagement, bot probability to derive a quality multiplier (0-1),
+ * then scales by (40 / totalPlatforms) so all platforms together sum to ≤40.
+ */
+const calculateSocialPlatformScore = (sub: any, totalPlatforms: number): number => {
+  const followers = Number(sub.followers) || 0;
+  const engagement = parseFloat(sub.engagementRate) || 0;
+  const botPct = parseFloat(sub.botProbability) || 50;
+
+  // Influence component (0-0.4): log scale of followers
+  const influenceRaw = Math.min(1, Math.log10(Math.max(followers, 1)) / 6);
+  // Engagement component (0-0.3): engagement rate scaled
+  const engagementRaw = Math.min(1, engagement / 10);
+  // Authenticity component (0-0.3): inverse of bot probability
+  const authRaw = Math.max(0, (100 - botPct) / 100);
+
+  const quality = influenceRaw * 0.4 + engagementRaw * 0.3 + authRaw * 0.3;
+
+  // Each platform gets at most (40 / totalPlatforms) points
+  const maxPerPlatform = 40 / Math.max(totalPlatforms, 1);
+  return Math.round(quality * maxPerPlatform * 10) / 10;
+};
+
 export const calculateReputationBreakdown = (credentials: VerifiableCredential[]): ScoreBreakdown => {
   if (!credentials || credentials.length === 0) {
     return {
@@ -43,38 +67,56 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
   const countedKeys = new Set<string>();
   const categories = { social: 0, education: 0, physical: 0, finance: 0 };
 
+  // First pass: count unique social platforms for weighting
+  const socialCreds: { sub: any; key: string }[] = [];
   credentials.forEach((vc) => {
     const types = Array.isArray(vc.type) ? vc.type : [vc.type];
-    const type = types.find((t) => t in SCORE_WEIGHTS) as keyof typeof SCORE_WEIGHTS | undefined;
+    if (types.includes('SocialCredential')) {
+      const sub = vc.credentialSubject as any;
+      const key = `social:${String(sub.platform || '').toLowerCase()}`;
+      if (!socialCreds.some(s => s.key === key)) {
+        socialCreds.push({ sub, key });
+      }
+    }
+  });
+
+  const totalSocialPlatforms = socialCreds.length;
+
+  // Calculate social scores with weighting
+  socialCreds.forEach(({ sub, key }) => {
+    if (countedKeys.has(key)) return;
+    countedKeys.add(key);
+    const pts = calculateSocialPlatformScore(sub, totalSocialPlatforms);
+    categories.social = Math.min(categories.social + pts, SCORE_CAPS.social);
+  });
+
+  // Second pass: non-social credentials
+  credentials.forEach((vc) => {
+    const types = Array.isArray(vc.type) ? vc.type : [vc.type];
+    const type = types.find((t) => t in SCORE_WEIGHTS && t !== 'SocialCredential') as keyof typeof SCORE_WEIGHTS | undefined;
 
     if (!type) return;
 
     const sub = vc.credentialSubject as any;
-    let key = type;
+    let key = type as string;
 
-    if (type === 'SocialCredential' && sub.platform) {
-      key = `social:${String(sub.platform).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
-    } else if (type === 'EducationCredential' && sub.courseName) {
-      key = `edu:${String(sub.courseName).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
+    if (type === 'EducationCredential' && sub.courseName) {
+      key = `edu:${String(sub.courseName).toLowerCase()}`;
     } else if (type === 'PhysicalCredential' && sub.documentType) {
-      key = `doc:${String(sub.documentType).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
+      key = `doc:${String(sub.documentType).toLowerCase()}`;
     } else if (type === 'WalletCreatedCredential' && sub.chain) {
-      key = `wallet:${String(sub.chain).toLowerCase()}` as keyof typeof SCORE_WEIGHTS;
+      key = `wallet:${String(sub.chain).toLowerCase()}`;
     } else if (type === 'WalletHistoryCredential') {
-      key = 'wallet-history' as keyof typeof SCORE_WEIGHTS;
+      key = 'wallet-history';
     }
 
-    const dedupeKey = String(key);
-    if (countedKeys.has(dedupeKey)) return;
+    if (countedKeys.has(key)) return;
 
-    if (type === 'SocialCredential') {
-      categories.social = Math.min(categories.social + SCORE_WEIGHTS.SocialCredential, SCORE_CAPS.social);
-    } else if (type === 'EducationCredential') {
-      // Use the course banner points directly (e.g., 3 or 4 pts per course)
+    if (type === 'EducationCredential') {
       const rawCoursePoints = Number(sub.points);
       const coursePoints = Number.isFinite(rawCoursePoints) && rawCoursePoints > 0
         ? Math.min(rawCoursePoints, 10)
-        : 3; // sensible default if missing
+        : 3;
       categories.education = Math.min(categories.education + coursePoints, SCORE_CAPS.education);
     } else if (type === 'PhysicalCredential') {
       categories.physical = Math.min(categories.physical + SCORE_WEIGHTS.PhysicalCredential, SCORE_CAPS.physical);
@@ -85,14 +127,17 @@ export const calculateReputationBreakdown = (credentials: VerifiableCredential[]
       categories.finance = Math.min(categories.finance + financePoints, SCORE_CAPS.finance);
     }
 
-    countedKeys.add(dedupeKey);
+    countedKeys.add(key);
   });
 
-  const totalScore = categories.social + categories.education + categories.physical + categories.finance;
+  const totalScore = Math.round(categories.social) + categories.education + categories.physical + categories.finance;
 
   return {
     score: Math.min(totalScore, 100),
-    categories,
+    categories: {
+      ...categories,
+      social: Math.round(categories.social),
+    },
   };
 };
 

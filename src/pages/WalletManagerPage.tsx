@@ -138,12 +138,12 @@ interface WalletProvider {
 }
 
 const ALL_WALLET_PROVIDERS: WalletProvider[] = [
-  { name: "MetaMask", description: "The most popular EVM browser wallet.", Logo: MetaMaskProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche"], url: "https://metamask.io/download/" },
-  { name: "Coinbase Wallet", description: "Self-custody wallet by Coinbase.", Logo: CoinbaseProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche", "Solana", "Bitcoin"], url: "https://www.coinbase.com/wallet" },
-  { name: "Phantom", description: "Multi-chain wallet for Solana, Ethereum & Bitcoin.", Logo: PhantomProviderLogo, chains: ["Solana", "Ethereum", "Bitcoin"], url: "https://phantom.app/download" },
-  { name: "Rainbow", description: "Beautiful Ethereum wallet for NFTs & DeFi.", Logo: RainbowProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche"], url: "https://rainbow.me/" },
-  { name: "WalletConnect", description: "Connect any wallet via QR code scan.", Logo: WalletConnectProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche", "Solana", "Polkadot", "Cardano"], url: "https://walletconnect.com/" },
-  { name: "Talisman", description: "The gateway to Polkadot & Substrate ecosystems.", Logo: TalismanProviderLogo, chains: ["Polkadot", "Ethereum"], url: "https://talisman.xyz/download" },
+  { name: "MetaMask", description: "The most popular EVM browser wallet.", Logo: MetaMaskProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche", "Polygon", "Optimism", "BNB Chain", "Starknet", "zkSync"], url: "https://metamask.io/download/" },
+  { name: "Coinbase Wallet", description: "Self-custody wallet by Coinbase.", Logo: CoinbaseProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche", "Solana", "Bitcoin", "Polygon", "Optimism", "BNB Chain"], url: "https://www.coinbase.com/wallet" },
+  { name: "Phantom", description: "Multi-chain wallet for Solana, Ethereum & Bitcoin.", Logo: PhantomProviderLogo, chains: ["Solana", "Ethereum", "Bitcoin", "Polygon", "Base"], url: "https://phantom.app/download" },
+  { name: "Rainbow", description: "Beautiful Ethereum wallet for NFTs & DeFi.", Logo: RainbowProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche", "Polygon", "Optimism"], url: "https://rainbow.me/" },
+  { name: "WalletConnect", description: "Connect any wallet via QR code scan.", Logo: WalletConnectProviderLogo, chains: ["Ethereum", "Arbitrum", "Base", "Avalanche", "Solana", "Polkadot", "Cardano", "Polygon", "Optimism", "BNB Chain", "Cosmos", "Near", "Tron", "Sui", "Aptos"], url: "https://walletconnect.com/" },
+  { name: "Talisman", description: "The gateway to Polkadot & Substrate ecosystems.", Logo: TalismanProviderLogo, chains: ["Polkadot", "Ethereum", "Cosmos"], url: "https://talisman.xyz/download" },
   { name: "Eternl", description: "Feature-rich Cardano wallet for staking & DApps.", Logo: EternlProviderLogo, chains: ["Cardano"], url: "https://eternl.io/" },
   { name: "Nami", description: "Lightweight Cardano browser wallet.", Logo: NamiProviderLogo, chains: ["Cardano"], url: "https://namiwallet.io/" },
   { name: "Temple", description: "Tezos wallet for DeFi, NFTs & staking.", Logo: TempleProviderLogo, chains: ["Tezos"], url: "https://templewallet.com/" },
@@ -154,8 +154,15 @@ const ALL_WALLET_PROVIDERS: WalletProvider[] = [
 ];
 
 /* ══════════════════════════════════════════════
-   Blockchain items
+   Blockchain items — 19 chains
    ══════════════════════════════════════════════ */
+
+// Generic colored logo for chains without imported SVG assets
+const ColorLogo: React.FC<{ letter: string; color: string }> = ({ letter, color }) => (
+  <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-white text-sm`} style={{ backgroundColor: color }}>
+    {letter}
+  </div>
+);
 
 const ITEMS = [
   { name: "Ethereum", symbol: "ETH", risk: "Low", description: "The leading smart contract platform. Used for DeFi, NFTs, and DAOs.", url: "https://ethereum.org", Logo: EthereumLogo },
@@ -167,6 +174,16 @@ const ITEMS = [
   { name: "Polkadot", symbol: "DOT", risk: "Medium", description: "Multi-chain protocol connecting blockchains into one unified network.", url: "https://polkadot.com", Logo: PolkadotLogo },
   { name: "Cardano", symbol: "ADA", risk: "Low", description: "Research-driven proof-of-stake blockchain with formal verification.", url: "https://cardano.org", Logo: CardanoLogo },
   { name: "Tezos", symbol: "XTZ", risk: "Medium", description: "Self-amending blockchain with on-chain governance and liquid staking.", url: "https://tezos.com", Logo: TezosLogo },
+  { name: "Polygon", symbol: "MATIC", risk: "Low", description: "Leading Ethereum scaling solution with low fees and fast transactions.", url: "https://polygon.technology", Logo: () => <ColorLogo letter="P" color="#8247E5" /> },
+  { name: "Optimism", symbol: "OP", risk: "Low", description: "Optimistic rollup for Ethereum with fast withdrawals and low gas.", url: "https://optimism.io", Logo: () => <ColorLogo letter="O" color="#FF0420" /> },
+  { name: "BNB Chain", symbol: "BNB", risk: "Medium", description: "High-throughput EVM-compatible chain by Binance.", url: "https://www.bnbchain.org", Logo: () => <ColorLogo letter="B" color="#F3BA2F" /> },
+  { name: "Cosmos", symbol: "ATOM", risk: "Medium", description: "Internet of Blockchains — sovereign interoperable chains via IBC.", url: "https://cosmos.network", Logo: () => <ColorLogo letter="C" color="#2E3148" /> },
+  { name: "Near", symbol: "NEAR", risk: "Medium", description: "Sharded proof-of-stake L1 with human-readable accounts.", url: "https://near.org", Logo: () => <ColorLogo letter="N" color="#000000" /> },
+  { name: "Tron", symbol: "TRX", risk: "Medium", description: "Decentralized blockchain for entertainment and stablecoins.", url: "https://tron.network", Logo: () => <ColorLogo letter="T" color="#FF0013" /> },
+  { name: "Starknet", symbol: "STRK", risk: "Medium", description: "ZK-rollup L2 for Ethereum with Cairo smart contracts.", url: "https://starknet.io", Logo: () => <ColorLogo letter="S" color="#0C0C4F" /> },
+  { name: "zkSync", symbol: "ZK", risk: "Medium", description: "ZK-rollup L2 with native account abstraction.", url: "https://zksync.io", Logo: () => <ColorLogo letter="Z" color="#1E69FF" /> },
+  { name: "Sui", symbol: "SUI", risk: "Medium", description: "Move-based L1 with object-centric data model.", url: "https://sui.io", Logo: () => <ColorLogo letter="S" color="#4DA2FF" /> },
+  { name: "Aptos", symbol: "APT", risk: "Medium", description: "Move-based L1 focused on safety and scalability.", url: "https://aptoslabs.com", Logo: () => <ColorLogo letter="A" color="#2DD8A3" /> },
 ];
 
 /* ══════════════════════════════════════════════

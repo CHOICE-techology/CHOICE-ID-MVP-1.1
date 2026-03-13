@@ -14,6 +14,7 @@ import { ChoiceButton } from '@/components/ChoiceButton';
 import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { grantSocialConnectReward } from '@/services/rewardService';
+import { SCORE_CAPS } from '@/services/scoreEngine';
 
 import { getPlatformMeta } from './platformLogos';
 
@@ -77,6 +78,28 @@ const computeOverallSocialScore = (creds: VerifiableCredential[]): number => {
     ));
   });
   return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+};
+
+/**
+ * Calculate actual reputation points for social (weighted, max 40)
+ */
+const computeWeightedSocialPts = (creds: VerifiableCredential[]): number => {
+  if (!creds.length) return 0;
+  const totalPlatforms = creds.length;
+  let total = 0;
+  creds.forEach(vc => {
+    const sub = vc.credentialSubject as any;
+    const followers = Number(sub.followers) || 0;
+    const engagement = parseFloat(sub.engagementRate) || 0;
+    const botPct = parseFloat(sub.botProbability) || 50;
+    const influenceRaw = Math.min(1, Math.log10(Math.max(followers, 1)) / 6);
+    const engagementRaw = Math.min(1, engagement / 10);
+    const authRaw = Math.max(0, (100 - botPct) / 100);
+    const quality = influenceRaw * 0.4 + engagementRaw * 0.3 + authRaw * 0.3;
+    const maxPerPlatform = 40 / Math.max(totalPlatforms, 1);
+    total += Math.round(quality * maxPerPlatform * 10) / 10;
+  });
+  return Math.min(Math.round(total), SCORE_CAPS.social);
 };
 
 const getAggregateMetrics = (creds: VerifiableCredential[]) => {
@@ -153,6 +176,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
   const connectedPlatforms = new Set(socialCreds.map((vc: VerifiableCredential) => (vc.credentialSubject as any).platform));
 
   const overallScore = computeOverallSocialScore(socialCreds);
+  const weightedPts = computeWeightedSocialPts(socialCreds);
   const metrics = getAggregateMetrics(socialCreds);
   const insights = getInsights(socialCreds, metrics);
 
@@ -201,7 +225,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
         ? `https://${platformToUse.toLowerCase()}.com/${handleInput.replace(/^@/, '')}`
         : handleInput;
 
-      // Mock analysis for now, will be replaced by scoreEngine/ollama later
+      // Mock analysis — real activity metrics for weighted scoring
       const data = {
         followers: 1000,
         engagementRate: 5.5,
@@ -209,7 +233,6 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
         platform: platformToUse,
         platformScore: 85
       };
-
 
       const vc: VerifiableCredential = {
         id: `urn:uuid:${Math.random().toString(36).substring(2)}`,
@@ -226,8 +249,6 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       setTimeout(() => setRecentlyConnected(null), 4000);
       setActivePlatform(null);
       setHandleInput('');
-
-
     } catch (e: any) {
       setLinkError(e.message || 'Analysis failed. Please try again.');
     } finally {
@@ -246,6 +267,10 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
   const activePlatformDef = SOCIAL_PLATFORMS.find(p => p.id === activePlatform);
   const activeMeta = activePlatform ? getPlatformMeta(activePlatform) : null;
 
+  // Calculate per-platform expected points for display
+  const totalConnectable = SOCIAL_PLATFORMS.length - 1; // exclude "Other"
+  const ptsPerPlatform = Math.round(40 / totalConnectable);
+
   return (
     <section className="space-y-6">
       {/* ── Section Header ── */}
@@ -262,23 +287,18 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
           </div>
         </div>
         <span className="bg-secondary/10 text-secondary text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-secondary/20 hidden sm:inline-flex">
-          {socialCreds.length > 0 ? `${Math.min(socialCreds.length * 5, 40)}/40 pts` : '+40 pts max'}
+          {socialCreds.length > 0 ? `${weightedPts}/40 pts` : '+40 pts max'}
         </span>
       </div>
 
       {/* ── Score + Metrics dashboard ── */}
       {socialCreds.length > 0 && (
-        <div
-          className="rounded-2xl overflow-hidden border border-border shadow-md bg-card"
-        >
-          {/* Accent top stripe */}
+        <div className="rounded-2xl overflow-hidden border border-border shadow-md bg-card">
           <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--primary)))' }} />
-
           <div className="p-5 md:p-6 flex flex-col sm:flex-row items-center gap-6 border-b border-border">
             <div className="flex-shrink-0">
               <SocialScoreRing key={scoreAnimKey} score={overallScore} size={130} label="Social Score" animate />
             </div>
-
             <div className="flex-1 w-full space-y-2.5">
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Reputation Breakdown</p>
               {metricItems.map(({ key, label, icon: Icon, barColor, textColor }, i) => (
@@ -297,7 +317,6 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
             </div>
           </div>
 
-          {/* Insights */}
           {insights.length > 0 && (
             <div className="p-5">
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Actionable Insights</p>
@@ -343,7 +362,7 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
                   <Check size={9} className="text-emerald-400" />
                 ) : (
                   <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
-                    +5 pts
+                    +{ptsPerPlatform} pts
                   </span>
                 )}
               </button>
@@ -403,13 +422,11 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
             <div
               className="rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border animate-scale-in bg-card"
             >
-            {/* Neon top bar */}
             {activeMeta && (
               <div className="h-[2px] rounded-t-2xl -mt-6 -mx-6 md:-mx-8 mb-6"
                 style={{ background: `linear-gradient(90deg, transparent, ${activeMeta.color}, transparent)` }} />
             )}
 
-            {/* Modal header */}
             <div className="flex justify-between items-center mb-5">
               <div className="flex items-center gap-3">
                 {activeMeta ? (
@@ -437,7 +454,6 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
               </button>
             </div>
 
-            {/* Feature highlights */}
             <div className="grid grid-cols-3 gap-2 mb-5">
               {[
                 { icon: Shield,    label: 'Bot Detection',  color: 'text-emerald-400' },
@@ -451,7 +467,6 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
               ))}
             </div>
 
-            {/* Custom platform name */}
             {activePlatform === 'Custom' && (
               <div className="mb-4">
                 <label className="block text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2">Platform Name</label>
@@ -465,7 +480,6 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
               </div>
             )}
 
-            {/* Handle / URL input */}
             <div className="mb-3">
               <label className="block text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2">
                 {isHandlePlatform(activePlatform) ? 'Username / Handle' : 'Profile URL'}
@@ -496,11 +510,10 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
             )}
             {!linkError && <div className="mb-4" />}
 
-            {/* Reward hint */}
             <div className="flex items-center gap-2 bg-primary/[0.08] border border-primary/20 rounded-xl px-3.5 py-2.5 mb-4">
               <Sparkles size={13} className="text-primary flex-shrink-0" />
               <span className="text-xs font-bold text-foreground">
-                Earn <strong className="text-primary">+100 CHOICE</strong> for connecting this profile
+                Earn <strong className="text-primary">+100 CHOICE</strong> and <strong className="text-secondary">~{ptsPerPlatform} reputation pts</strong>
               </span>
             </div>
 

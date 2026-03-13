@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@/contexts/WalletContext';
 import { VerifiableCredential } from '@/types';
 import { addCredential } from '@/services/storageService';
@@ -39,6 +40,7 @@ const CHAINS = [
 ];
 
 const CredentialsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { userIdentity: identity, updateIdentity: onUpdateIdentity } = useWallet();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -339,7 +341,10 @@ const CredentialsPage: React.FC = () => {
           )}
 
           {/* Add wallet button */}
-          <button className="w-full mt-4 py-3 border border-dashed border-slate-600 rounded-xl text-slate-400 text-xs font-bold hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2">
+          <button
+            onClick={() => navigate('/wallet-manager')}
+            className="w-full mt-4 py-3 border border-dashed border-slate-600 rounded-xl text-slate-400 text-xs font-bold hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
+          >
             + Add wallet from another chain
           </button>
         </div>
