@@ -590,9 +590,9 @@ DID: ${identity.did}`;
                   <div className="bg-primary/10 p-2.5 rounded-xl">
                     <Shield size={20} className="text-primary" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground">Submit Proofs for Manual Verification</h3>
-                    <p className="text-muted-foreground text-xs">Request review before final on-chain anchoring.</p>
+                   <div>
+                    <h3 className="text-lg font-bold text-foreground">Proofs of Verification</h3>
+                    <p className="text-muted-foreground text-xs">Your verified credentials and reputation summary.</p>
                   </div>
                 </div>
                 <Link to="/verify" className="shrink-0">
