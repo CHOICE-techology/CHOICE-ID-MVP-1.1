@@ -89,20 +89,11 @@ const LessonPage: React.FC = () => {
       const newIdentity = await addCredential(identity, badgeVC);
       await onUpdateIdentity(newIdentity);
 
-      // Grant CHOICE reward
+      // Grant CHOICE reward via unified rewardService (handles dedup + Supabase)
       const reward = course.choiceReward ?? 40;
       try {
-        await supabase.rpc('increment_choice_balance', {
-          p_wallet_address: identity.address,
-          p_amount: reward,
-        });
-        await supabase.from('choice_transactions').insert({
-          user_id: identity.address,
-          type: 'education_reward',
-          amount: reward,
-          reason: `Completed course: ${course.title}`,
-        });
-        window.dispatchEvent(new Event('choice-rewards-updated'));
+        const { grantReward } = await import('@/services/rewardService');
+        await grantReward(identity.address, 'education_reward', `course_${course.id}`, reward);
       } catch (err) {
         console.warn('Reward grant failed:', err);
       }
