@@ -19,6 +19,13 @@ const EducationPage: React.FC = () => {
   const { userIdentity: identity, isConnected } = useWallet();
   const { setWalletModalOpen } = useChoiceStore();
   const navigate = useNavigate();
+  const [shareCourse, setShareCourse] = useState<typeof COURSES[0] | null>(null);
+
+  // Get connected social platform IDs
+  const connectedPlatforms = identity?.credentials
+    .filter((vc: VerifiableCredential) => vc.type.includes('SocialCredential'))
+    .map((vc: VerifiableCredential) => (vc.credentialSubject as any).platform as string)
+    .filter(Boolean) || [];
 
   const hasBadge = (courseTitle: string) =>
     identity?.credentials.some(vc => vc.type.includes('EducationCredential') && vc.credentialSubject.courseName === courseTitle);
