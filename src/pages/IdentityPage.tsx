@@ -603,6 +603,32 @@ DID: ${identity.did}`;
               </div>
             </div>
 
+            {/* Scoreboard Summary */}
+            <div className="px-5 pt-5 md:px-6 md:pt-6">
+              <div className="bg-muted rounded-2xl border border-border p-4 space-y-2">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Reputation Summary</h4>
+                {[
+                  { label: 'Trust Score', value: `${score}/100` },
+                  { label: 'Social Score', value: `${social}/40` },
+                  { label: 'Wallet Activity', value: `${finance}/10` },
+                  { label: 'Courses Completed', value: `${education}/30` },
+                  { label: 'Credentials Verified', value: `${identity.credentials.length}` },
+                ].map(row => (
+                  <div key={row.label} className="flex items-center justify-between py-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground">{row.label}</span>
+                    <span className="text-xs font-bold text-foreground">{row.value}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Short Bio */}
+              <div className="mt-3 bg-muted rounded-2xl border border-border p-4">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Short Bio</span>
+                <p className="text-sm text-foreground mt-1 leading-relaxed">
+                  {identity.bio || 'No bio added yet.'}
+                </p>
+              </div>
+            </div>
+
             {verificationData ? (
               <div className="p-5 md:p-6 flex-1 flex flex-col justify-center space-y-4">
                 {/* Verification Successful banner */}
@@ -620,17 +646,10 @@ DID: ${identity.did}`;
 
                 {/* Transaction-style record */}
                 <div className="bg-muted rounded-2xl border border-border overflow-hidden">
-                  <div className={cn(
-                    "border-b px-5 py-3 flex items-center gap-2",
-                    isVerificationPending ? "bg-amber-500/10 border-amber-500/20" : "bg-emerald-500/10 border-emerald-500/20"
-                  )}>
-                    <CheckCircle size={14} className={isVerificationPending ? "text-amber-600" : "text-emerald-600"} />
-                    <span className={cn("text-xs font-bold", isVerificationPending ? "text-amber-700" : "text-emerald-700")}>
-                      {isVerificationPending ? 'Pending Manual Review' : 'Transaction Confirmed'}
-                    </span>
-                    <span className={cn("ml-auto text-[10px] font-mono", isVerificationPending ? "text-amber-700" : "text-emerald-600")}>
-                      {isVerificationPending ? 'Awaiting anchor' : 'Arbitrum Sepolia'}
-                    </span>
+                  <div className="border-b px-5 py-3 flex items-center gap-2 bg-emerald-500/10 border-emerald-500/20">
+                    <CheckCircle size={14} className="text-emerald-600" />
+                    <span className="text-xs font-bold text-emerald-700">Verified</span>
+                    <span className="ml-auto text-[10px] font-mono text-emerald-600">Arbitrum Sepolia</span>
                   </div>
                   <div className="divide-y divide-border">
                     <div className="flex items-center justify-between px-5 py-3.5">
