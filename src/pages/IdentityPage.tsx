@@ -22,6 +22,19 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getChoiceBalance, getTransactionHistory, getRewardLabel, getRewardCategory, ChoiceTransaction } from '@/services/rewardService';
+import { supabase } from '@/integrations/supabase/client';
+import { Users } from 'lucide-react';
+
+interface Referral {
+  id: string;
+  referral_code: string;
+  referrer_wallet: string;
+  referred_wallet: string | null;
+  referred_name: string | null;
+  joined_at: string | null;
+  created_at: string;
+}
+
 const IdentityPage: React.FC = () => {
   const {
     userIdentity: identity,
@@ -47,10 +60,33 @@ const IdentityPage: React.FC = () => {
   const [appSent, setAppSent] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [affiliateLink, setAffiliateLink] = useState('');
-  const [invitedCount] = useState(() => Math.floor(Math.random() * 5));
+  const [referralCode, setReferralCode] = useState('');
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [isLoadingReferrals, setIsLoadingReferrals] = useState(false);
   const [choiceBalance, setChoiceBalance] = useState(0);
   const [recentTxs, setRecentTxs] = useState<ChoiceTransaction[]>([]);
   const [showAllTxs, setShowAllTxs] = useState(false);
+
+  // Load referrals from database
+  useEffect(() => {
+    if (!identity?.address) return;
+    setIsLoadingReferrals(true);
+    const loadReferrals = async () => {
+      // Check if user already has a referral code
+      const { data: existing } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_wallet', identity.address);
+      if (existing && existing.length > 0) {
+        setReferrals(existing as Referral[]);
+        const code = existing[0].referral_code;
+        setReferralCode(code);
+        setAffiliateLink(`https://CHOICE.love/join?ref=${code}`);
+      }
+      setIsLoadingReferrals(false);
+    };
+    loadReferrals();
+  }, [identity?.address]);
 
   // Fetch CHOICE balance & transactions
   useEffect(() => {
@@ -822,41 +858,128 @@ DID: ${identity.did}`;
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground">Invite Friends</h3>
-                <p className="text-muted-foreground text-xs">Earn <span className="text-primary font-bold">◈ +25 CHOICE</span> when they reach 50 score</p>
+                <p className="text-muted-foreground text-xs">Earn <span className="text-primary font-bold">◈ +25 CHOICE</span> per friend who joins</p>
               </div>
             </div>
 
-            <div className="bg-muted rounded-xl px-4 py-3 border border-border mb-4">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Friends Invited</span>
-              <p className="text-2xl font-black text-foreground">{invitedCount}</p>
-            </div>
-
-            <div className="mt-auto">
-              {score >= 50 ? (
-                affiliateLink ? (
-                  <div className="bg-muted rounded-xl px-4 py-3 border border-border flex items-center gap-2">
-                    <code className="text-xs text-foreground font-mono truncate flex-1">{affiliateLink}</code>
-                    <button onClick={() => { navigator.clipboard.writeText(affiliateLink); toast({ title: 'Copied!', description: 'Affiliate link copied.' }); }} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors shrink-0">
-                      <Copy size={14} className="text-primary" />
-                    </button>
+            {/* Stats Row */}
+            {(() => {
+              const joinedFriends = referrals.filter(r => r.joined_at);
+              const linksGenerated = referrals.length;
+              const choiceEarned = joinedFriends.length * 25;
+              return (
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="bg-muted rounded-xl px-3 py-2.5 border border-border text-center">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Links</span>
+                    <p className="text-lg font-black text-foreground">{linksGenerated}</p>
                   </div>
-                ) : (
-                  <ChoiceButton onClick={() => { const code = Math.random().toString(36).substring(2, 10).toUpperCase(); setAffiliateLink(`https://CHOICE.love/join?ref=${code}`); }} className="w-full">
-                    <Share2 size={16} className="mr-2" /> Create Invite Link
-                  </ChoiceButton>
-                )
-              ) : (
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold mb-2">Reach 50+ points to unlock</p>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-foreground">{score}/50</span>
-                    <div className="flex-1 bg-border rounded-full h-1.5">
-                      <div className="bg-primary h-1.5 rounded-full" style={{ width: `${Math.min((score / 50) * 100, 100)}%` }}></div>
-                    </div>
+                  <div className="bg-muted rounded-xl px-3 py-2.5 border border-border text-center">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Joined</span>
+                    <p className="text-lg font-black text-foreground">{joinedFriends.length}</p>
+                  </div>
+                  <div className="bg-muted rounded-xl px-3 py-2.5 border border-border text-center">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Earned</span>
+                    <p className="text-lg font-black text-primary">◈ {choiceEarned}</p>
                   </div>
                 </div>
-              )}
-            </div>
+              );
+            })()}
+
+            {/* Referral Code & Link */}
+            {affiliateLink ? (
+              <div className="space-y-2 mb-4">
+                <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-center">
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Your Referral Code</span>
+                  <p className="text-xl font-black text-primary tracking-widest">{referralCode}</p>
+                </div>
+                <div className="bg-muted rounded-xl px-3 py-2.5 border border-border flex items-center gap-2">
+                  <code className="text-[11px] text-foreground font-mono truncate flex-1">{affiliateLink}</code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(affiliateLink);
+                      toast({ title: 'Copied!', description: 'Referral link copied to clipboard.' });
+                    }}
+                    className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors shrink-0"
+                  >
+                    <Copy size={14} className="text-primary" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: 'Join CHOICE', url: affiliateLink });
+                      } else {
+                        navigator.clipboard.writeText(affiliateLink);
+                        toast({ title: 'Copied!', description: 'Link copied — share it manually.' });
+                      }
+                    }}
+                    className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors shrink-0"
+                  >
+                    <Share2 size={14} className="text-primary" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <ChoiceButton
+                  isLoading={isLoadingReferrals}
+                  onClick={async () => {
+                    if (!identity?.address) return;
+                    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+                    const link = `https://CHOICE.love/join?ref=${code}`;
+                    const { error } = await supabase.from('referrals').insert({
+                      referral_code: code,
+                      referrer_wallet: identity.address,
+                    });
+                    if (error) {
+                      toast({ title: 'Error', description: 'Could not create referral link.', variant: 'destructive' });
+                      return;
+                    }
+                    setReferralCode(code);
+                    setAffiliateLink(link);
+                    // Reload referrals
+                    const { data } = await supabase.from('referrals').select('*').eq('referrer_wallet', identity.address);
+                    if (data) setReferrals(data as Referral[]);
+                    toast({ title: 'Link Created!', description: 'Share your referral link to earn CHOICE tokens.' });
+                  }}
+                  className="w-full"
+                >
+                  <Share2 size={16} className="mr-2" /> Create Invite Link
+                </ChoiceButton>
+              </div>
+            )}
+
+            {/* Invited Users List */}
+            {referrals.length > 0 && (
+              <div className="border-t border-border pt-3 mt-auto">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Users size={12} /> Invited Users
+                </h4>
+                <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                  {referrals.map((ref) => (
+                    <div key={ref.id} className="flex items-center justify-between bg-muted rounded-lg px-3 py-2 border border-border text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${ref.joined_at ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                        <span className="text-foreground font-mono truncate">
+                          {ref.referred_wallet
+                            ? `${ref.referred_wallet.slice(0, 6)}...${ref.referred_wallet.slice(-4)}`
+                            : ref.referred_name || 'Pending...'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {ref.joined_at ? (
+                          <>
+                            <span className="text-muted-foreground">{new Date(ref.joined_at).toLocaleDateString()}</span>
+                            <span className="text-emerald-600 font-bold text-[10px]">Joined ✓</span>
+                          </>
+                        ) : (
+                          <span className="text-amber-500 font-semibold text-[10px]">Pending</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
