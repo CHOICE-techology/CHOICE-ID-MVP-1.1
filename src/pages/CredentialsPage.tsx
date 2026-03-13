@@ -11,7 +11,7 @@ import { SocialReputationHub } from '@/components/social/SocialReputationHub';
 import {
   FileText, Upload, FileCheck, GraduationCap, Award, BadgeCheck,
   CreditCard, Wallet, Activity, CheckCircle2, Clock3, ChevronDown, ChevronUp,
-  ExternalLink, Zap, Globe, X, Shield, TrendingUp, Users, BookOpen, FileCode,
+  ExternalLink, Zap, Globe, X, Shield, TrendingUp, Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
@@ -98,7 +98,7 @@ const CredentialsPage: React.FC = () => {
     if (event.target.files && event.target.files[0]) setSelectedFile(event.target.files[0]);
   };
 
-  const submitPhysicalProof = async () => {
+  const submitPhysicalProofForManualReview = async () => {
     if (!selectedFile) return;
     setIsVerifyingDoc(true);
     try {
@@ -170,6 +170,7 @@ const CredentialsPage: React.FC = () => {
 
       setAddedWallets(prev => [...prev.filter(w => !(w.chain === addWalletChain && w.address === addWalletAddress.trim())), { chain: addWalletChain, address: addWalletAddress.trim(), stats: enrichedStats }]);
 
+      // Create credential for this wallet
       const walletVC: VerifiableCredential = {
         id: `urn:uuid:${crypto.randomUUID()}`,
         type: ['VerifiableCredential', 'WalletCreatedCredential'],
@@ -223,24 +224,11 @@ const CredentialsPage: React.FC = () => {
 
   const totalTxns = walletSubject?.txCount ?? walletStats?.txCount ?? 0;
 
+  // Score breakdown for display
   const breakdown = calculateReputationBreakdown(identity.credentials);
 
-  // CV Summary generation
-  const creds = identity.credentials;
-  const badges = creds.filter((vc: VerifiableCredential) => vc.type.includes('EducationCredential')).map((vc: VerifiableCredential) => (vc.credentialSubject as any).courseName as string).filter(Boolean);
-  const socialPlatforms = creds.filter((vc: VerifiableCredential) => vc.type.includes('SocialCredential')).map((vc: VerifiableCredential) => (vc.credentialSubject as any).platform as string).filter(Boolean);
-  const walletChains = creds.filter((vc: VerifiableCredential) => vc.type.includes('WalletCreatedCredential') || vc.type.includes('WalletHistoryCredential')).map((vc: VerifiableCredential) => (vc.credentialSubject as any).chain as string || 'Ethereum').filter(Boolean);
-  const physicalDocs = creds.filter((vc: VerifiableCredential) => vc.type.includes('PhysicalCredential')).map((vc: VerifiableCredential) => (vc.credentialSubject as any).documentType as string).filter(Boolean);
-
-  const cvParts: string[] = [];
-  if (badges.length) cvParts.push(`Completed ${badges.length} Web3 course${badges.length > 1 ? 's' : ''}: ${badges.join(', ')}`);
-  if (socialPlatforms.length) cvParts.push(`Active on ${socialPlatforms.length} social platform${socialPlatforms.length > 1 ? 's' : ''}: ${socialPlatforms.join(', ')}`);
-  if (walletChains.length) cvParts.push(`On-chain activity across ${walletChains.length} chain${walletChains.length > 1 ? 's' : ''}: ${[...new Set(walletChains)].join(', ')}`);
-  if (physicalDocs.length) cvParts.push(`${physicalDocs.length} verified document${physicalDocs.length > 1 ? 's' : ''}: ${physicalDocs.join(', ')}`);
-  const cvSummary = cvParts.length ? cvParts.join('. ') + '.' : 'No credentials submitted yet. Start building your profile!';
-
   return (
-    <div className="space-y-6 animate-fade-in pb-20">
+    <div className="space-y-8 animate-fade-in pb-20">
       <header className="mb-4">
         <h1 className="text-3xl md:text-4xl font-black text-foreground mb-1 tracking-tighter">Identity Profile</h1>
         <p className="text-muted-foreground text-sm font-medium">
@@ -252,8 +240,8 @@ const CredentialsPage: React.FC = () => {
       {/* WALLET HISTORY — DARK MULTI-CHAIN BLOCK                   */}
       {/* ══════════════════════════════════════════════════════════ */}
       <section className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 md:p-7">
-          <div className="flex items-center justify-between mb-5">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 md:p-8">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
                 <Wallet size={20} className="text-primary" />
@@ -269,7 +257,7 @@ const CredentialsPage: React.FC = () => {
           </div>
 
           {/* Chain icons row */}
-          <div className="flex flex-wrap gap-2 md:gap-2.5 mb-5 justify-center md:justify-start">
+          <div className="flex flex-wrap gap-2 md:gap-3 mb-6 justify-center md:justify-start">
             {CHAINS.map((chain) => {
               const active = walletCredential ? isChainActive(chain.id) : false;
               return (
@@ -277,7 +265,7 @@ const CredentialsPage: React.FC = () => {
                   key={chain.id}
                   onClick={() => setSelectedChain(selectedChain === chain.id ? null : chain.id)}
                   className={cn(
-                    'flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-lg border transition-all min-w-[44px]',
+                    'flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-lg border transition-all min-w-[48px]',
                     active
                       ? 'border-primary/40 bg-primary/10'
                       : 'border-slate-700 bg-slate-800/50 opacity-50 hover:opacity-80',
@@ -299,7 +287,7 @@ const CredentialsPage: React.FC = () => {
           </div>
 
           {/* Wallet address bar + ANALYZE button */}
-          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl p-2.5 mb-5">
+          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl p-2.5 mb-6">
             <div className="bg-primary/10 p-1.5 rounded-lg">
               <Wallet size={14} className="text-primary" />
             </div>
@@ -321,7 +309,7 @@ const CredentialsPage: React.FC = () => {
           {/* Stats row (visible after analysis) */}
           {walletCredential && (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 mb-5">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
                 {[
                   { label: 'ACCOUNT AGE', value: walletSubject?.accountAge ?? walletStats?.accountAge ?? '—', icon: Clock3 },
                   { label: 'TOTAL VOLUME', value: walletSubject?.totalVolume ?? walletStats?.totalVolume ?? '—', icon: Activity },
@@ -345,7 +333,7 @@ const CredentialsPage: React.FC = () => {
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Transaction Activity</span>
                   <span className="text-[10px] text-primary font-bold">{totalTxns} total</span>
                 </div>
-                <div className="h-[100px]">
+                <div className="h-[120px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={activityData}>
                       <defs>
@@ -382,7 +370,7 @@ const CredentialsPage: React.FC = () => {
               <div className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setWalletExpanded(e => !e)}
-                  className="w-full flex items-center justify-between p-3 hover:bg-slate-700/30 transition-colors"
+                  className="w-full flex items-center justify-between p-4 hover:bg-slate-700/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-primary/10 p-1.5 rounded-lg">
@@ -399,14 +387,14 @@ const CredentialsPage: React.FC = () => {
 
                 {walletExpanded && (
                   <div className="border-t border-slate-700 p-4 animate-fade-in">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                       {[
                         { label: 'TRANSACTIONS', value: String(totalTxns) },
                         { label: 'AGE', value: walletSubject?.accountAge ?? '—' },
                         { label: 'BALANCE', value: walletSubject?.balance ?? walletStats?.balance ?? '—' },
                         { label: 'NET VALUE', value: walletSubject?.netValue ?? walletStats?.netValue ?? '—' },
                       ].map(item => (
-                        <div key={item.label} className="bg-slate-900/50 rounded-lg p-2.5 border border-slate-700/50">
+                        <div key={item.label} className="bg-slate-900/50 rounded-lg p-3 border border-slate-700/50">
                           <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">{item.label}</p>
                           <p className="text-sm font-bold text-white">{item.value}</p>
                         </div>
@@ -429,16 +417,16 @@ const CredentialsPage: React.FC = () => {
               </div>
             </>
           )}
-          
+
           {/* Added wallets display */}
           {addedWallets.length > 0 && (
-            <div className="mt-4 space-y-2.5">
+            <div className="mt-4 space-y-3">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Added Wallets</span>
               {addedWallets.map((w, i) => {
                 const chainDef = CHAINS.find(c => c.id === w.chain);
                 return (
-                  <div key={i} className="bg-slate-800/80 border border-slate-700 rounded-xl p-3">
-                    <div className="flex items-center gap-3 mb-2">
+                  <div key={i} className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-3">
                       {chainDef?.logo ? (
                         <img src={chainDef.logo} alt={chainDef.name} className="w-5 h-5" />
                       ) : (
@@ -476,7 +464,7 @@ const CredentialsPage: React.FC = () => {
           {/* Add wallet button */}
           <button
             onClick={() => setShowAddWallet(true)}
-            className="w-full mt-4 py-2.5 border border-dashed border-slate-600 rounded-xl text-slate-400 text-xs font-bold hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
+            className="w-full mt-4 py-3 border border-dashed border-slate-600 rounded-xl text-slate-400 text-xs font-bold hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
           >
             + Add wallet from another chain
           </button>
@@ -507,6 +495,7 @@ const CredentialsPage: React.FC = () => {
               </button>
             </div>
 
+            {/* Chain selection grid */}
             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-3">Select Chain</p>
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-5 max-h-[200px] overflow-y-auto pr-1">
               {CHAINS.map((chain) => (
@@ -532,6 +521,7 @@ const CredentialsPage: React.FC = () => {
               ))}
             </div>
 
+            {/* Address input */}
             {addWalletChain && (
               <>
                 <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2">Wallet Address</p>
@@ -559,45 +549,43 @@ const CredentialsPage: React.FC = () => {
       )}
 
       {/* ══════════════════════════════════════════════════════════ */}
-      {/* PROOFS OF VERIFICATION                                    */}
+      {/* REAL-WORLD PROOFS                                         */}
       {/* ══════════════════════════════════════════════════════════ */}
-      <section className="bg-card border border-border rounded-2xl p-5 md:p-7 shadow-sm">
-        <div className="flex items-center justify-between mb-5">
+      <section className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
-              <Shield size={20} className="text-primary" />
+              <FileCheck size={20} className="text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-foreground tracking-tight">Proofs of Verification</h2>
-              <p className="text-muted-foreground text-[10px] font-medium">Connected accounts, credentials & identity signals</p>
+              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight leading-tight">Real-World Proofs</h2>
+              <p className="text-muted-foreground text-xs font-medium mt-0.5">Upload and verify physical documents to strengthen your identity</p>
             </div>
           </div>
-          <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">
+          <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20 hidden sm:inline-flex">
             {breakdown.categories.physical}/20 PTS
           </span>
         </div>
 
-        {/* Verified signals summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-5">
+        {/* Score breakdown from reputation */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
-            { label: 'Social Accounts', value: socialPlatforms.length, icon: Users, color: 'text-blue-400' },
-            { label: 'Documents', value: physicalCredentials.length, icon: FileCheck, color: 'text-emerald-400' },
-            { label: 'Wallets', value: Math.max(1, [...new Set(walletChains)].length) + addedWallets.length, icon: Wallet, color: 'text-purple-400' },
-            { label: 'Courses', value: badges.length, icon: BookOpen, color: 'text-amber-400' },
-            { label: 'Trust Score', value: `${breakdown.score}/100`, icon: TrendingUp, color: 'text-primary' },
+            { label: 'Physical Score', value: `${breakdown.categories.physical}/20`, icon: Shield, color: 'text-emerald-400' },
+            { label: 'Docs Verified', value: `${physicalCredentials.length}/4`, icon: FileCheck, color: 'text-primary' },
+            { label: 'Social Score', value: `${breakdown.categories.social}/40`, icon: Users, color: 'text-secondary' },
+            { label: 'Total Score', value: `${breakdown.score}/100`, icon: TrendingUp, color: 'text-amber-400' },
           ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="bg-muted/50 border border-border rounded-xl p-3 text-center">
-              <Icon size={14} className={cn('mx-auto mb-1.5', color)} />
-              <p className="text-base font-black text-foreground">{value}</p>
-              <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">{label}</p>
+            <div key={label} className="bg-muted/60 border border-border rounded-xl p-3 text-center">
+              <Icon size={16} className={cn('mx-auto mb-1.5', color)} />
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">{label}</p>
+              <p className="text-sm font-black text-foreground">{value}</p>
             </div>
           ))}
         </div>
 
-        {/* Document upload section */}
-        <div className="bg-muted/30 border border-border rounded-xl p-4 mb-4">
-          <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-3">Upload Verification Document</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        <div className="mb-5">
+          <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-2.5">Document Type</label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {(['Diploma', 'Certification', 'Award', 'ID'] as const).map((type) => {
               const IconComp = docTypeIconComponents[type];
               return (
@@ -605,62 +593,66 @@ const CredentialsPage: React.FC = () => {
                   key={type}
                   onClick={() => setDocType(type)}
                   className={cn(
-                    'px-3 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2',
+                    'px-4 py-3 rounded-xl text-xs font-bold transition-all border flex items-center gap-2.5',
                     docType === type
                       ? 'bg-foreground text-background border-foreground shadow-md'
                       : 'bg-muted border-border text-muted-foreground hover:bg-muted/70 hover:border-primary/30'
                   )}
                 >
-                  <IconComp size={14} /> {type}
+                  <IconComp size={16} /> {type}
                 </button>
               );
             })}
           </div>
-
-          <div className="relative group">
-            <div className="bg-card border-2 border-dashed border-border rounded-xl p-4 text-center hover:bg-muted/50 hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden">
-              <input
-                type="file"
-                onChange={handleFileUpload}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                accept=".pdf,.jpg,.png"
-              />
-              {selectedFile ? (
-                <div className="flex items-center gap-3 text-primary animate-fade-in justify-center">
-                  <div className="p-2 bg-primary/10 rounded-xl">
-                    <FileText size={18} />
-                  </div>
-                  <div className="text-left min-w-0">
-                    <span className="font-black text-sm tracking-tight block truncate">{selectedFile.name}</span>
-                    <span className="text-xs text-muted-foreground font-medium">
-                      Type: <strong className="text-foreground">{docType}</strong>
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
-                  <Upload size={20} />
-                  <span className="font-bold text-xs">Drop file or click to upload</span>
-                  <p className="text-[10px] font-medium text-muted-foreground">PDF, JPG, PNG</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <ChoiceButton
-            onClick={submitPhysicalProof}
-            isLoading={isVerifyingDoc}
-            disabled={!selectedFile}
-            className="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-widest mt-3"
-          >
-            VERIFY & MINT CREDENTIAL
-          </ChoiceButton>
         </div>
 
+        <div className="relative group mb-5">
+          <div className="bg-muted border-2 border-dashed border-border rounded-xl p-6 md:p-8 text-center hover:bg-muted/70 hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden">
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+              accept=".pdf,.jpg,.png"
+            />
+            {selectedFile ? (
+              <div className="flex items-center gap-4 text-primary animate-fade-in justify-center">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <FileText size={24} />
+                </div>
+                <div className="text-left min-w-0">
+                  <span className="font-black text-sm tracking-tight block truncate">{selectedFile.name}</span>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Type: <strong className="text-foreground">{docType}</strong>
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <div className="p-3 bg-card rounded-xl shadow-sm">
+                  <Upload size={28} />
+                </div>
+                <div className="text-center">
+                  <span className="font-bold text-sm tracking-tight block">Drop file here or click to upload</span>
+                  <p className="text-xs font-medium text-muted-foreground mt-1">Supports PDF, JPG, PNG</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <ChoiceButton
+          onClick={submitPhysicalProofForManualReview}
+          isLoading={isVerifyingDoc}
+          disabled={!selectedFile}
+          className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest"
+        >
+          VERIFY & MINT CREDENTIAL
+        </ChoiceButton>
+
         {physicalCredentials.length > 0 && (
-          <div className="pt-3 border-t border-border">
-            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-2">Submitted Documents</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="mt-6 pt-5 border-t border-border">
+            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-3">Submitted Documents</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {physicalCredentials.map((vc: VerifiableCredential) => {
                 const dtype = vc.credentialSubject.documentType as string;
                 const fname = vc.credentialSubject.fileName as string;
@@ -668,9 +660,9 @@ const CredentialsPage: React.FC = () => {
                 const IconComp = docTypeIconComponents[dtype] || FileText;
                 const pending = status.toLowerCase().includes('pending');
                 return (
-                  <div key={vc.id} className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3">
+                  <div key={vc.id} className="bg-muted border border-border rounded-xl p-3.5 flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-                      <IconComp size={14} className="text-primary" />
+                      <IconComp size={18} className="text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -687,38 +679,6 @@ const CredentialsPage: React.FC = () => {
             </div>
           </div>
         )}
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════ */}
-      {/* CHOICE CV — Auto-generated summary                        */}
-      {/* ══════════════════════════════════════════════════════════ */}
-      <section className="bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="bg-primary/10 p-2 rounded-xl border border-primary/20">
-            <FileCode size={18} className="text-primary" />
-          </div>
-          <div>
-            <h2 className="text-base font-black text-foreground tracking-tight">CHOICE CV</h2>
-            <p className="text-muted-foreground text-[10px] font-medium">Auto-generated professional summary</p>
-          </div>
-        </div>
-
-        <p className="text-sm text-foreground leading-relaxed mb-4">{cvSummary}</p>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            { label: 'Courses', value: badges.length, icon: BookOpen, color: 'text-emerald-400' },
-            { label: 'Socials', value: socialPlatforms.length, icon: Users, color: 'text-blue-400' },
-            { label: 'Chains', value: [...new Set(walletChains)].length, icon: Wallet, color: 'text-purple-400' },
-            { label: 'Documents', value: physicalDocs.length, icon: FileText, color: 'text-amber-400' },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="bg-muted/50 border border-border rounded-lg p-2.5 text-center">
-              <Icon size={14} className={cn('mx-auto mb-1', color)} />
-              <p className="text-lg font-black text-foreground">{value}</p>
-              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">{label}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════ */}

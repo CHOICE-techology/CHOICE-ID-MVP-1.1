@@ -8,8 +8,6 @@ import { addCredential } from '@/services/storageService';
 import { mockUploadToIPFS } from '@/services/cryptoService';
 import { useWallet } from '@/contexts/WalletContext';
 import { ShareBadgeDialog } from '@/components/education/ShareBadgeDialog';
-import { grantReward } from '@/services/rewardService';
-import { useChoiceStore } from '@/store/useChoiceStore';
 
 const LessonPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -95,19 +93,6 @@ const LessonPage: React.FC = () => {
       await mockUploadToIPFS(badgeVC);
       const newIdentity = await addCredential(identity, badgeVC);
       await onUpdateIdentity(newIdentity);
-
-      // Grant CHOICE coin reward for completing course
-      const rewardAmount = course.choiceReward ?? 40;
-      const result = await grantReward(
-        identity.address,
-        'education_reward',
-        `course_${course.id}`,
-        rewardAmount
-      );
-      if (result.success && !result.duplicate && result.amount) {
-        useChoiceStore.getState().incrementBalance(result.amount);
-      }
-
       setCompleted(true);
     } catch (e) {
       console.error(e);
@@ -269,13 +254,9 @@ const LessonPage: React.FC = () => {
               🏆
             </div>
             <h2 className="text-2xl font-bold mb-2">Course Completed!</h2>
-            <p className="text-muted-foreground mb-3">
+            <p className="text-muted-foreground mb-6">
               Congratulations! You've earned the <strong>{course.title}</strong> badge and <strong>{course.points} Reputation Points</strong>.
             </p>
-            <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 mb-6">
-              <span className="text-primary font-black text-lg">◈ +{course.choiceReward ?? 40} CHOICE</span>
-              <p className="text-xs text-muted-foreground mt-0.5">Reward added to your balance</p>
-            </div>
             <div className="space-y-3">
               <button
                 onClick={() => setShowShare(true)}
