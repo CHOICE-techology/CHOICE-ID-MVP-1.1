@@ -224,6 +224,16 @@ const EducationPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {shareCourse && (
+        <ShareBadgeDialog
+          open={!!shareCourse}
+          onOpenChange={(open) => { if (!open) setShareCourse(null); }}
+          courseName={shareCourse.title}
+          courseLevel={shareCourse.level}
+          points={shareCourse.points}
+        />
+      )}
     </div>
   );
 };
