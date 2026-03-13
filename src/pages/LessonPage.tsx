@@ -24,6 +24,7 @@ const LessonPage: React.FC = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (!course) {
     return (
