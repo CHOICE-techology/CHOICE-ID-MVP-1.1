@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChoiceButton } from '@/components/ChoiceButton';
-import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles, Share2 } from 'lucide-react';
+import { Award, CheckCircle, Lock, PlayCircle, Star, Trophy, Zap, Sparkles } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
 import { useChoiceStore } from '@/store/useChoiceStore';
 import { COURSES } from '@/data/coursesData';
-import { ShareBadgeDialog } from '@/components/education/ShareBadgeDialog';
-import { VerifiableCredential } from '@/types';
 
 
 const LEVEL_STYLES: Record<string, { bg: string; text: string; border: string }> = {
@@ -19,13 +17,6 @@ const EducationPage: React.FC = () => {
   const { userIdentity: identity, isConnected } = useWallet();
   const { setWalletModalOpen } = useChoiceStore();
   const navigate = useNavigate();
-  const [shareCourse, setShareCourse] = useState<typeof COURSES[0] | null>(null);
-
-  // Get connected social platform IDs
-  const connectedPlatforms = identity?.credentials
-    .filter((vc: VerifiableCredential) => vc.type.includes('SocialCredential'))
-    .map((vc: VerifiableCredential) => (vc.credentialSubject as any).platform as string)
-    .filter(Boolean) || [];
 
   const hasBadge = (courseTitle: string) =>
     identity?.credentials.some(vc => vc.type.includes('EducationCredential') && vc.credentialSubject.courseName === courseTitle);
@@ -115,12 +106,6 @@ const EducationPage: React.FC = () => {
                   <Star size={10} className="text-amber-400 fill-amber-400" />
                   <span className="text-[10px] font-bold text-muted-foreground">+{course.points} pts</span>
                 </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShareCourse(course); }}
-                  className="mt-2 flex items-center gap-1 text-[9px] font-bold text-primary hover:text-primary/80 transition-colors bg-primary/5 border border-primary/20 px-2 py-1 rounded-md"
-                >
-                  <Share2 size={10} /> Share
-                </button>
               </div>
             ))}
           </div>
@@ -231,18 +216,6 @@ const EducationPage: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Share Badge Dialog */}
-      {shareCourse && (
-        <ShareBadgeDialog
-          open={!!shareCourse}
-          onClose={() => setShareCourse(null)}
-          courseTitle={shareCourse.title}
-          courseLevel={shareCourse.level}
-          coursePoints={shareCourse.points}
-          badgeColor={shareCourse.badgeColor}
-          connectedPlatforms={connectedPlatforms}
-        />
-      )}
     </div>
   );
 };
