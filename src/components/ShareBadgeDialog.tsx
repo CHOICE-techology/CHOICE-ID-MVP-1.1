@@ -42,8 +42,8 @@ const platforms = [
     id: 'facebook',
     name: 'Facebook',
     logo: facebookLogo,
-    getUrl: (_text: string) =>
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(CHOICE_URL)}`,
+    getUrl: (text: string) =>
+      `https://www.facebook.com/sharer.php?u=${encodeURIComponent(CHOICE_URL)}&quote=${encodeURIComponent(text)}`,
     tint: '220 46% 48%',
   },
   {

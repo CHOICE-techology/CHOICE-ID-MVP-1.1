@@ -277,9 +277,15 @@ export const SocialReputationHub: React.FC<SocialReputationHubProps> = ({ identi
       // Randomized mock activity data — produces realistic low/medium/high scores
       const activityData = generateMockActivityData();
 
+      // Extract clean handle/username for display
+      const cleanHandle = isHandlePlatform(activePlatform)
+        ? handleInput.replace(/^@/, '')
+        : handleInput.replace(/\/$/, '').split('/').pop() || handleInput;
+
       const data = {
         ...activityData,
         platform: platformToUse,
+        handle: cleanHandle,
         platformScore: Math.round(
           Math.min(30, Math.log10(Math.max(activityData.followers, 1)) * 6) +
           Math.min(40, activityData.engagementRate * 5) +
