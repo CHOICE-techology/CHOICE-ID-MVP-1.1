@@ -143,6 +143,9 @@ const BountyBoardPage: React.FC = () => {
   const [totalChoiceBalance, setTotalChoiceBalance] = useState(0);
 
   const score = identity ? calculateIdentityScore(identity.credentials) : 0;
+  const completedCoursesCount = identity
+    ? COURSES.filter(c => identity.credentials.some(vc => vc.type.includes('EducationCredential') && (vc.credentialSubject as any).courseName === c.title)).length
+    : 0;
 
   // Sync total CHOICE balance from rewardService (same source as sidebar)
   useEffect(() => {
