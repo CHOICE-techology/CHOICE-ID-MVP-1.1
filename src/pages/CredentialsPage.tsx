@@ -86,6 +86,14 @@ const CredentialsPage: React.FC = () => {
   const [isAnalyzingAdded, setIsAnalyzingAdded] = useState(false);
   const [addedWallets, setAddedWallets] = useState<AddedWallet[]>([]);
 
+  // Auto-analyze connected wallet on mount
+  useEffect(() => {
+    if (identity?.address && !walletStats && !walletCredential && !isAnalyzingWallet) {
+      analyzeWallet();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [identity?.address]);
+
   if (!identity)
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
