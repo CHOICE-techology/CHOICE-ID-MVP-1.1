@@ -1,18 +1,79 @@
-import React, { useState } from 'react';
-import { Heart, Globe, CheckCircle, Users, Shield, TrendingUp, Clock, Gift, Copy, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, Globe, CheckCircle, Users, Shield, TrendingUp, Clock, Gift, Copy, Share2, UserPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ChoiceButton } from '@/components/ChoiceButton';
 import { useToast } from '@/hooks/use-toast';
+import { useWallet } from '@/contexts/WalletContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Referral {
+  id: string;
+  referral_code: string;
+  referred_wallet: string | null;
+  referred_name: string | null;
+  joined_at: string | null;
+  created_at: string;
+}
 
 const AboutPage: React.FC = () => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [affiliateLink, setAffiliateLink] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [loadingReferrals, setLoadingReferrals] = useState(false);
   const { toast } = useToast();
+  const { userIdentity } = useWallet();
 
-  const generateAffiliateLink = () => {
+  const walletAddress = userIdentity?.address || 'guest';
+
+  // Load existing referrals for this user
+  const loadReferrals = async () => {
+    setLoadingReferrals(true);
+    try {
+      const { data } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_wallet', walletAddress)
+        .order('created_at', { ascending: false });
+      if (data) setReferrals(data);
+    } catch (e) {
+      console.error('Failed to load referrals', e);
+    } finally {
+      setLoadingReferrals(false);
+    }
+  };
+
+  useEffect(() => {
+    if (walletAddress !== 'guest') loadReferrals();
+  }, [walletAddress]);
+
+  const generateAffiliateLink = async () => {
+    // Check if user already has a referral code
+    const existing = referrals.find(r => !r.referred_wallet);
+    if (existing) {
+      const link = `${window.location.origin}/join?ref=${existing.referral_code}`;
+      setAffiliateLink(link);
+      setReferralCode(existing.referral_code);
+      setInviteOpen(true);
+      return;
+    }
+
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const link = `https://CHOICE.love/join?ref=${code}`;
+    const link = `${window.location.origin}/join?ref=${code}`;
+
+    // Save to database
+    try {
+      await supabase.from('referrals').insert({
+        referrer_wallet: walletAddress,
+        referral_code: code,
+      });
+      await loadReferrals();
+    } catch (e) {
+      console.error('Failed to save referral', e);
+    }
+
     setAffiliateLink(link);
+    setReferralCode(code);
     setInviteOpen(true);
   };
 
@@ -20,6 +81,8 @@ const AboutPage: React.FC = () => {
     navigator.clipboard.writeText(affiliateLink);
     toast({ title: 'Link Copied!', description: 'Your affiliate link has been copied to clipboard.' });
   };
+
+  const joinedReferrals = referrals.filter(r => r.referred_wallet);
 
   return (
     <div className="space-y-10 animate-fade-in pb-10">
@@ -114,22 +177,71 @@ const AboutPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Invite a Friend */}
-      <div className="bg-card border border-border rounded-3xl p-8 md:p-10 shadow-xl">
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* INVITE FRIENDS — with referral tracking                    */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
         <div className="flex flex-col md:flex-row items-center gap-6">
           <div className="bg-primary/10 p-4 rounded-2xl shrink-0">
-            <Gift size={40} className="text-primary" />
+            <Gift size={36} className="text-primary" />
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Invite a Friend to CHOICE.love</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              Share CHOICE ID with your network and help build a more trusted decentralized world. Generate your personal affiliate link and start inviting friends today.
+            <h2 className="text-2xl font-bold text-foreground mb-2">Invite Friends to CHOICE.love</h2>
+            <p className="text-muted-foreground leading-relaxed text-sm">
+              Share CHOICE ID with your network. Generate your personal affiliate link and track everyone who joins.
             </p>
           </div>
           <ChoiceButton onClick={generateAffiliateLink} className="shrink-0">
             <Share2 size={16} className="mr-2" /> Generate Invite Link
           </ChoiceButton>
         </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-muted/50 border border-border rounded-xl p-3 text-center">
+            <p className="text-2xl font-black text-foreground">{referrals.length}</p>
+            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Links Generated</p>
+          </div>
+          <div className="bg-muted/50 border border-border rounded-xl p-3 text-center">
+            <p className="text-2xl font-black text-primary">{joinedReferrals.length}</p>
+            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Friends Joined</p>
+          </div>
+          <div className="bg-muted/50 border border-border rounded-xl p-3 text-center">
+            <p className="text-2xl font-black text-emerald-500">{joinedReferrals.length * 25}</p>
+            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">CHOICE Earned</p>
+          </div>
+        </div>
+
+        {/* Invited friends list */}
+        {joinedReferrals.length > 0 && (
+          <div>
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-3">Friends Who Joined</p>
+            <div className="space-y-2">
+              {joinedReferrals.map((r) => (
+                <div key={r.id} className="bg-muted/30 border border-border rounded-xl p-3 flex items-center gap-3">
+                  <div className="bg-emerald-500/10 p-2 rounded-lg">
+                    <UserPlus size={14} className="text-emerald-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">
+                      {r.referred_name || `${r.referred_wallet?.slice(0, 6)}...${r.referred_wallet?.slice(-4)}`}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Joined {r.joined_at ? new Date(r.joined_at).toLocaleDateString() : '—'}
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-500">+25 ◈</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {joinedReferrals.length === 0 && referrals.length > 0 && (
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">No friends have joined yet. Share your link to get started!</p>
+          </div>
+        )}
       </div>
 
       {/* CTA */}
@@ -165,6 +277,10 @@ const AboutPage: React.FC = () => {
               <button onClick={copyLink} className="shrink-0 p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors">
                 <Copy size={16} className="text-primary" />
               </button>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-3 border border-border text-center">
+              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Your Referral Code</p>
+              <p className="text-lg font-black text-primary tracking-widest">{referralCode}</p>
             </div>
             <p className="text-xs text-muted-foreground text-center">
               Anyone who joins through your link will be linked to your CHOICE ID profile.
