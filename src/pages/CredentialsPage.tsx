@@ -319,31 +319,33 @@ const CredentialsPage: React.FC = () => {
           </div>
 
           {/* Wallet address bar + ANALYZE button */}
-          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl p-2.5 mb-6">
-            <div className="bg-primary/10 p-1.5 rounded-lg">
-              <Wallet size={14} className="text-primary" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl p-2.5 mb-6">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="bg-primary/10 p-1.5 rounded-lg shrink-0">
+                <Wallet size={14} className="text-primary" />
+              </div>
+              <input
+                type="text"
+                value={customAddress}
+                onChange={(e) => setCustomAddress(e.target.value)}
+                placeholder="Enter wallet address..."
+                className="flex-1 min-w-0 text-xs font-mono text-slate-300 truncate bg-transparent border-none outline-none placeholder:text-slate-500"
+              />
+              {customAddress !== identity.address && customAddress.trim() && (
+                <button
+                  onClick={() => setCustomAddress(identity.address)}
+                  className="text-slate-400 hover:text-slate-200 transition-colors p-1 shrink-0"
+                  title="Reset to connected wallet"
+                >
+                  <X size={12} />
+                </button>
+              )}
             </div>
-            <input
-              type="text"
-              value={customAddress}
-              onChange={(e) => setCustomAddress(e.target.value)}
-              placeholder="Enter any wallet address to analyze..."
-              className="flex-1 text-xs font-mono text-slate-300 truncate bg-transparent border-none outline-none placeholder:text-slate-500"
-            />
-            {customAddress !== identity.address && customAddress.trim() && (
-              <button
-                onClick={() => setCustomAddress(identity.address)}
-                className="text-slate-400 hover:text-slate-200 transition-colors p-1"
-                title="Reset to connected wallet"
-              >
-                <X size={12} />
-              </button>
-            )}
             <button
               onClick={() => analyzeWallet()}
               disabled={isAnalyzingWallet || !customAddress.trim()}
               className={cn(
-                'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
+                'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shrink-0',
                 isAnalyzingWallet || !customAddress.trim()
                   ? 'bg-primary/30 text-primary/60 cursor-wait'
                   : 'bg-primary text-primary-foreground hover:brightness-110 shadow-lg shadow-primary/30',
