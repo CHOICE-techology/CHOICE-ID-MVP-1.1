@@ -336,7 +336,7 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
               </div>
 
               {/* CV Body */}
-              <div className="p-5 space-y-4">
+              <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
                 <div>
                   <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Applying For</p>
                   <p className="font-bold text-foreground">{job.title} at {job.company}</p>
