@@ -98,7 +98,7 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">
             {step === 'sent' ? 'Application Sent!' : `Apply: ${job.title}`}
