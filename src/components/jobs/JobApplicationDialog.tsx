@@ -318,14 +318,15 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
           <div className="space-y-4">
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               {/* CV Header */}
-              <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-5 text-white">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
-                    <User size={24} className="text-primary" />
+              <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-3 sm:p-5 text-white">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center shrink-0">
+                    <User size={18} className="text-primary sm:hidden" />
+                    <User size={24} className="text-primary hidden sm:block" />
                   </div>
-                  <div>
-                    <h3 className="font-black text-lg">{identity.displayName || identity.address.slice(0, 8) + '...'}</h3>
-                    <p className="text-slate-400 text-xs font-mono">{identity.did}</p>
+                  <div className="min-w-0">
+                    <h3 className="font-black text-sm sm:text-lg truncate">{identity.displayName || identity.address.slice(0, 8) + '...'}</h3>
+                    <p className="text-slate-400 text-[10px] sm:text-xs font-mono truncate max-w-[200px] sm:max-w-none">{identity.did}</p>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="bg-primary/20 text-primary text-[9px] font-bold px-2 py-0.5 rounded uppercase">Score: {score}</span>
                       <span className="bg-emerald-500/20 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded uppercase">Match: {job.matchScore}%</span>
