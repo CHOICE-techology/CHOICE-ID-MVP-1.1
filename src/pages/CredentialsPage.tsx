@@ -358,7 +358,7 @@ const CredentialsPage: React.FC = () => {
           {/* Stats row (visible after analysis) */}
           {walletCredential && (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3 mb-6">
                 {[
                   { label: 'ACCOUNT AGE', value: walletSubject?.accountAge ?? walletStats?.accountAge ?? '—', icon: Clock3 },
                   { label: 'TOTAL VOLUME', value: walletSubject?.totalVolume ?? walletStats?.totalVolume ?? '—', icon: Activity },

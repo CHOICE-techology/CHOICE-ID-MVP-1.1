@@ -342,7 +342,7 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
                   <p className="font-bold text-foreground">{job.title} at {job.company}</p>
                 </div>
 
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div className="bg-muted rounded-lg p-2 text-center">
                     <Award size={14} className="mx-auto text-primary mb-1" />
                     <p className="text-[8px] font-black text-muted-foreground uppercase">Social</p>
