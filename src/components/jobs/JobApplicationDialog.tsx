@@ -98,7 +98,7 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">
             {step === 'sent' ? 'Application Sent!' : `Apply: ${job.title}`}
@@ -112,11 +112,11 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
 
         {/* Step indicators */}
         {step !== 'sent' && (
-          <div className="flex items-center gap-1 mb-4">
+          <div className="flex items-center gap-0.5 sm:gap-1 mb-3 sm:mb-4 overflow-x-auto">
             {STEPS.map((s, i) => (
               <React.Fragment key={s.key}>
                 <div className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all',
+                  'flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap',
                   i === currentStepIndex
                     ? 'bg-primary text-primary-foreground'
                     : i < currentStepIndex
@@ -318,14 +318,15 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
           <div className="space-y-4">
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               {/* CV Header */}
-              <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-5 text-white">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
-                    <User size={24} className="text-primary" />
+              <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-3 sm:p-5 text-white">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center shrink-0">
+                    <User size={18} className="text-primary sm:hidden" />
+                    <User size={24} className="text-primary hidden sm:block" />
                   </div>
-                  <div>
-                    <h3 className="font-black text-lg">{identity.displayName || identity.address.slice(0, 8) + '...'}</h3>
-                    <p className="text-slate-400 text-xs font-mono">{identity.did}</p>
+                  <div className="min-w-0">
+                    <h3 className="font-black text-sm sm:text-lg truncate">{identity.displayName || identity.address.slice(0, 8) + '...'}</h3>
+                    <p className="text-slate-400 text-[10px] sm:text-xs font-mono truncate max-w-[200px] sm:max-w-none">{identity.did}</p>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="bg-primary/20 text-primary text-[9px] font-bold px-2 py-0.5 rounded uppercase">Score: {score}</span>
                       <span className="bg-emerald-500/20 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded uppercase">Match: {job.matchScore}%</span>
@@ -335,13 +336,13 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
               </div>
 
               {/* CV Body */}
-              <div className="p-5 space-y-4">
+              <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
                 <div>
                   <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Applying For</p>
                   <p className="font-bold text-foreground">{job.title} at {job.company}</p>
                 </div>
 
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div className="bg-muted rounded-lg p-2 text-center">
                     <Award size={14} className="mx-auto text-primary mb-1" />
                     <p className="text-[8px] font-black text-muted-foreground uppercase">Social</p>
