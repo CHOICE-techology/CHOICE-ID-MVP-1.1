@@ -112,11 +112,11 @@ export const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
 
         {/* Step indicators */}
         {step !== 'sent' && (
-          <div className="flex items-center gap-1 mb-4">
+          <div className="flex items-center gap-0.5 sm:gap-1 mb-3 sm:mb-4 overflow-x-auto">
             {STEPS.map((s, i) => (
               <React.Fragment key={s.key}>
                 <div className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all',
+                  'flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap',
                   i === currentStepIndex
                     ? 'bg-primary text-primary-foreground'
                     : i < currentStepIndex
