@@ -289,7 +289,7 @@ const CredentialsPage: React.FC = () => {
           </div>
 
           {/* Chain icons row */}
-          <div className="flex flex-wrap gap-2 md:gap-3 mb-6 justify-center md:justify-start">
+          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-11 gap-1.5 mb-6">
             {CHAINS.map((chain) => {
               const active = walletCredential ? isChainActive(chain.id) : false;
               return (
