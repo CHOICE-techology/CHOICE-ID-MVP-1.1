@@ -272,7 +272,7 @@ const CredentialsPage: React.FC = () => {
       {/* WALLET HISTORY — DARK MULTI-CHAIN BLOCK                   */}
       {/* ══════════════════════════════════════════════════════════ */}
       <section className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 md:p-8">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-5 md:p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
