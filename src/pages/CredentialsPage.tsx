@@ -608,7 +608,7 @@ const CredentialsPage: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════ */}
       {/* REAL-WORLD PROOFS                                         */}
       {/* ══════════════════════════════════════════════════════════ */}
-      <section className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm">
+      <section className="bg-card border border-border rounded-2xl p-4 sm:p-5 md:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
