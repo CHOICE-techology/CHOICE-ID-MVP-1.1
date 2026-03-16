@@ -289,7 +289,7 @@ const CredentialsPage: React.FC = () => {
           </div>
 
           {/* Chain icons row */}
-          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-11 gap-1.5 mb-6">
+          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-11 gap-1 sm:gap-1.5 mb-6">
             {CHAINS.map((chain) => {
               const active = walletCredential ? isChainActive(chain.id) : false;
               return (
@@ -297,7 +297,7 @@ const CredentialsPage: React.FC = () => {
                   key={chain.id}
                   onClick={() => setSelectedChain(selectedChain === chain.id ? null : chain.id)}
                   className={cn(
-                    'flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-lg border transition-all min-w-[48px]',
+                    'flex flex-col items-center gap-0.5 sm:gap-1 p-1 sm:p-1.5 md:p-2 rounded-lg border transition-all',
                     active
                       ? 'border-primary/40 bg-primary/10'
                       : 'border-slate-700 bg-slate-800/50 opacity-50 hover:opacity-80',
