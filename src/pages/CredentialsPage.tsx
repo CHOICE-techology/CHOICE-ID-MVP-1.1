@@ -272,7 +272,7 @@ const CredentialsPage: React.FC = () => {
       {/* WALLET HISTORY — DARK MULTI-CHAIN BLOCK                   */}
       {/* ══════════════════════════════════════════════════════════ */}
       <section className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 md:p-8">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-5 md:p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
@@ -289,7 +289,7 @@ const CredentialsPage: React.FC = () => {
           </div>
 
           {/* Chain icons row */}
-          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-11 gap-1.5 mb-6">
+          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-11 gap-1 sm:gap-1.5 mb-6">
             {CHAINS.map((chain) => {
               const active = walletCredential ? isChainActive(chain.id) : false;
               return (
@@ -297,7 +297,7 @@ const CredentialsPage: React.FC = () => {
                   key={chain.id}
                   onClick={() => setSelectedChain(selectedChain === chain.id ? null : chain.id)}
                   className={cn(
-                    'flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-lg border transition-all min-w-[48px]',
+                    'flex flex-col items-center gap-0.5 sm:gap-1 p-1 sm:p-1.5 md:p-2 rounded-lg border transition-all',
                     active
                       ? 'border-primary/40 bg-primary/10'
                       : 'border-slate-700 bg-slate-800/50 opacity-50 hover:opacity-80',
@@ -425,7 +425,7 @@ const CredentialsPage: React.FC = () => {
                     <div className="bg-primary/10 p-1.5 rounded-lg">
                       <Wallet size={14} className="text-primary" />
                     </div>
-                    <span className="text-xs font-mono text-slate-300 truncate max-w-[200px] md:max-w-[400px]">{identity.address}</span>
+                    <span className="text-xs font-mono text-slate-300 truncate max-w-[120px] sm:max-w-[200px] md:max-w-[400px]">{identity.address}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="bg-primary/20 text-primary text-[9px] font-bold px-2 py-0.5 rounded uppercase">{walletSubject?.chain || 'ETHEREUM'}</span>
@@ -608,7 +608,7 @@ const CredentialsPage: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════ */}
       {/* REAL-WORLD PROOFS                                         */}
       {/* ══════════════════════════════════════════════════════════ */}
-      <section className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm">
+      <section className="bg-card border border-border rounded-2xl p-4 sm:p-5 md:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
