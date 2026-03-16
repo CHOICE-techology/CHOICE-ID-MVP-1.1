@@ -425,7 +425,7 @@ const CredentialsPage: React.FC = () => {
                     <div className="bg-primary/10 p-1.5 rounded-lg">
                       <Wallet size={14} className="text-primary" />
                     </div>
-                    <span className="text-xs font-mono text-slate-300 truncate max-w-[200px] md:max-w-[400px]">{identity.address}</span>
+                    <span className="text-xs font-mono text-slate-300 truncate max-w-[120px] sm:max-w-[200px] md:max-w-[400px]">{identity.address}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="bg-primary/20 text-primary text-[9px] font-bold px-2 py-0.5 rounded uppercase">{walletSubject?.chain || 'ETHEREUM'}</span>
